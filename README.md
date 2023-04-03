@@ -1,6 +1,13 @@
 # Projekt TKOM
-Autor: Michał Kowalczyk
+
+## Informacje wstępne
+Autor: **Michał Kowalczyk**
+Nazwa języka: **TriSqr**
+
+## Spis treści
 - [Projekt TKOM](#projekt-tkom)
+  - [Informacje wstępne](#informacje-wstępne)
+  - [Spis treści](#spis-treści)
   - [Treść zadania](#treść-zadania)
   - [Obsługiwane typy zmiennych](#obsługiwane-typy-zmiennych)
   - [Operatory](#operatory)
