@@ -304,15 +304,15 @@ func main() {
 - return    :== "return ", identifier, ";"
               | "return ", variable_val, ";"
 - list      :== "[", (identifier_stmnt | expression), {", ", (identifier_stmnt | expression)} "]";
-- value :== int_val
+- value :== ["-"], int_val
           | bool_val
-          | double_val
+          | ["-"], double_val
           | string_val
           | "none";
 - figure_declaration  :== "Triangle(",  expression, (", ", expression)*3, ")"
                         | "Square(", expression, ")"
                         | "Circle(", expression, ", ", expression, ")"
-                        | "Rectangle(", expression, ", ", expression,")"
+                        | "Rectangle(", expression, ", ", expression, ")"
                         | "Rhombus(", expression, ", ", expression, ")"
                         | "Trapezoid(",  expression, (", ", expression)*3, ")";
 - identifier :== (?!main)[a-zA-Z][0-9a-zA-Z_]*
@@ -326,6 +326,16 @@ func main() {
                   | "/";
 - add_operator :== "+"
                   | "-";
+- bool_val     :== "true"
+                  | "false"
+- double_val  :== int_val, ".", int_val;
+- string_val  :== '"', {char | digit | special_char}, '"';
+- char  :== [a-zA-Z];
+- special_char  :== "\n" | "\\" | '\"' | pozostałe normalnie;
+- int_val     :== digit_without_zero, {digit}
+                  | "0";
+- digit  :==  digit_without_zero | "0";
+- digit_without_zero  :== [1-9]
 
 ## Sposób testowania
 
