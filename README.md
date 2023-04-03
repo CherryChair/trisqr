@@ -2,6 +2,7 @@
 
 ## Informacje wstępne
 Autor: **Michał Kowalczyk**
+
 Nazwa języka: **TriSqr**
 
 ## Spis treści
@@ -11,13 +12,14 @@ Nazwa języka: **TriSqr**
   - [Treść zadania](#treść-zadania)
   - [Obsługiwane typy zmiennych](#obsługiwane-typy-zmiennych)
   - [Operatory](#operatory)
+  - [Priorytety operatorów](#priorytety-operatorów)
   - [Komentarze](#komentarze)
   - [Tworzenie zmiennych](#tworzenie-zmiennych)
   - [Instrukcja warunkowa](#instrukcja-warunkowa)
   - [Pętle](#pętle)
   - [Funkcje](#funkcje)
   - [Błędy](#błędy)
-  - [Deklaracje figur](#deklaracje-figur)
+  - [Tworzenie figur](#tworzenie-figur)
   - [Metody i atrybuty figur](#metody-i-atrybuty-figur)
     - [Współdzielone](#współdzielone)
     - [Charakterystyczne](#charakterystyczne)
@@ -70,7 +72,7 @@ Jako, że w zastosowaniach języka mamy do czynienia z operacjami na figurach ge
 
 ## Operatory
 
-
+## Priorytety operatorów
 
 ## Komentarze
 
@@ -142,7 +144,7 @@ W przypadku błędów pojawią się komunikaty w stylu:
 *linia*,*znak*: *treść błędu*
 ```
 
-## Deklaracje figur
+## Tworzenie figur
 
 Wszystkie podane niżej wartości argumentów będą podawane jako double
 
@@ -262,38 +264,44 @@ func main() {
 ### Przykład nr 3
 
 
-
 ## Gramatyka
 
-- program   :== func_declaration program
-              | main_declaration
-- main_declaration  :== "func main(" func_variables "){" code_block return "}"
-- func_declaration  :== "func" func_name "(" variable* "){" code_block return "}"
-- code_block  :== statement*
+- program   :== {func_declaration}, main_declaration;
+- main_declaration  :== "func main(){", code_block, "}";
+- func_declaration  :== "func ", identifier, "(", [identifier, {", ", identifier}], "){", code_block, "}";
+- code_block  :== {statement};
 - statement :== while_stmnt
+            | fori_stmnt
+            | for_stmnt
             | if_stmnt
-            | declaration
-            | value_change
-            | function_call
-            | figure_method_use
-- while_stmnt :== "while("  bool_expression* "){" code_block "}"
-- if_stmnt  :== "if("  bool_expression* "){" code_block "} else {" code_block "}"
-- declaration :==
+            | declaration, ";"
+            | value_change, ";" -połąćżyć
+            | function_call, ";" -połąćżyć
+            | figure_method_use, ";" -połąćżyć
+            | return, ";";
+- while_stmnt :== "while(",  bool_expression, "){", code_block, "}";
+- if_stmnt  :== "if(",  bool_expression, "){", code_block, "}, ["elif(",  bool_expression, "){", code_block, "}"], ["else {", code_block, "}"];
+- fori_stmnt  :== "fori ", identifier, " in (", identifier | int_val, identifier | int_val, "){", code_block "}";
+- for_stmnt :== "for ", identifier, " in ", identifier, "{", code_block "}";
+- bool_expression :== bool_and, {"||",  bool_and};
+- bool_and  :== bool_comp, {"&&",  bool_comp};
+- bool_comp :== expression, [comp_operator, expression];
+- declaration :== "vv ", identifier, ["=", expression], ";";
 - value_change  :==
 - function_call :==
 - figure_method_use :==
-- bool_expression :==
 - varaible_val  :==
-- func_variable  :== variable  ", "
-- variable :== [a-zA-Z_]+
-- func_name :== [a-zA-Z_]+
-- return    :== "return" variable ";"
-              | "return" varable_val ";"
+- return    :== "return ", identifier, ";"
+              | "return ", variable_val, ";"
 
-Expression = "vv" Declaration ||
-             "func" Function ||
-             "while (" "){" Expression "}"
-
+- identifier :== [a-zA-Z_]+
+- identifier :== [1-9][0-9]+
+- comp_operator :== "<"
+                  | "=="
+                  | ">"
+                  | ">="
+                  | "<="
+                  | "==";
 ## Sposób testowania
 
 Oprócz podanych wyżej przykładów zastosowania języka, będziemy testować konwersje typów, sprawdzanie typów i błędy leksykalne.
