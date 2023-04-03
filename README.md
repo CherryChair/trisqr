@@ -11,8 +11,6 @@ Nazwa języka: **TriSqr**
   - [Spis treści](#spis-treści)
   - [Treść zadania](#treść-zadania)
   - [Obsługiwane typy zmiennych](#obsługiwane-typy-zmiennych)
-  - [Operatory](#operatory)
-  - [Priorytety operatorów](#priorytety-operatorów)
   - [Komentarze](#komentarze)
   - [Tworzenie zmiennych](#tworzenie-zmiennych)
   - [Instrukcja warunkowa](#instrukcja-warunkowa)
@@ -26,7 +24,6 @@ Nazwa języka: **TriSqr**
   - [Złożone przykłady wykorzystania języka](#złożone-przykłady-wykorzystania-języka)
     - [Przykład nr 1](#przykład-nr-1)
     - [Przykład nr 2](#przykład-nr-2)
-    - [Przykład nr 3](#przykład-nr-3)
   - [Gramatyka](#gramatyka)
   - [Sposób testowania](#sposób-testowania)
 
@@ -55,7 +52,9 @@ Typy:
   - linia
 - pusta wartośc none
   
-Kolekcja przyjmuje dowolne typy. 
+Kolekcja przyjmuje dowolne typy. Ma metodę .append, która dodaje pojedynczy element na koniec listy, dwie listy można łączyć za pomocą "+", zwraca kopię złączonej listy.
+
+Zmienne typi str można konkatenować za pomocą "+".
 
 Przez silne typowanie wymagane jest wprowadzenie możliwości konwersji typów. Będziemy to robić za pomocą operatora "to", przy zmianie zmiennej *variable* na typ *type*: ```*variable* to *type*```.
 
@@ -68,11 +67,8 @@ Możliwe konwersje typów:
 
 Wprowadzimy też wygodne sprawdzanie typów zmiennych: ``` *variable* is *type*```. Będzie można też sprawdzić, czy zmienna ma pustą wartość typu ```none```.
 
+
 Jako, że w zastosowaniach języka mamy do czynienia z operacjami na figurach geometrycznych wprowadzimy stałą ```pi``` typu double. 
-
-## Operatory
-
-## Priorytety operatorów
 
 ## Komentarze
 
@@ -85,8 +81,7 @@ Deklaracja zmiennej:
 vv nazwa_zmiennej
 ```
 Zmienne będą mutowalne.
-TODO dalej przeanalizuj mutowalność
-TODO zakresy widoczność
+Nie będzie zmiennych globalnych, zmienne do funkcji będą przekazywane przez referencje.
 ## Instrukcja warunkowa
 
 Instrukcją warunkową będzie:
@@ -132,9 +127,8 @@ fun NazwaFunkcji(a, b, c){
 Będzie możliwośc rekursji. Można zwracać pustą wartość za pomocą "return;". Nie trzeba podawać return na końcu funkcji, wtedy automatycznie zwraca pustą wartość.
 
 Poza tym będą wbudowane funkcje:
-- print(str)
+- print(str) - wypisuje w konsoli tekst zawarty w str
 - draw(list) - otwiera okienko z narysowanymi figurami geometrycznymi
-- draw(list)
 
 ## Błędy
 
@@ -144,15 +138,37 @@ Np. dla kodu w rodzaju:
 func main(){
   vv a = 0;
   vv b = 0;
-  vv c = a is b;
+  vv c = a is b1asd1;
 } 
 ```
 Pojawi się błąd:
 ```
-vv c = a is b;
-4,15: "b" is not type
+a is b1asd1;
+4,15: "b1asd1" is not a type
 ```
-
+Dla kodu w rodzaju:
+```
+func main(){
+  ?a;
+} 
+```
+Pojawi się błąd:
+```
+?a;
+2,15: token not recognized
+```
+Dla kodu w rodzaju:
+```
+func main(){
+  vv a = ["a", 1];
+  a.find("a");
+}
+```
+Pojawi się błąd:
+```
+?a;
+3,4: list does not have method find
+```
 ## Tworzenie figur
 
 Wszystkie podane niżej wartości argumentów będą podawane jako double
@@ -185,7 +201,7 @@ Parametry:
 
 - koło:
   - .r - parametr oznaczający promień
-  - .cent - środek 
+  - .cent - parametr oznaczający środek 
 
 ## Złożone przykłady wykorzystania języka
 
@@ -268,75 +284,74 @@ func main() {
 }
 ```
 
-### Przykład nr 3
-
-
 ## Gramatyka
-
-- program   :== {func_declaration}, main_declaration;
-- main_declaration  :== "func main(){", code_block, "}";
-- func_declaration  :== "func ", identifier, "(", [identifier, {", ", identifier}], "){", code_block, "}";
-- code_block  :== {statement};
-- statement :== while_stmnt
-            | fori_stmnt
-            | for_stmnt
-            | if_stmnt
-            | declaration
-            | identifier_stmnt, ["=", expression], ";"
-            | return;
-- while_stmnt :== "while(",  bool_expression, "){", code_block, "}";
-- if_stmnt  :== "if(",  bool_expression, "){", code_block, "}, {"elif(",  bool_expression, "){", code_block, "}"}, ["else {", code_block, "}"];
-- fori_stmnt  :== "fori ", identifier, " in (", (identifier | int_val), (identifier | int_val), "){", code_block "}";
-- for_stmnt :== "for ", identifier, " in ", identifier, "{", code_block "}";
-- bool_expression :== bool_and, {"||",  bool_and};
-- bool_and  :== bool_comp, {"&&",  bool_comp};
-- bool_comp :== expression, [comp_operator, expression];
-- declaration :== "vv ", identifier, ["=", expression], ";";
-- identifier_stmnt  :== part, {".", part};
-- part  :== identifier, ["(", expression, {", ", expression}, ")"];
-- expression  :== expression_mul, {add_operator, expression_mul};
-- expression_mul  :== part_mul, {mul_operator, part_mul};
-- part_mul  :== value
-            | list
-            | identifier_stmnt
-            | figure_declaration
-            | "(", expression, ")";
-- return    :== "return ", identifier, ";"
-              | "return ", variable_val, ";"
-- list      :== "[", (identifier_stmnt | expression), {", ", (identifier_stmnt | expression)} "]";
-- value :== ["-"], int_val
-          | bool_val
-          | ["-"], double_val
-          | string_val
-          | "none";
+```
+- program             :== {func_declaration}, main_declaration;
+- main_declaration    :== "func main(){", code_block, "}";
+- func_declaration    :== "func ", identifier, "(", [identifier, {", ", identifier}], "){", code_block, "}";
+- code_block          :== {statement};
+- statement           :== while_stmnt
+                        | fori_stmnt
+                        | for_stmnt
+                        | if_stmnt
+                        | declaration
+                        | identifier_stmnt, ["=", expression], ";"
+                        | return;
+- while_stmnt         :== "while(",  bool_expression, "){", code_block, "}";
+- if_stmnt            :== "if(",  bool_expression, "){", code_block, "}, {"elif(",  bool_expression, "){", code_block, "}"}, ["else {", code_block, "}"];
+- fori_stmnt          :== "fori ", identifier, " in (", (identifier | int_val), (identifier | int_val), "){", code_block "}";
+- for_stmnt           :== "for ", identifier, " in ", identifier, "{", code_block "}";
+- bool_expression     :== bool_and, {"||",  bool_and};
+- bool_and            :== expression_is , {"&&",  expression_is};
+- expression_is       :== bool_comp, {" is ",  type};
+- bool_comp           :== expression, [comp_operator, expression];
+- declaration         :== "vv ", identifier, ["=", expression], ";";
+- identifier_stmnt    :== part, {".", part};
+- part                :== identifier, ["(", expression, {", ", expression}, ")"];
+- expression          :== expression_mul, {add_operator, expression_mul};
+- expression_mul      :== part_mul, {mul_operator, part_mul};
+- part_mul            :== value
+                        | list
+                        | identifier_stmnt
+                        | figure_declaration
+                        | "(", expression, ")";
+- return              :== "return ", identifier, ";"
+                        | "return ", variable_val, ";"
+- list                :== "[", (identifier_stmnt | expression), {", ", (identifier_stmnt | expression)} "]";  
+- value               :== ["-"], int_val
+                        | bool_val
+                        | ["-"], double_val
+                        | string_val
+                        | "none";
 - figure_declaration  :== "Triangle(",  expression, (", ", expression)*3, ")"
                         | "Square(", expression, ")"
                         | "Circle(", expression, ", ", expression, ")"
                         | "Rectangle(", expression, ", ", expression, ")"
                         | "Rhombus(", expression, ", ", expression, ")"
                         | "Trapezoid(",  expression, (", ", expression)*3, ")";
-- identifier :== (?!main)[a-zA-Z][0-9a-zA-Z_]*
-- comp_operator :== "<"
-                  | "=="
-                  | ">"
-                  | ">="
-                  | "<="
-                  | "==";
-- mul_operator :== "*"
-                  | "/";
-- add_operator :== "+"
-                  | "-";
-- bool_val     :== "true"
-                  | "false"
-- double_val  :== int_val, ".", int_val;
-- string_val  :== '"', {char | digit | special_char}, '"';
-- char  :== [a-zA-Z];
-- special_char  :== "\n" | "\\" | '\"' | pozostałe normalnie;
-- int_val     :== digit_without_zero, {digit}
-                  | "0";
-- digit  :==  digit_without_zero | "0";
+- identifier          :== (?!main|pi)[a-zA-Z][0-9a-zA-Z_]*
+- type                :== "none" | "int" | "bool" | "str" | "double" | "Figure";
+- comp_operator       :== "<"
+                        | "=="
+                        | ">"
+                        | ">="
+                        | "<="
+                        | "==";
+- mul_operator        :== "*"
+                        | "/";
+- add_operator        :== "+"
+                        | "-";
+- bool_val            :== "true"
+                        | "false"
+- double_val          :== int_val, ".", int_val | pi;
+- string_val          :== '"', {char | digit | special_char}, '"';
+- char                :== [a-zA-Z];
+- special_char        :== "\n" | "\\" | '\"' | pozostałe normalnie;
+- int_val             :== digit_without_zero, {digit}
+                        | "0";
+- digit               :==  digit_without_zero | "0";
 - digit_without_zero  :== [1-9]
-
+```
 ## Sposób testowania
 
-Oprócz podanych wyżej przykładów zastosowania języka, będziemy testować konwersje typów, sprawdzanie typów, błędy leksykalne i gramatyczne.
+Oprócz podanych wyżej przykładów zastosowania języka, będziemy testować konwersje typów, sprawdzanie typów, błędy leksykalne (np. stowrzenie słów z niedozwolonymi znakami) i odwoływanie się do nieprawidłowych metod funkcji.
