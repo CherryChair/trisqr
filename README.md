@@ -138,10 +138,19 @@ Poza tym będą wbudowane funkcje:
 
 ## Błędy
 
-W przypadku błędów pojawią się komunikaty w stylu:
+Np. dla kodu w rodzaju:
 
 ```
-*linia*,*znak*: *treść błędu*
+func main(){
+  vv a = 0;
+  vv b = 0;
+  vv c = a is b;
+} 
+```
+Pojawi się błąd:
+```
+vv c = a is b;
+4,15: "b" is not type
 ```
 
 ## Tworzenie figur
@@ -153,10 +162,8 @@ Wszystkie podane niżej wartości argumentów będą podawane jako double
 Poniżej dla rombu i prostokątu przez linie określną x rozumiemy linię równoległą do osi OX, a przez y równoległą do osi OY:
 - ```Rectangle(x, y)``` - stwórz prostokąt o długości boków x, y i środku masy w środku układu współrzędnych
 - ```Rhombus(x, y)``` - stwórz romb o długości przekątnych x, y i środku masy w środku układu współrzędnych
-- ```Trapezoid(a, b, h)``` - stwórz trapez równoramienny z podstawami a i b, b jest dolną podstawą i jej środek jest w środku układu współrzędnych
-- ```Trapezoid(a, b, h, x)``` - tak jak wyżej tylko górna podstawa jest przesunięta o x w lewo lub w prawo w zależności od znaku 
+- ```Trapezoid(a, b, h, x)``` - stwórz trapez równoramienny z podstawami a i b, b jest dolną podstawą i jej środek jest w środku układu współrzędnych, dodatkowo górna podstawa jest przesunięta o x w lewo lub w prawo w zależności od znaku 
 - ```Circle(r)``` - tworzy koło o promieniu r i środku w śtodku układu współrzędnych
-- ```Line(x_1, y_1, x_2, y_2)``` - stwórz odcinek o wierzchołkach w (x_1, y_1) i (x_2, y_2)
 
 ## Metody i atrybuty figur
 
@@ -274,34 +281,52 @@ func main() {
             | fori_stmnt
             | for_stmnt
             | if_stmnt
-            | declaration, ";"
-            | value_change, ";" -połąćżyć
-            | function_call, ";" -połąćżyć
-            | figure_method_use, ";" -połąćżyć
-            | return, ";";
+            | declaration
+            | identifier_stmnt, ["=", expression], ";"
+            | return;
 - while_stmnt :== "while(",  bool_expression, "){", code_block, "}";
-- if_stmnt  :== "if(",  bool_expression, "){", code_block, "}, ["elif(",  bool_expression, "){", code_block, "}"], ["else {", code_block, "}"];
-- fori_stmnt  :== "fori ", identifier, " in (", identifier | int_val, identifier | int_val, "){", code_block "}";
+- if_stmnt  :== "if(",  bool_expression, "){", code_block, "}, {"elif(",  bool_expression, "){", code_block, "}"}, ["else {", code_block, "}"];
+- fori_stmnt  :== "fori ", identifier, " in (", (identifier | int_val), (identifier | int_val), "){", code_block "}";
 - for_stmnt :== "for ", identifier, " in ", identifier, "{", code_block "}";
 - bool_expression :== bool_and, {"||",  bool_and};
 - bool_and  :== bool_comp, {"&&",  bool_comp};
 - bool_comp :== expression, [comp_operator, expression];
 - declaration :== "vv ", identifier, ["=", expression], ";";
-- value_change  :==
-- function_call :==
-- figure_method_use :==
-- varaible_val  :==
+- identifier_stmnt  :== part, {".", part};
+- part  :== identifier, ["(", expression, {", ", expression}, ")"];
+- expression  :== expression_mul, {add_operator, expression_mul};
+- expression_mul  :== part_mul, {mul_operator, part_mul};
+- part_mul  :== value
+            | list
+            | identifier_stmnt
+            | figure_declaration
+            | "(", expression, ")";
 - return    :== "return ", identifier, ";"
               | "return ", variable_val, ";"
-
-- identifier :== [a-zA-Z_]+
-- identifier :== [1-9][0-9]+
+- list      :== "[", (identifier_stmnt | expression), {", ", (identifier_stmnt | expression)} "]";
+- value :== int_val
+          | bool_val
+          | double_val
+          | string_val
+          | "none";
+- figure_declaration  :== "Triangle(",  expression, (", ", expression)*3, ")"
+                        | "Square(", expression, ")"
+                        | "Circle(", expression, ", ", expression, ")"
+                        | "Rectangle(", expression, ", ", expression,")"
+                        | "Rhombus(", expression, ", ", expression, ")"
+                        | "Trapezoid(",  expression, (", ", expression)*3, ")";
+- identifier :== (?!main)[a-zA-Z][0-9a-zA-Z_]*
 - comp_operator :== "<"
                   | "=="
                   | ">"
                   | ">="
                   | "<="
                   | "==";
+- mul_operator :== "*"
+                  | "/";
+- add_operator :== "+"
+                  | "-";
+
 ## Sposób testowania
 
-Oprócz podanych wyżej przykładów zastosowania języka, będziemy testować konwersje typów, sprawdzanie typów i błędy leksykalne.
+Oprócz podanych wyżej przykładów zastosowania języka, będziemy testować konwersje typów, sprawdzanie typów, błędy leksykalne i gramatyczne.
