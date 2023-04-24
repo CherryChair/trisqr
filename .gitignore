@@ -1,3 +1,5 @@
 .idea
 *.exe
 cmake-build-debug/bin
+cmake-build-debug/Testing/*
+cmake-build-debug/lib
