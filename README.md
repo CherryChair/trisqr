@@ -65,6 +65,7 @@ Możliwe konwersje typów:
 - ```str to double```
 - ```str to int```
 - ```double to int```
+- ```double to str```
 
 Wprowadzimy też wygodne sprawdzanie typów zmiennych: ``` *variable* is *type*```. Będzie można też sprawdzić, czy zmienna ma pustą wartość typu ```none```.
 
