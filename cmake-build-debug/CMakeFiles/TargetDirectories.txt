@@ -1,0 +1,10 @@
+C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/CMakeFiles/lexer.dir
+C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/googletest/CMakeFiles/Google_Tests_run.dir
+C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/googletest/CMakeFiles/edit_cache.dir
+C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/googletest/CMakeFiles/rebuild_cache.dir
+C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/googletest/lib/CMakeFiles/gtest.dir
+C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/googletest/lib/CMakeFiles/gtest_main.dir
+C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/googletest/lib/CMakeFiles/edit_cache.dir
+C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/googletest/lib/CMakeFiles/rebuild_cache.dir

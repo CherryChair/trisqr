@@ -1,0 +1,21 @@
+find 
+remove
+odwoływanie się przez iundeks
+wierzchołki
+
+main niie w gramatyce
+
+negacje
+zmiana na boolean expression
+większy priorytewt niż mnożeniee
+
+nie w parserze deklaracje
+
+wyrzucić main i pi z identifierów
+
+wyrzucić main z 
+
+special char \r
+
+analiza wymagań
+- wymagania funckjonalne i niefunkcjonalne

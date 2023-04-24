@@ -26,6 +26,7 @@ Nazwa języka: **TriSqr**
     - [Przykład nr 2](#przykład-nr-2)
   - [Gramatyka](#gramatyka)
   - [Sposób testowania](#sposób-testowania)
+  - [Tokeny](#tokeny)
 
 ## Treść zadania
 
@@ -120,7 +121,7 @@ fori i in (s,k){
 
 Funkcje będą definiowane za pomocą:
 ```
-fun NazwaFunkcji(a, b, c){
+func NazwaFunkcji(a, b, c){
     *kod*
 }
 ```
@@ -286,8 +287,7 @@ func main() {
 
 ## Gramatyka
 ```
-- program             :== {func_declaration}, main_declaration;
-- main_declaration    :== "func main(){", code_block, "}";
+- program             :== {func_declaration};
 - func_declaration    :== "func ", identifier, "(", [identifier, {", ", identifier}], "){", code_block, "}";
 - code_block          :== {statement};
 - statement           :== while_stmnt
@@ -329,7 +329,7 @@ func main() {
                         | "Rectangle(", expression, ", ", expression, ")"
                         | "Rhombus(", expression, ", ", expression, ")"
                         | "Trapezoid(",  expression, (", ", expression)*3, ")";
-- identifier          :== (?!main|pi)[a-zA-Z][0-9a-zA-Z_]*
+- identifier          :== [a-zA-Z][0-9a-zA-Z_]*
 - type                :== "none" | "int" | "bool" | "str" | "double" | "Figure";
 - comp_operator       :== "<"
                         | "=="
@@ -343,10 +343,10 @@ func main() {
                         | "-";
 - bool_val            :== "true"
                         | "false"
-- double_val          :== int_val, ".", int_val | pi;
+- double_val          :== int_val, ".", int_val;
 - string_val          :== '"', {char | digit | special_char}, '"';
 - char                :== [a-zA-Z];
-- special_char        :== "\n" | "\\" | '\"' | pozostałe normalnie;
+- special_char        :== "\n" | "\\" | '\"' | "\r" |pozostałe normalnie;
 - int_val             :== digit_without_zero, {digit}
                         | "0";
 - digit               :==  digit_without_zero | "0";
@@ -355,3 +355,20 @@ func main() {
 ## Sposób testowania
 
 Oprócz podanych wyżej przykładów zastosowania języka, będziemy testować konwersje typów, sprawdzanie typów, błędy leksykalne (np. stowrzenie słów z niedozwolonymi znakami) i odwoływanie się do nieprawidłowych metod funkcji.
+
+## Tokeny
+|Typ   |Wartość  | | |
+|---|---|---|---|
+|1.Identyfikator, stała   |`Wskaźnik na tablicę symboli`   | | |
+|2.Słowa kluczowe   |`0 - if, 1 - elsif, 2 - else, 3 - while, 4 - fora, 5 - fori, 6 - in, 7 - func, 8 - vv, 9 - true, 10 - false, 11 - is, 12 - to, 13 - return`   | | |
+|3.Operator addytywny   |  `0 - +, 1 - -` | | |
+|4.Operator multiplykatywny  |  `0 - *, 1 - /` | | |
+|5.Operator relacyjny   | `0 - ==, 1 - <=, 2 - <, 3 - >, 4 - >=, 5 - ]`  | | |
+|6.Operator logiczny   |  `0 - &&, 1 - ||` | | |
+|7.Nawiasy   | `0 - (, 1 - ), 2 - {, 3 - }, 4 - [, 5 - ]`   | | |
+|8.Koniec teskstu   |  | | |
+|9.Znak nowej linii  |  | | |
+|10.Operator przypisania (=)  |   | | |
+|11.Operator odwołania do metody (.)  |  | | |
+|12.Koniec wyrażenia (; )  |  | | |
+|12.Komentarz (//do konca linii )  |  | | |
