@@ -2,7 +2,7 @@
 
 
 int main() {
-    std::string a = "1.1234567891234567891234567890";
+    std::string a = "\r\n \n\r";
     a += EOF;
     std::stringbuf ss(a);
     Lexer * l = new Lexer(ss);
