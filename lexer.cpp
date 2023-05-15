@@ -44,7 +44,7 @@ Lexer::~Lexer()
 {
 }
 
-void Lexer::moveToNextCharacter()
+bool Lexer::moveToNextCharacter()
 {
     if (is >> std::noskipws >> this->character) {
         if(this->character < 0 && this->character!=EOF){
@@ -52,37 +52,39 @@ void Lexer::moveToNextCharacter()
         } else {
             bufferLen++;
         }
+        return true;
+    } else {
+        this->character = EOF;
     }
+    return false;
 }
 
 std::optional<Token> Lexer::nextToken()
 {
-    Token * token;
-    while(this->character == ' '){
+    std::optional<Token> token;
+    while(this->character == ' ' || tryMoveEndline()){
         moveToNextCharacter();
-    }
-    while(tryMoveEndline()){
     }
     pos.characterNum += bufferLen;
     bufferLen = 0;
-    if (tryBuildIdentifierOrKeyword())
-        return this->token;
-    else if (tryBuildNumber())
-        return this->token;
-    else if (tryBuildCompOrAssign())
-        return this->token;
-    else if (tryBuildAndOrOr())
-        return this->token;
-    else if (tryBuildOther())
-        return this->token;
-    else if (tryBuildString())
-        return this->token;
-    else if (tryBuildNegationOrNeq())
-        return this->token;
-    else if (tryBuildComment())
-        return this->token;
-    else if (tryBuildEOF())
-        return this->token;
+    if (token = tryBuildEOF())
+        return token;
+    else if (token = tryBuildIdentifierOrKeyword())
+        return token;
+    else if (token = tryBuildNumber())
+        return token;
+    else if (token = tryBuildCompOrAssign())
+        return token;
+    else if (token = tryBuildAndOrOr())
+        return token;
+    else if (token = tryBuildOther())
+        return token;
+    else if (token = tryBuildString())
+        return token;
+    else if (token = tryBuildNegationOrNeq())
+        return token;
+    else if (token = tryBuildComment())
+        return token;
     error(ERR_UNRECOGNIZED_CHARACTER);
     return buildToken(ERR_TYPE);
 }
@@ -125,40 +127,24 @@ bool Lexer::tryMoveEndline()
         std::string endline = "";
         endline += this->character;
         if(this->endline_char.empty()){
-            if(this->character == '\r'){
+            endline += this->is.peek();
+            if(endline == "\n\r" || endline == "\r\n"){
+                this->endline_char = endline;
                 moveToNextCharacter();
-                if(this->character == '\n'){
-                    this->endline_char = "\r\n";
-                    this->endline_char_representation = "\\r\\n";
-                    moveToNextCharacter();
-                } else {
-                    this->endline_char = "\r";
-                    this->endline_char_representation = "\\r";
-                }
-                return moveNewline();
             } else {
-                moveToNextCharacter();
-                if(this->character == '\r'){
-                    this->endline_char = "\n\r";
-                    this->endline_char_representation = "\\n\\r";
-                    moveToNextCharacter();
-                } else {
-                    this->endline_char = "\n";
-                    this->endline_char_representation = "\\n";
-                }
-                return moveNewline();
+                this->endline_char += this->character;
             }
+            return moveNewline();
         } else {
             if(this->endline_char[0] != this->character){
                 error(ERR_WRONG_ENDLINE_CHAR);
-                return false;
+                return true;
             } else if(this->endline_char.length() == 2){
                 endline += this->is.peek();
                 if(endline != this->endline_char){
                     error(ERR_WRONG_ENDLINE_CHAR);
-                    return false;
+                    return true;
                 }
-                moveToNextCharacter();
             }
             moveToNextCharacter();
             return moveNewline();
@@ -265,7 +251,7 @@ unsigned int Lexer::nextInCompEq(unsigned int type1, unsigned int type2){
 
 std::optional<Token> Lexer::tryBuildEOF()
 {
-    if(this->is.eof() || this->character == EOF){
+    if(this->character == EOF){
         return buildToken(EOF_TYPE);
     }
     return std::nullopt;
@@ -302,8 +288,8 @@ std::optional<Token> Lexer::tryBuildComment()
 {
     if(this->character == '#'){
         std::string comment = "";
-        moveToNextCharacter();
-        while (this->character!='\n' && this->character!='\r' && this->character!= EOF && comment.length()<1000){
+        ;
+        while (moveToNextCharacter() && this->character!='\n' && this->character!='\r' && comment.length()<1000){
             comment += this->character;
             moveToNextCharacter();
         }
@@ -330,45 +316,46 @@ std::optional<Token> Lexer::tryBuildNegationOrNeq() {
 
 void Lexer::error(int error_type)
 {
-    unsigned short tokenPos = bufferLen;
-    std::string code = "";
-    bool too_long = false;
-    if(tokenPos > 100){
-        tokenPos = 100;
-        too_long = true;
-    }
-    char buffer[102] = {};
-    if(error_type == ERR_NOT_CLOSED_STRING) {
-        this->is.clear();
-        this->is.seekg(-1, std::ios_base::cur);
-        tokenPos--;
-    }
-    this->is.seekg(-tokenPos-1, std::ios_base::cur);
-    this->is.readsome(buffer, tokenPos+1);
-    code += buffer;
-    std::cerr << "ERR: " << error_mesages.at(error_type) << '\n';
-    int char_pos = too_long ? pos.characterNum+bufferLen : pos.characterNum;
-    if(error_type == ERR_WRONG_ENDLINE_CHAR) {
-        std::cerr << "Before newline char was: " << this->endline_char_representation << '\n';
-    };
-    std::string escaped_string = "";
-    for(char& c : code) {
-        if(escape_sequences.find(c) != escape_sequences.end()) {
-            escaped_string += escape_sequences.at(c);
-        } else {
-            escaped_string += c;
-        }
-    }
-    std::string line_text_display = (too_long ? "Token too long to display, error at line " : "Line ");
-    std::cerr << line_text_display << pos.line << ", character " << char_pos << ": ";
-    std::cerr << escaped_string << " << error\n";
+//    unsigned short tokenPos = bufferLen;
+//    std::string code = "";
+//    bool too_long = false;
+//    if(tokenPos > 100){
+//        tokenPos = 100;
+//        too_long = true;
+//    }
+//    char buffer[102] = {};
+//    if(error_type == ERR_NOT_CLOSED_STRING) {
+//        this->is.clear();
+//        this->is.seekg(-1, std::ios_base::cur);
+//        tokenPos--;
+//    }
+//    this->is.seekg(-tokenPos-1, std::ios_base::cur);
+//    this->is.readsome(buffer, tokenPos+1);
+//    code += buffer;
+//    std::cerr << "ERR: " << error_mesages.at(error_type) << '\n';
+//    int char_pos = too_long ? pos.characterNum+bufferLen : pos.characterNum;
+//    if(error_type == ERR_WRONG_ENDLINE_CHAR) {
+//        std::cerr << "Before newline char was: " << this->endline_char_representation << '\n';
+//    };
+//    std::string escaped_string = "";
+//    for(char& c : code) {
+//        if(escape_sequences.find(c) != escape_sequences.end()) {
+//            escaped_string += escape_sequences.at(c);
+//        } else {
+//            escaped_string += c;
+//        }
+//    }
+//    std::string line_text_display = (too_long ? "Token too long to display, error at line " : "Line ");
+//    std::cerr << line_text_display << pos.line << ", character " << char_pos << ": ";
+//    std::cerr << escaped_string << " << error\n";
     moveToNextCharacter();
 }
 
 std::optional<Token> Lexer::tryBuildOther() {
     if(this->oneCharMap.find(this->character) != this->oneCharMap.end()){
+        unsigned int token_type = this->oneCharMap.at(this->character);
         moveToNextCharacter();
-        buildToken(this->oneCharMap.at(this->character));
+        return buildToken(token_type);
     }
     return std::nullopt;
 }
@@ -393,17 +380,17 @@ std::optional<Token> Lexer::tryBuildAndOrOr() {
 }
 
 void printToken(Token tkn) {
-    std::cout << "Type: " << tkn.token_type << "- "<< type_map.at(tkn.token_type) << ", ";
-    std::cout << "Type: " << tkn.token_type << ", ";
+    std::cout << "Type: " << tkn.getTokenType() << "- "<< type_map.at(tkn.getTokenType()) << ", ";
+    std::cout << "Type: " << tkn.getTokenType() << ", ";
     std::cout << "Value: ";
-    if (std::holds_alternative<int>(tkn.value)) {
-        std::cout << std::get<int>(tkn.value);
-    } else if (std::holds_alternative<double>(tkn.value)) {
-        std::cout << std::get<double>(tkn.value);
-    } else if (std::holds_alternative<std::string>(tkn.value)) {
-        std::cout << std::get<std::string>(tkn.value);
+    if (std::holds_alternative<int>(tkn.getValue())) {
+        std::cout << std::get<int>(tkn.getValue());
+    } else if (std::holds_alternative<double>(tkn.getValue())) {
+        std::cout << std::get<double>(tkn.getValue());
+    } else if (std::holds_alternative<std::string>(tkn.getValue())) {
+        std::cout << std::get<std::string>(tkn.getValue());
     }
     std::cout << ", ";
-    std::cout << "L: " << tkn.pos.line << ", C: " << tkn.pos.characterNum << '\n';
+    std::cout << "L: " << tkn.getPos().line << ", C: " << tkn.getPos().characterNum << '\n';
 
 }

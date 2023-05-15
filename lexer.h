@@ -15,6 +15,7 @@
 #include <climits>
 #include <unordered_map>
 #include <optional>
+#include "Token.h"
 
 //Error constants
 #define ERR_MAX_LEN_EXCEEDED -1
@@ -26,66 +27,8 @@
 #define ERR_NON_ASCII_CHAR -7
 
 //Type constants
-#define IDENTIFIER_TYPE 0
 
-#define INTEGER_TYPE 1
-#define DOUBLE_TYPE 2
-#define STRING_TYPE 3
 
-#define WHILE_TYPE 4
-#define IF_TYPE 5
-#define ELSIF_TYPE 6
-#define ELSE_TYPE 7
-#define FUNC_TYPE 8
-#define RETURN_TYPE 9
-#define FORA_TYPE 10
-#define FORI_TYPE 11
-#define VV_TYPE 12
-#define TRUE_TYPE 13
-#define FALSE_TYPE 14
-#define IS_TYPE 15
-#define IN_TYPE 16
-#define TO_TYPE 17
-
-#define DOT_TYPE 18
-#define NEGATION_TYPE 19
-
-#define EQ_TYPE 20
-#define NEQ_TYPE 21
-#define LEQ_TYPE 22
-#define LESS_TYPE 23
-#define GEQ_TYPE 24
-#define GRATER_TYPE 25
-
-#define AND_TYPE 26
-#define OR_TYPE 27
-
-#define L_BRACKET_TYPE 28
-#define R_BRACKET_TYPE 29
-#define L_SQR_BRACKET_TYPE 31
-#define R_SQR_BRACKET_TYPE 32
-#define L_CURL_BRACKET_TYPE 33
-#define R_CURL_BRACKET_TYPE 34
-
-#define MINUS_TYPE 35
-#define PLUS_TYPE 36
-
-#define MULTIPLY_TYPE 37
-#define DIVIDE_TYPE 38
-
-#define ASSIGN_TYPE 39
-
-#define COMMA_TYPE 40
-#define SEMICOLON_TYPE 41
-#define COMMENT_TYPE 42
-#define NEWLINE_TYPE 43
-#define EOF_TYPE 44
-
-#define ERR_TYPE 45
-
-#define DOUBLE_KEYWORD_TYPE 46
-#define INT_KEYWORD_TYPE 47
-#define STRING_KEYWORD_TYPE 48
 
 static const std::unordered_map<short int, std::string> error_mesages= {
         {ERR_MAX_LEN_EXCEEDED, "Maximal length of token exceeded."},
@@ -172,7 +115,6 @@ static const std::unordered_map<unsigned short int, std::string> type_map= {
         {COMMA_TYPE, "COMMA_TYPE"},
         {SEMICOLON_TYPE, "SEMICOLON_TYPE"},
         {COMMENT_TYPE, "COMMENT_TYPE"},
-        {NEWLINE_TYPE, "NEWLINE_TYPE"},
         {EOF_TYPE, "EOF_TYPE"},
         {ERR_TYPE, "ERR_TYPE"},
         {DOUBLE_KEYWORD_TYPE, "DOUBLE_KEYWORD_TYPE"},
@@ -180,24 +122,9 @@ static const std::unordered_map<unsigned short int, std::string> type_map= {
         {STRING_KEYWORD_TYPE, "STRING_KEYWORD_TYPE"},
 };
 
-struct Position
-{
-    unsigned int line;
-    unsigned int characterNum;
-};
 
-struct Token
-{
-    unsigned short int token_type;
-    std::variant<int, double, std::string> value;
-    Position pos;
 
-    Token(){};
-    Token(Position pos, unsigned short int token_type) : pos(pos), token_type(token_type){};
-    Token(Position pos, int value, unsigned short int token_type) : pos(pos), value(value), token_type(token_type){};
-    Token(Position pos, double value, unsigned short int token_type)  : pos(pos), value(value), token_type(token_type){};
-    Token(Position pos, std::string value, unsigned short int token_type)  : pos(pos), value(value), token_type(token_type){};
-};
+
 
 class Lexer
 {
@@ -209,7 +136,6 @@ private:
     unsigned short int bufferLen = 0;
     Token token;
     std::string endline_char = "";
-    std::string endline_char_representation = "";
     std::istream is;
     bool Lexer::tryMoveEndline();
     bool moveNewline();
@@ -227,7 +153,7 @@ private:
     std::optional<Token> buildToken(unsigned int type, int value);
     std::optional<Token> buildToken(unsigned int type, double value);
     std::optional<Token> buildToken(unsigned int type, std::string value);
-    void moveToNextCharacter();
+    bool moveToNextCharacter();
     void error(int error_type);
 public:
     Lexer(std::streambuf & sr): is(& sr){pos.characterNum=0; pos.line=1; moveToNextCharacter();};
