@@ -3,6 +3,6 @@ project(lexer)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(lexer main.cpp lexer.cpp lexer.h)
+add_executable(lexer main.cpp lexer.cpp lexer.h parser.cpp parser.h)
 
 add_subdirectory(googletest)

@@ -14,6 +14,7 @@
 #include <limits>
 #include <climits>
 #include <unordered_map>
+#include <optional>
 
 //Error constants
 #define ERR_MAX_LEN_EXCEEDED -1
@@ -191,11 +192,11 @@ struct Token
     std::variant<int, double, std::string> value;
     Position pos;
 
-    Token();
-    Token(Position pos, unsigned short int token_type);
-    Token(Position pos, int value, unsigned short int token_type);
-    Token(Position pos, double value, unsigned short int token_type);
-    Token(Position pos, std::string value, unsigned short int token_type);
+    Token(){};
+    Token(Position pos, unsigned short int token_type) : pos(pos), token_type(token_type){};
+    Token(Position pos, int value, unsigned short int token_type) : pos(pos), value(value), token_type(token_type){};
+    Token(Position pos, double value, unsigned short int token_type)  : pos(pos), value(value), token_type(token_type){};
+    Token(Position pos, std::string value, unsigned short int token_type)  : pos(pos), value(value), token_type(token_type){};
 };
 
 class Lexer
@@ -203,38 +204,37 @@ class Lexer
 private:
     Position pos;
     static const std::unordered_map<std::string, unsigned short int> keywordMap;
+    static const std::unordered_map<char, unsigned short int> Lexer::oneCharMap;
     char character;
     unsigned short int bufferLen = 0;
     Token token;
     std::string endline_char = "";
     std::string endline_char_representation = "";
     std::istream is;
-    Token* tryBuildIdentifierOrKeyword();
-    Token* tryBuildNumber();
-    Token* tryBuildCompOrAssign();
-    Token* tryBuildEndlineChar();
-    Token* tryBuildEOF();
-    Token* tryBuildString();
-    Token* tryBuildEndOfExpression();
-    Token* tryBuildNegationOrNeq();
-    Token* tryBuildComment();
-    Token* tryBuildAndOrOr();
-    Token* tryBuildMultiplicationOrAddition();
-    Token* tryBuildOther();
+    bool Lexer::tryMoveEndline();
+    bool moveNewline();
+    std::optional<Token> tryBuildIdentifierOrKeyword();
+    std::optional<Token> tryBuildNumber();
+    std::optional<Token> tryBuildCompOrAssign();
+    std::optional<Token> tryBuildEOF();
+    std::optional<Token> tryBuildString();
+    std::optional<Token> tryBuildNegationOrNeq();
+    std::optional<Token> tryBuildComment();
+    std::optional<Token> tryBuildAndOrOr();
+    std::optional<Token> tryBuildOther();
     unsigned int nextInCompEq(unsigned int type1, unsigned int type2);
-    Token* buildToken(unsigned int type);
-    Token* buildToken(unsigned int type, int value);
-    Token* buildToken(unsigned int type, double value);
-    Token* buildToken(unsigned int type, std::string value);
-    Token* buildNewlineToken();
+    std::optional<Token> buildToken(unsigned int type);
+    std::optional<Token> buildToken(unsigned int type, int value);
+    std::optional<Token> buildToken(unsigned int type, double value);
+    std::optional<Token> buildToken(unsigned int type, std::string value);
     void moveToNextCharacter();
     void error(int error_type);
 public:
     Lexer(std::streambuf & sr): is(& sr){pos.characterNum=0; pos.line=1; moveToNextCharacter();};
     ~Lexer();
-    Token* nextToken();
+    std::optional<Token> nextToken();
 };
 
-void printToken(Token * token);
+void printToken(Token token);
 
 #endif //LEXER_LEXER_H
