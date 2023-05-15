@@ -175,6 +175,39 @@ __\lexer.cpp.s:
 	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug\googletest
 .PHONY : __\lexer.cpp.s
 
+__\parser.obj: __\parser.cpp.obj
+
+.PHONY : __\parser.obj
+
+# target to build an object file
+__\parser.cpp.obj:
+	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug
+	$(MAKE) $(MAKESILENT) -f googletest\CMakeFiles\Google_Tests_run.dir\build.make /nologo -$(MAKEFLAGS) googletest\CMakeFiles\Google_Tests_run.dir\__\parser.cpp.obj
+	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug\googletest
+.PHONY : __\parser.cpp.obj
+
+__\parser.i: __\parser.cpp.i
+
+.PHONY : __\parser.i
+
+# target to preprocess a source file
+__\parser.cpp.i:
+	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug
+	$(MAKE) $(MAKESILENT) -f googletest\CMakeFiles\Google_Tests_run.dir\build.make /nologo -$(MAKEFLAGS) googletest\CMakeFiles\Google_Tests_run.dir\__\parser.cpp.i
+	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug\googletest
+.PHONY : __\parser.cpp.i
+
+__\parser.s: __\parser.cpp.s
+
+.PHONY : __\parser.s
+
+# target to generate assembly for a file
+__\parser.cpp.s:
+	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug
+	$(MAKE) $(MAKESILENT) -f googletest\CMakeFiles\Google_Tests_run.dir\build.make /nologo -$(MAKEFLAGS) googletest\CMakeFiles\Google_Tests_run.dir\__\parser.cpp.s
+	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug\googletest
+.PHONY : __\parser.cpp.s
+
 lexer_tests.obj: lexer_tests.cpp.obj
 
 .PHONY : lexer_tests.obj
@@ -220,6 +253,9 @@ help:
 	@echo ... __/lexer.obj
 	@echo ... __/lexer.i
 	@echo ... __/lexer.s
+	@echo ... __/parser.obj
+	@echo ... __/parser.i
+	@echo ... __/parser.s
 	@echo ... lexer_tests.obj
 	@echo ... lexer_tests.i
 	@echo ... lexer_tests.s

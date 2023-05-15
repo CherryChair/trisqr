@@ -179,6 +179,12 @@
 		<Unit filename="C:/Users/mpkow/CLionProjects/lexer/lexer.h">
 			<Option target="Google_Tests_run"/>
 		</Unit>
+		<Unit filename="C:/Users/mpkow/CLionProjects/lexer/parser.cpp">
+			<Option target="Google_Tests_run"/>
+		</Unit>
+		<Unit filename="C:/Users/mpkow/CLionProjects/lexer/parser.h">
+			<Option target="Google_Tests_run"/>
+		</Unit>
 		<Unit filename="C:/Users/mpkow/CLionProjects/lexer/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>

@@ -110,22 +110,49 @@ googletest\CMakeFiles\Google_Tests_run.dir\__\lexer.cpp.s: cmake_force
 <<
 	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug
 
+googletest\CMakeFiles\Google_Tests_run.dir\__\parser.cpp.obj: googletest\CMakeFiles\Google_Tests_run.dir\flags.make
+googletest\CMakeFiles\Google_Tests_run.dir\__\parser.cpp.obj: ..\parser.cpp
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object googletest/CMakeFiles/Google_Tests_run.dir/__/parser.cpp.obj"
+	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug\googletest
+	C:\PROGRA~2\MICROS~3\2019\COMMUN~1\VC\Tools\MSVC\1428~1.299\bin\Hostx86\x86\cl.exe @<<
+ /nologo /TP $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) /FoCMakeFiles\Google_Tests_run.dir\__\parser.cpp.obj /FdCMakeFiles\Google_Tests_run.dir\ /FS -c C:\Users\mpkow\CLionProjects\lexer\parser.cpp
+<<
+	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug
+
+googletest\CMakeFiles\Google_Tests_run.dir\__\parser.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/Google_Tests_run.dir/__/parser.cpp.i"
+	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug\googletest
+	C:\PROGRA~2\MICROS~3\2019\COMMUN~1\VC\Tools\MSVC\1428~1.299\bin\Hostx86\x86\cl.exe > CMakeFiles\Google_Tests_run.dir\__\parser.cpp.i @<<
+ /nologo /TP $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E C:\Users\mpkow\CLionProjects\lexer\parser.cpp
+<<
+	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug
+
+googletest\CMakeFiles\Google_Tests_run.dir\__\parser.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/Google_Tests_run.dir/__/parser.cpp.s"
+	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug\googletest
+	C:\PROGRA~2\MICROS~3\2019\COMMUN~1\VC\Tools\MSVC\1428~1.299\bin\Hostx86\x86\cl.exe @<<
+ /nologo /TP $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) /FoNUL /FAs /FaCMakeFiles\Google_Tests_run.dir\__\parser.cpp.s /c C:\Users\mpkow\CLionProjects\lexer\parser.cpp
+<<
+	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug
+
 # Object files for target Google_Tests_run
 Google_Tests_run_OBJECTS = \
 "CMakeFiles\Google_Tests_run.dir\lexer_tests.cpp.obj" \
-"CMakeFiles\Google_Tests_run.dir\__\lexer.cpp.obj"
+"CMakeFiles\Google_Tests_run.dir\__\lexer.cpp.obj" \
+"CMakeFiles\Google_Tests_run.dir\__\parser.cpp.obj"
 
 # External object files for target Google_Tests_run
 Google_Tests_run_EXTERNAL_OBJECTS =
 
 googletest\Google_Tests_run.exe: googletest\CMakeFiles\Google_Tests_run.dir\lexer_tests.cpp.obj
 googletest\Google_Tests_run.exe: googletest\CMakeFiles\Google_Tests_run.dir\__\lexer.cpp.obj
+googletest\Google_Tests_run.exe: googletest\CMakeFiles\Google_Tests_run.dir\__\parser.cpp.obj
 googletest\Google_Tests_run.exe: googletest\CMakeFiles\Google_Tests_run.dir\build.make
 googletest\Google_Tests_run.exe: lib\gtest.lib
 googletest\Google_Tests_run.exe: lib\gtest_main.lib
 googletest\Google_Tests_run.exe: lib\gtest.lib
 googletest\Google_Tests_run.exe: googletest\CMakeFiles\Google_Tests_run.dir\objects1.rsp
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable Google_Tests_run.exe"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug\CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX executable Google_Tests_run.exe"
 	cd C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug\googletest
 	"C:\Program Files\JetBrains\CLion 2021.1\bin\cmake\win\bin\cmake.exe" -E vs_link_exe --intdir=CMakeFiles\Google_Tests_run.dir --rc=C:\PROGRA~2\WI3CF2~1\10\bin\100190~1.0\x86\rc.exe --mt=C:\PROGRA~2\WI3CF2~1\10\bin\100190~1.0\x86\mt.exe --manifests -- C:\PROGRA~2\MICROS~3\2019\COMMUN~1\VC\Tools\MSVC\1428~1.299\bin\Hostx86\x86\link.exe /nologo @CMakeFiles\Google_Tests_run.dir\objects1.rsp @<<
  /out:Google_Tests_run.exe /implib:Google_Tests_run.lib /pdb:C:\Users\mpkow\CLionProjects\lexer\cmake-build-debug\googletest\Google_Tests_run.pdb /version:0.0 /machine:X86 /debug /INCREMENTAL /subsystem:console  ..\lib\gtest.lib ..\lib\gtest_main.lib ..\lib\gtest.lib kernel32.lib user32.lib gdi32.lib winspool.lib shell32.lib ole32.lib oleaut32.lib uuid.lib comdlg32.lib advapi32.lib 

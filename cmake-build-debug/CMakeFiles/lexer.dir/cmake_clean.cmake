@@ -1,6 +1,7 @@
 file(REMOVE_RECURSE
   "CMakeFiles/lexer.dir/lexer.cpp.obj"
   "CMakeFiles/lexer.dir/main.cpp.obj"
+  "CMakeFiles/lexer.dir/parser.cpp.obj"
   "lexer.exe"
   "lexer.exe.manifest"
   "lexer.lib"

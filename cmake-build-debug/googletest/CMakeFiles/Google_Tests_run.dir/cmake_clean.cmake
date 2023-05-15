@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/Google_Tests_run.dir/__/lexer.cpp.obj"
+  "CMakeFiles/Google_Tests_run.dir/__/parser.cpp.obj"
   "CMakeFiles/Google_Tests_run.dir/lexer_tests.cpp.obj"
   "Google_Tests_run.exe"
   "Google_Tests_run.exe.manifest"

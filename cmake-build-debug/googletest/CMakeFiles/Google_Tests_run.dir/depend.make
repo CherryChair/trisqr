@@ -4,6 +4,9 @@
 googletest\CMakeFiles\Google_Tests_run.dir\__\lexer.cpp.obj: ..\lexer.cpp
 googletest\CMakeFiles\Google_Tests_run.dir\__\lexer.cpp.obj: ..\lexer.h
 
+googletest\CMakeFiles\Google_Tests_run.dir\__\parser.cpp.obj: ..\parser.cpp
+googletest\CMakeFiles\Google_Tests_run.dir\__\parser.cpp.obj: ..\parser.h
+
 googletest\CMakeFiles\Google_Tests_run.dir\lexer_tests.cpp.obj: ..\googletest\lib\include\gtest\gtest-assertion-result.h
 googletest\CMakeFiles\Google_Tests_run.dir\lexer_tests.cpp.obj: ..\googletest\lib\include\gtest\gtest-death-test.h
 googletest\CMakeFiles\Google_Tests_run.dir\lexer_tests.cpp.obj: ..\googletest\lib\include\gtest\gtest-matchers.h

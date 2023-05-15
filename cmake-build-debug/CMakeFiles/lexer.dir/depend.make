@@ -7,3 +7,6 @@ CMakeFiles\lexer.dir\lexer.cpp.obj: ..\lexer.h
 CMakeFiles\lexer.dir\main.cpp.obj: ..\lexer.h
 CMakeFiles\lexer.dir\main.cpp.obj: ..\main.cpp
 
+CMakeFiles\lexer.dir\parser.cpp.obj: ..\parser.cpp
+CMakeFiles\lexer.dir\parser.cpp.obj: ..\parser.h
+

@@ -4,6 +4,9 @@
 googletest/CMakeFiles/Google_Tests_run.dir/__/lexer.cpp.obj
  C:/Users/mpkow/CLionProjects/lexer/lexer.cpp
  C:/Users/mpkow/CLionProjects/lexer/lexer.h
+googletest/CMakeFiles/Google_Tests_run.dir/__/parser.cpp.obj
+ C:/Users/mpkow/CLionProjects/lexer/parser.cpp
+ C:/Users/mpkow/CLionProjects/lexer/parser.h
 googletest/CMakeFiles/Google_Tests_run.dir/lexer_tests.cpp.obj
  ../googletest/lib/include/gtest/gtest-assertion-result.h
  ../googletest/lib/include/gtest/gtest-death-test.h

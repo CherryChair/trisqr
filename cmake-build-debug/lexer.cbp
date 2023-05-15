@@ -248,6 +248,14 @@
 		<Unit filename="C:/Users/mpkow/CLionProjects/lexer/main.cpp">
 			<Option target="lexer"/>
 		</Unit>
+		<Unit filename="C:/Users/mpkow/CLionProjects/lexer/parser.cpp">
+			<Option target="lexer"/>
+			<Option target="Google_Tests_run"/>
+		</Unit>
+		<Unit filename="C:/Users/mpkow/CLionProjects/lexer/parser.h">
+			<Option target="lexer"/>
+			<Option target="Google_Tests_run"/>
+		</Unit>
 		<Unit filename="C:/Users/mpkow/CLionProjects/lexer/CMakeLists.txt">
 			<Option virtualFolder="CMake Files\"/>
 		</Unit>

@@ -6,6 +6,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 set(CMAKE_DEPENDS_CHECK_CXX
   "C:/Users/mpkow/CLionProjects/lexer/lexer.cpp" "C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/CMakeFiles/lexer.dir/lexer.cpp.obj"
   "C:/Users/mpkow/CLionProjects/lexer/main.cpp" "C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/CMakeFiles/lexer.dir/main.cpp.obj"
+  "C:/Users/mpkow/CLionProjects/lexer/parser.cpp" "C:/Users/mpkow/CLionProjects/lexer/cmake-build-debug/CMakeFiles/lexer.dir/parser.cpp.obj"
   )
 set(CMAKE_CXX_COMPILER_ID "MSVC")
 
