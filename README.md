@@ -42,7 +42,7 @@ Typy:
   - zmiennoprzecinkowa
 - boolowska
 - napis
-- kolekcja
+- lista
 - figury: 
   - trójkąt 
   - prostokąt
@@ -53,7 +53,7 @@ Typy:
   - linia
 - pusta wartośc none
   
-Kolekcja przyjmuje dowolne typy. Ma metodę .append, która dodaje pojedynczy element na koniec listy, dwie listy można łączyć za pomocą "+", zwraca kopię złączonej listy.
+Lista przyjmuje dowolne typy. Ma metodę .append, która dodaje pojedynczy element na koniec listy, dwie listy można łączyć za pomocą "+", zwraca kopię złączonej listy.
 
 Zmienne typi str można konkatenować za pomocą "+".
 
@@ -90,7 +90,7 @@ Instrukcją warunkową będzie:
 ```
 if (wyrażenie bool) { 
   *kod*
-} elif {
+} elif (wyrażenie bool) {
   *kod*
 } else{
   *kod*
@@ -100,13 +100,13 @@ if (wyrażenie bool) {
 ## Pętle
 Będzie pętla while:
 ```
-while (wyrażenie bool){
+while (wyrażenie bool) {
     *kod*
 }
 ```
 Będą 2 pętle for:
 ```
-for el in list{
+for el in list {
   *kod*
 }
 ```
@@ -130,7 +130,7 @@ Będzie możliwośc rekursji. Można zwracać pustą wartość za pomocą "retur
 
 Poza tym będą wbudowane funkcje:
 - print(str) - wypisuje w konsoli tekst zawarty w str
-- draw(list) - otwiera okienko z narysowanymi figurami geometrycznymi
+- draw(list) - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami
 
 ## Błędy
 
@@ -160,7 +160,7 @@ Dla kodu w rodzaju:
 ```
 Pojawi się błąd:
 ```
-ERR: Number is too big.
+ERR: Number after . is too big.
 Line 1, character 1: 2.2147483648 << error
 ERR: Number is too big.
 Line 1, character 14: 2147483648 << error
@@ -175,7 +175,7 @@ if (1.33 to int == 1 & true) {
 ```
 Pojawi się błąd
 ```
-ERR: Wrong logical operator.
+ERR: Unrecognized symbol.
 Line 1, character 22: &  << error
 ```
 ## Tworzenie figur
@@ -199,6 +199,7 @@ Metody:
 - .rotate(double angle) - obraca figurę wokół początku układu współrzędnych o kąt angle podawany w radianach
 - .transport(double x, double y) - przesuwa figurę o wektor (x, y)
 - .vertex() - zwraca listę wierzchołków (oprócz koła)
+- .copy() - zwraca kopię danej figury
 
 Parametry:
 - color - (int r, int g, int b) kolor wypełnienia figury w RGB, jeśli ma wartość ```none```, oznacza, że figura nie ma koloru wypełnienia
@@ -304,7 +305,7 @@ func main() {
                         | identifier_stmnt, ["=", expression], ";"
                         | return;
 - while_stmnt         :== "while(",  bool_expression, "){", code_block, "}";
-- if_stmnt            :== "if(",  bool_expression, "){", code_block, "}, {"elif(",  bool_expression, "){", code_block, "}"}, ["else {", code_block, "}"];
+- if_stmnt            :== "if(",  bool_expression, "){", code_block, "}", ["elif(",  bool_expression, "){", code_block, "}"], {"else {", code_block, "}"};
 - fori_stmnt          :== "fori ", identifier, " in (", (identifier | int_val), (identifier | int_val), "){", code_block "}";
 - for_stmnt           :== "for ", identifier, " in ", identifier, "{", code_block "}";
 - bool_expression     :== bool_and, {"||",  bool_and};
@@ -357,21 +358,4 @@ func main() {
 ```
 ## Sposób testowania
 
-Oprócz podanych wyżej przykładów zastosowania języka, będziemy testować konwersje typów, sprawdzanie typów, błędy leksykalne (np. stowrzenie słów z niedozwolonymi znakami) i odwoływanie się do nieprawidłowych metod funkcji.
-
-## Tokeny
-|Typ   |Wartość  | | |
-|---|---|---|---|
-|1.Identyfikator, stała   |`Wskaźnik na tablicę symboli`   | | |
-|2.Słowa kluczowe   |`0 - if, 1 - elsif, 2 - else, 3 - while, 4 - fora, 5 - fori, 6 - in, 7 - func, 8 - vv, 9 - true, 10 - false, 11 - is, 12 - to, 13 - return`   | | |
-|3.Operator addytywny   |  `0 - +, 1 - -` | | |
-|4.Operator multiplykatywny  |  `0 - *, 1 - /` | | |
-|5.Operator relacyjny   | `0 - ==, 1 - <=, 2 - <, 3 - >, 4 - >=, 5 - ]`  | | |
-|6.Operator logiczny   |  `0 - &&, 1 - ||` | | |
-|7.Nawiasy   | `0 - (, 1 - ), 2 - {, 3 - }, 4 - [, 5 - ]`   | | |
-|8.Koniec teskstu   |  | | |
-|9.Znak nowej linii  |  | | |
-|10.Operator przypisania (=)  |   | | |
-|11.Operator odwołania do metody (.)  |  | | |
-|12.Koniec wyrażenia (; )  |  | | |
-|12.Komentarz (//do konca linii )  |  | | |
+Testy są zrealizowane za pomocą GTEST, do tej pory zaimplementowane zostały testy do leksera.
