@@ -21,7 +21,7 @@ Program Parser::parse() {
 
 bool Parser::consumeIf(unsigned int token_type) {
     if(token->getTokenType() == token_type) {
-        lexer->nextToken();
+        token = lexer->nextToken();
         return true;
     }
     return false;
@@ -79,7 +79,7 @@ std::vector<Parameter> Parser::parseParams() {
 
 std::optional<Parameter> Parser::parseParam() {
     if(token->getTokenType() == IDENTIFIER_TYPE){
-        lexer->nextToken();
+        token = lexer->nextToken();
         return Parameter(std::get<std::string>(token->getValue()));
     }
     return std::nullopt;
@@ -87,6 +87,60 @@ std::optional<Parameter> Parser::parseParam() {
 
 CodeBlock Parser::parseCodeBlock() {
     std::vector<statementType> statements;
+    std::optional<statementType> statement;
+    while (statement = parseStatement()){
+        statements.push_back(*statement);
+    }
 
     return CodeBlock(statements);
+}
+
+std::optional<statementType> Parser::parseStatement() {
+    std::optional<statementType> statement;
+    if((statement = parseWhileStatement()) ||
+        (statement = parseIfStatement()) ||
+        (statement = parseForiStatement()) ||
+        (statement = parseForaStatement()) ||
+        (statement = parseDeclarationStatement()) ||
+        (statement = parseExpressionStatement()) ||
+        (statement = parseReturnStatement()))
+        return statement;
+    return std::nullopt;
+
+}
+
+std::optional<WhileStatement> Parser::parseWhileStatement() {
+    if(!consumeIf(IF_TYPE)){
+        return std::nullopt;
+    }
+    if(!consumeIf(L_BRACKET_TYPE)){
+        //error missing bracket
+    }
+
+
+    return std::optional<WhileStatement>();
+}
+
+std::optional<IfStatement> Parser::parseIfStatement() {
+    return std::optional<IfStatement>();
+}
+
+std::optional<ForiStatement> Parser::parseForiStatement() {
+    return std::optional<ForiStatement>();
+}
+
+std::optional<ForaStatement> Parser::parseForaStatement() {
+    return std::optional<ForaStatement>();
+}
+
+std::optional<DeclarationStatement> Parser::parseDeclarationStatement() {
+    return std::optional<DeclarationStatement>();
+}
+
+std::optional<ExpressionStatement> Parser::parseExpressionStatement() {
+    return std::optional<ExpressionStatement>();
+}
+
+std::optional<ReturnStatement> Parser::parseReturnStatement() {
+    return std::optional<ReturnStatement>();
 }

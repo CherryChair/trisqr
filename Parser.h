@@ -11,39 +11,70 @@
 
 #ifndef LEXER_PARSER_H
 #define LEXER_PARSER_H
+class BoolExpression;
+class WhileStatement;
+class IfStatement;
+class ForiStatement;
+class ForaStatement;
+class DeclarationStatement;
+class ExpressionStatement;
+class ReturnStatement;
 
-class Expression {
+typedef std::variant<WhileStatement, IfStatement, ForiStatement, ForaStatement, DeclarationStatement, ExpressionStatement, ReturnStatement> statementType;
+
+class CodeBlock;
+class Parameter;
+class FuncDeclaration;
+class Program;
+
+class BoolExpression {
 
 };
 
 class WhileStatement {
+private:
+    BoolExpression condition;
 };
 
 class IfStatement {
+private:
+    BoolExpression condition;
+    CodeBlock * blockTrue;
+    CodeBlock * blockFalse;
 
 };
 
 class ForiStatement {
-
+private:
+    std::variant<int, std::string> loop_beg;
+    std::variant<int, std::string> loop_end;
+    std::string identifier;
+    CodeBlock * block;
 };
 
 class ForaStatement {
-
+private:
+    std::string identifier;
+    std::string listIdentifer;
+    CodeBlock * block;
 };
 
 class DeclarationStatement {
-
+private:
+    std::string identifireName;
+    BoolExpression expression;
 };
 
 class ExpressionStatement {
-
+private:
+    std::string identifireName;
+    BoolExpression expression;
 };
 
 class ReturnStatement {
-
+private:
+    BoolExpression expression;
 };
-
-typedef std::variant<WhileStatement, IfStatement, ForiStatement, ForaStatement, DeclarationStatement, ExpressionStatement, ReturnStatement> statementType;
 
 class CodeBlock {
 public:
@@ -104,6 +135,14 @@ class Parser {
     std::vector<Parameter> parseParams();
     std::optional<Parameter> parseParam();
     CodeBlock parseCodeBlock();
+    std::optional<statementType> parseStatement();
+    std::optional<WhileStatement> parseWhileStatement();
+    std::optional<IfStatement> parseIfStatement();
+    std::optional<ForiStatement> parseForiStatement();
+    std::optional<ForaStatement> parseForaStatement();
+    std::optional<DeclarationStatement> parseDeclarationStatement();
+    std::optional<ExpressionStatement> parseExpressionStatement();
+    std::optional<ReturnStatement> parseReturnStatement();
 
 };
 
