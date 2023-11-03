@@ -26,7 +26,6 @@ Nazwa języka: **TriSqr**
     - [Przykład nr 2](#przykład-nr-2)
   - [Gramatyka](#gramatyka)
   - [Sposób testowania](#sposób-testowania)
-  - [Tokeny](#tokeny)
 
 ## Treść zadania
 
@@ -305,12 +304,13 @@ func main() {
                         | identifier_stmnt, ["=", expression], ";"
                         | return;
 - while_stmnt         :== "while(",  bool_expression, "){", code_block, "}";
-- if_stmnt            :== "if(",  bool_expression, "){", code_block, "}", ["elif(",  bool_expression, "){", code_block, "}"], {"else {", code_block, "}"};
+- if_stmnt            :== "if(",  bool_expression, "){", code_block, "}", {"elif(",  bool_expression, "){", code_block, "}"}, ["else {", code_block, "}"];
 - fori_stmnt          :== "fori ", identifier, " in (", (identifier | int_val), (identifier | int_val), "){", code_block "}";
 - for_stmnt           :== "for ", identifier, " in ", identifier, "{", code_block "}";
 - bool_expression     :== bool_and, {"||",  bool_and};
 - bool_and            :== expression_is , {"&&",  expression_is};
-- expression_is       :== bool_comp, {" is ",  type};
+- expression_is       :== expression_to, [" is ",  type];
+- expression_to       :== bool_comp, [" to ",  type];
 - bool_comp           :== expression, [comp_operator, expression];
 - declaration         :== "vv ", identifier, ["=", bool_expression], ";";
 - identifier_stmnt    :== part, {".", part};
@@ -321,7 +321,6 @@ func main() {
 - part_neg            :== value
                         | list
                         | identifier_stmnt
-                        | figure_declaration
                         | "(", bool_expression, ")";
 - return              :== "return ", identifier, ";"
                         | "return ", variable_val, ";"
@@ -347,7 +346,7 @@ func main() {
                         | "false"
 - negation_operator   :== "!"
                         | "-";
-- double_val          :== int_val, ".", int_val;
+- double_val          :== int_val, ".", digit, {digit};
 - string_val          :== '"', {char | digit | special_char}, '"';
 - char                :== [a-zA-Z];
 - special_char        :== "\n" | "\\" | '\"' | "\r" |pozostałe normalnie;
