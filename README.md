@@ -26,7 +26,6 @@ Nazwa języka: **TriSqr**
     - [Przykład nr 2](#przykład-nr-2)
   - [Gramatyka](#gramatyka)
   - [Sposób testowania](#sposób-testowania)
-  - [Tokeny](#tokeny)
 
 ## Treść zadania
 
@@ -42,7 +41,7 @@ Typy:
   - zmiennoprzecinkowa
 - boolowska
 - napis
-- kolekcja
+- lista
 - figury: 
   - trójkąt 
   - prostokąt
@@ -53,7 +52,7 @@ Typy:
   - linia
 - pusta wartośc none
   
-Kolekcja przyjmuje dowolne typy. Ma metodę .append, która dodaje pojedynczy element na koniec listy, dwie listy można łączyć za pomocą "+", zwraca kopię złączonej listy.
+Lista przyjmuje dowolne typy. Ma metodę .append, która dodaje pojedynczy element na koniec listy, dwie listy można łączyć za pomocą "+", zwraca kopię złączonej listy.
 
 Zmienne typi str można konkatenować za pomocą "+".
 
@@ -90,7 +89,7 @@ Instrukcją warunkową będzie:
 ```
 if (wyrażenie bool) { 
   *kod*
-} elif {
+} elif (wyrażenie bool) {
   *kod*
 } else{
   *kod*
@@ -100,13 +99,13 @@ if (wyrażenie bool) {
 ## Pętle
 Będzie pętla while:
 ```
-while (wyrażenie bool){
+while (wyrażenie bool) {
     *kod*
 }
 ```
 Będą 2 pętle for:
 ```
-for el in list{
+for el in list {
   *kod*
 }
 ```
@@ -130,58 +129,63 @@ Będzie możliwośc rekursji. Można zwracać pustą wartość za pomocą "retur
 
 Poza tym będą wbudowane funkcje:
 - print(str) - wypisuje w konsoli tekst zawarty w str
-- draw(list) - otwiera okienko z narysowanymi figurami geometrycznymi
+- draw(list) - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami
 
 ## Błędy
 
-Np. dla kodu w rodzaju:
+Ta sekcja na razie zawiera tylko przykłady błędów leksykalnych, wraz z rozwojem języka dojdą kolejne przykłady.
 
+Dla kodu w rodzaju:
 ```
-func main(){
-  vv a = 0;
-  vv b = 0;
-  vv c = a is b1asd1;
-} 
+1.2 to str + '3 to int; \n\r\n \r vv a;  \r\n
 ```
 Pojawi się błąd:
 ```
-a is b1asd1;
-4,15: "b1asd1" is not a type
+ERR: String is not closed.
+Line 1, character 14: '3 to int; \n\r\n \r vv a;  \r\n << error
 ```
 Dla kodu w rodzaju:
 ```
-func main(){
-  ?a;
-} 
+1.2'3 to int; \n\r\n \r vv a;  \r\n
 ```
 Pojawi się błąd:
 ```
-?a;
-2,15: token not recognized
+ERR: String is not closed.
+Line 1, character 4: '3 to int; \n\r\n \r vv a;  \r\n << error
 ```
 Dla kodu w rodzaju:
 ```
-func main(){
-  vv a = ["a", 1];
-  a.find("a");
+2.2147483648 2147483648.2147483648
+```
+Pojawi się błąd:
+```
+ERR: Number after . is too big.
+Line 1, character 1: 2.2147483648 << error
+ERR: Number is too big.
+Line 1, character 14: 2147483648 << error
+ERR: Number is too big.
+Line 1, character 25: 2147483648 << error
+```
+Dla kodu w rodzaju:
+```
+if (1.33 to int == 1 & true) {
+  a = a+1;
 }
 ```
-Pojawi się błąd:
+Pojawi się błąd
 ```
-?a;
-3,4: list does not have method find
+ERR: Unrecognized symbol.
+Line 1, character 22: &  << error
 ```
 ## Tworzenie figur
 
-Wszystkie podane niżej wartości argumentów będą podawane jako double
+Będą obsługiwane figury typu:
+```Triangle, Square, Rectangle, Rhombus, Trapezoid, Circle```.
 
-- ```Triangle(x_1, y_1, x_2, y_2)``` - stwórz trójkąt o wierzchołku w środku układu współrzędnych i w punktach (x_1, y_1) i (x_2, y_2);
-- ```Square(x)``` - stwórz kwadrat o długości boków x i środku masy w środku układu współrzędnych
-Poniżej dla rombu i prostokątu przez linie określną x rozumiemy linię równoległą do osi OX, a przez y równoległą do osi OY:
-- ```Rectangle(x, y)``` - stwórz prostokąt o długości boków x, y i środku masy w środku układu współrzędnych
-- ```Rhombus(x, y)``` - stwórz romb o długości przekątnych x, y i środku masy w środku układu współrzędnych
-- ```Trapezoid(a, b, h, x)``` - stwórz trapez równoramienny z podstawami a i b, b jest dolną podstawą i jej środek jest w środku układu współrzędnych, dodatkowo górna podstawa jest przesunięta o x w lewo lub w prawo w zależności od znaku 
-- ```Circle(r)``` - tworzy koło o promieniu r i środku w śtodku układu współrzędnych
+Dla wszystkich poza ```Circle``` tworzenie nowych figur będzie polegało na podawaniu punktów z wierzchołkami w listach typu:
+```[x_1, y_1, x_2, y_2, x_3, y_3]```. dla koła deklaracja bedzie wyglądała tak: ```Circle(x_1, y_1, r)```, gdzie ```x_1, y_1``` jest jego środkiem, a ```r``` jest jego promieniem.
+
+
 
 ## Metody i atrybuty figur
 
@@ -194,6 +198,7 @@ Metody:
 - .rotate(double angle) - obraca figurę wokół początku układu współrzędnych o kąt angle podawany w radianach
 - .transport(double x, double y) - przesuwa figurę o wektor (x, y)
 - .vertex() - zwraca listę wierzchołków (oprócz koła)
+- .copy() - zwraca kopię danej figury
 
 Parametry:
 - color - (int r, int g, int b) kolor wypełnienia figury w RGB, jeśli ma wartość ```none```, oznacza, że figura nie ma koloru wypełnienia
@@ -299,37 +304,32 @@ func main() {
                         | identifier_stmnt, ["=", expression], ";"
                         | return;
 - while_stmnt         :== "while(",  bool_expression, "){", code_block, "}";
-- if_stmnt            :== "if(",  bool_expression, "){", code_block, "}, {"elif(",  bool_expression, "){", code_block, "}"}, ["else {", code_block, "}"];
+- if_stmnt            :== "if(",  bool_expression, "){", code_block, "}", {"elif(",  bool_expression, "){", code_block, "}"}, ["else {", code_block, "}"];
 - fori_stmnt          :== "fori ", identifier, " in (", (identifier | int_val), (identifier | int_val), "){", code_block "}";
 - for_stmnt           :== "for ", identifier, " in ", identifier, "{", code_block "}";
 - bool_expression     :== bool_and, {"||",  bool_and};
 - bool_and            :== expression_is , {"&&",  expression_is};
-- expression_is       :== bool_comp, {" is ",  type};
+- expression_is       :== expression_to, [" is ",  type];
+- expression_to       :== bool_comp, [" to ",  type];
 - bool_comp           :== expression, [comp_operator, expression];
-- declaration         :== "vv ", identifier, ["=", expression], ";";
+- declaration         :== "vv ", identifier, ["=", bool_expression], ";";
 - identifier_stmnt    :== part, {".", part};
-- part                :== identifier, ["(", expression, {", ", expression}, ")"];
+- part                :== identifier, ["(", bool_expression, {", ", bool_expression}, ")"];
 - expression          :== expression_mul, {add_operator, expression_mul};
 - expression_mul      :== part_mul, {mul_operator, part_mul};
-- part_mul            :== value
+- part_mul            :== [negation_operator], part_neg;
+- part_neg            :== value
                         | list
                         | identifier_stmnt
-                        | figure_declaration
-                        | "(", expression, ")";
+                        | "(", bool_expression, ")";
 - return              :== "return ", identifier, ";"
                         | "return ", variable_val, ";"
 - list                :== "[", (identifier_stmnt | expression), {", ", (identifier_stmnt | expression)} "]";  
-- value               :== ["-"], int_val
+- value               :== int_val
                         | bool_val
-                        | ["-"], double_val
+                        | double_val
                         | string_val
                         | "none";
-- figure_declaration  :== "Triangle(",  expression, (", ", expression)*3, ")"
-                        | "Square(", expression, ")"
-                        | "Circle(", expression, ", ", expression, ")"
-                        | "Rectangle(", expression, ", ", expression, ")"
-                        | "Rhombus(", expression, ", ", expression, ")"
-                        | "Trapezoid(",  expression, (", ", expression)*3, ")";
 - identifier          :== [a-zA-Z][0-9a-zA-Z_]*
 - type                :== "none" | "int" | "bool" | "str" | "double" | "Figure";
 - comp_operator       :== "<"
@@ -337,14 +337,16 @@ func main() {
                         | ">"
                         | ">="
                         | "<="
-                        | "==";
+                        | "!=";
 - mul_operator        :== "*"
                         | "/";
 - add_operator        :== "+"
                         | "-";
 - bool_val            :== "true"
                         | "false"
-- double_val          :== int_val, ".", int_val;
+- negation_operator   :== "!"
+                        | "-";
+- double_val          :== int_val, ".", digit, {digit};
 - string_val          :== '"', {char | digit | special_char}, '"';
 - char                :== [a-zA-Z];
 - special_char        :== "\n" | "\\" | '\"' | "\r" |pozostałe normalnie;
@@ -355,21 +357,4 @@ func main() {
 ```
 ## Sposób testowania
 
-Oprócz podanych wyżej przykładów zastosowania języka, będziemy testować konwersje typów, sprawdzanie typów, błędy leksykalne (np. stowrzenie słów z niedozwolonymi znakami) i odwoływanie się do nieprawidłowych metod funkcji.
-
-## Tokeny
-|Typ   |Wartość  | | |
-|---|---|---|---|
-|1.Identyfikator, stała   |`Wskaźnik na tablicę symboli`   | | |
-|2.Słowa kluczowe   |`0 - if, 1 - elsif, 2 - else, 3 - while, 4 - fora, 5 - fori, 6 - in, 7 - func, 8 - vv, 9 - true, 10 - false, 11 - is, 12 - to, 13 - return`   | | |
-|3.Operator addytywny   |  `0 - +, 1 - -` | | |
-|4.Operator multiplykatywny  |  `0 - *, 1 - /` | | |
-|5.Operator relacyjny   | `0 - ==, 1 - <=, 2 - <, 3 - >, 4 - >=, 5 - ]`  | | |
-|6.Operator logiczny   |  `0 - &&, 1 - ||` | | |
-|7.Nawiasy   | `0 - (, 1 - ), 2 - {, 3 - }, 4 - [, 5 - ]`   | | |
-|8.Koniec teskstu   |  | | |
-|9.Znak nowej linii  |  | | |
-|10.Operator przypisania (=)  |   | | |
-|11.Operator odwołania do metody (.)  |  | | |
-|12.Koniec wyrażenia (; )  |  | | |
-|12.Komentarz (//do konca linii )  |  | | |
+Testy są zrealizowane za pomocą GTEST, do tej pory zaimplementowane zostały testy do leksera.
