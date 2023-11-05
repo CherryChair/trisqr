@@ -350,7 +350,7 @@ if (1.33 to int == 1 & true) {
 ```
 Pojawi się błąd
 ```
-LEX_ERR: Unrecognized symbol.
+LEX_ERR: Missing second & in && operator.
 Line 1, character 22: &  << error
 ```
 ### Błędy składniowe
