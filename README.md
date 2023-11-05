@@ -6,17 +6,19 @@ Autor: **Michał Kowalczyk**
 Nazwa języka: **TriSqr**
 
 ## Spis treści
+
 - [Projekt TKOM](#projekt-tkom)
   - [Informacje wstępne](#informacje-wstępne)
   - [Spis treści](#spis-treści)
   - [Treść zadania](#treść-zadania)
+  - [Wymagania](#wymagania)
   - [Obsługiwane typy zmiennych](#obsługiwane-typy-zmiennych)
   - [Komentarze](#komentarze)
   - [Tworzenie zmiennych](#tworzenie-zmiennych)
   - [Instrukcja warunkowa](#instrukcja-warunkowa)
   - [Pętle](#pętle)
   - [Funkcje](#funkcje)
-  - [Błędy](#błędy)
+  - [Punkty](#punkty)
   - [Tworzenie figur](#tworzenie-figur)
   - [Metody i atrybuty figur](#metody-i-atrybuty-figur)
     - [Współdzielone](#współdzielone)
@@ -24,12 +26,22 @@ Nazwa języka: **TriSqr**
   - [Złożone przykłady wykorzystania języka](#złożone-przykłady-wykorzystania-języka)
     - [Przykład nr 1](#przykład-nr-1)
     - [Przykład nr 2](#przykład-nr-2)
+  - [Przykłady błędów](#przykłady-błędów)
+    - [Błędy leksykalne](#błędy-leksykalne)
+    - [Błędy składniowe](#błędy-składniowe)
+    - [Błędy semantyczne](#błędy-semantyczne)
+  - [Operatory](#operatory)
   - [Gramatyka](#gramatyka)
-  - [Sposób testowania](#sposób-testowania)
+  - [Testowanie](#testowanie)
 
 ## Treść zadania
 
 Język do opisu figur geometrycznych i ich właściwości. Podstawowe typy figur geometrycznych (trójkąt, prostokąt, romb, trapez, koło itd.) są wbudowanymi typami języka. Każdy typ posiada wbudowane metody służące do wyznaczania charakterystycznych dla niego wielkości, np. obwód, pole powierzchni, wysokość, średnica itp. Kolekcja figur tworzy scenę wyświetlaną na ekranie.
+
+## Wymagania
+
+- w komunikatach o błędach bedzie widać linię i znak
+- zmienne 
 
 ## Obsługiwane typy zmiennych
 
@@ -46,7 +58,11 @@ Typy:
 - punkt 
 - pusta wartośc none
   
-Lista przyjmuje dowolne typy. Ma metodę .append, która dodaje pojedynczy element na koniec listy, dwie listy można łączyć za pomocą "+", ta operacja zwraca nową listę będącą złączeniem 2 list. Wielkość listy można dostać za pomocą parametru ```.len```. Poszeczególne elementy indeksowane sa od 0 i dostajemy się do nich za pomocą nawiasów kwadratowcyh ```list[i]```.
+Lista przyjmuje dowolne typy. Dwie listy można łączyć za pomocą "+", ta operacja zwraca nową listę będącą złączeniem 2 list. Poszeczególne elementy indeksowane sa od 0 i dostajemy się do nich za pomocą nawiasów kwadratowcyh ```list[i]```.
+Metody listy:
+- ```.append(el)``` - dodaje element na koniec listy
+- ```.delete(index)``` - usuwa element o indeksie ```index```
+- ```.len()``` - zwraca ilość elementów listy
 
 Zmienne typu str można konkatenować za pomocą "+".
 
@@ -75,7 +91,7 @@ Deklaracja zmiennej:
 ```
 vv nazwa_zmiennej
 ```
-Listy i figury będą mutowalne. Pozostałe zmienne nie będą.
+Zmienne będą przechowywane przez referencje. Listy i figury będą mutowalne. Pozostałe zmienne nie będą.
 Nie będzie zmiennych globalnych.
 ## Instrukcja warunkowa
 
@@ -125,105 +141,9 @@ Poza tym będą wbudowane funkcje:
 - print(str) - wypisuje w konsoli tekst zawarty w str
 - draw(list, p1, p2) - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami, rysowana scena jest rozpięta w prostokącie, którego przeciwległe wierzchołki to p1 i p2
 
-## Przykłady błędów
-
-### Lexer
-Dla kodu w rodzaju:
-```
-1.2 to str + '3 to int; \n\r\n \r vv a;  \r\n
-```
-Pojawi się błąd:
-```
-LEX_ERR: String is not closed.
-Line 1, character 14: '3 to int; \n\r\n \r vv a;  \r\n << error
-```
-Dla kodu w rodzaju:
-```
-1.2'3 to int; \n\r\n \r vv a;  \r\n
-```
-Pojawi się błąd:
-```
-LEX_ERR: String is not closed.
-Line 1, character 4: '3 to int; \n\r\n \r vv a;  \r\n << error
-```
-Dla kodu w rodzaju:
-```
-2.2147483648 2147483648.2147483648
-```
-Pojawi się błąd:
-```
-LEX_ERR: Number after . is too big.
-Line 1, character 1: 2.2147483648 << error
-LEX_ERR: Number is too big.
-Line 1, character 14: 2147483648 << error
-LEX_ERR: Number is too big.
-Line 1, character 25: 2147483648 << error
-```
-Dla kodu w rodzaju:
-```
-if (1.33 to int == 1 & true) {
-  a = a+1;
-}
-```
-Pojawi się błąd
-```
-LEX_ERR: Unrecognized symbol.
-Line 1, character 22: &  << error
-```
-### Parser
-Dla kodu w rodzaju:
-```
-if 1.33 to int == 1 && true) {
-  a = a+1;
-}
-```
-Przerwie się dalsze sprawdzanie i pojawi się błąd
-```
-PARSE_ERR: Missing left bracket.
-Line 1, character 4: if 1.33  << error
-```
-Dla kodu w rodzaju:
-```
-if (1.33 to int == 1 && {}) {
-  a = a+1;
-}
-```
-Przerwie się dalsze sprawdzanie i pojawi się błąd
-```
-PARSE_ERR: Wrong character after and operator.
-Line 1, character 22: && {}  << error
-```
-### Interpreter
-Dla kodu w rodzaju:
-```
-vv a = 0;
-vv b = 0;
-if (1.33 to int == 1 & true) {
-  a = b();
-}
-```
-Pojawi się błąd
-```
-ERR: b is not a function or figure method.
-Line 4, character 7: b()  << error
-```
-Dla kodu w rodzaju:
-```
-figure Triangle {a:(0.0, 0.0), b:(0.0, 1.0), c:(1.0, 0.0)}
-
-func main() {
-  vv tr1 = Triangle();
-  vv d = tr1.d;
-}
-```
-Pojawi się błąd
-```
-ERR: Triangle does not have attribute d.
-Line 4, character 7: tr1.d  << error
-```
 ## Punkty
 
-Istnieje zmienna typu ```point```, punkt zawiera współrzędną ```x``` i ```y```. Tworzymy go tak ```(x, y)```. Do jego wartości moża się dostać za pomocą ```.x``` i ```.y```.
+Istnieje zmienna typu ```point```, punkt zawiera współrzędną ```x``` i ```y```. Tworzymy go tak ```(x, y)```. Do jego wartości moża się dostać za pomocą ```.x``` i ```.y```. Można zmienić ich wartości.
 
 ## Tworzenie figur
 
@@ -373,6 +293,120 @@ func main() {
 }
 ```
 
+## Przykłady błędów
+
+### Błędy leksykalne
+Dla kodu w rodzaju:
+```
+1.2 to str + '3 to int; \n\r\n \r vv a;  \r\n
+```
+Pojawi się błąd:
+```
+LEX_ERR: String is not closed.
+Line 1, character 14: '3 to int; \n\r\n \r vv a;  \r\n << error
+```
+Dla kodu w rodzaju:
+```
+1.2'3 to int; \n\r\n \r vv a;  \r\n
+```
+Pojawi się błąd:
+```
+LEX_ERR: String is not closed.
+Line 1, character 4: '3 to int; \n\r\n \r vv a;  \r\n << error
+```
+Dla kodu w rodzaju:
+```
+2.2147483648 2147483648.2147483648
+```
+Pojawi się błąd:
+```
+LEX_ERR: Number after . is too big.
+Line 1, character 1: 2.2147483648 << error
+LEX_ERR: Number is too big.
+Line 1, character 14: 2147483648 << error
+LEX_ERR: Number is too big.
+Line 1, character 25: 2147483648 << error
+```
+Dla kodu w rodzaju:
+```
+if (1.33 to int == 1 & true) {
+  a = a+1;
+}
+```
+Pojawi się błąd
+```
+LEX_ERR: Unrecognized symbol.
+Line 1, character 22: &  << error
+```
+### Błędy składniowe
+Dla kodu w rodzaju:
+```
+if 1.33 to int == 1 && true) {
+  a = a+1;
+}
+```
+Przerwie się dalsze sprawdzanie i pojawi się błąd
+```
+PARSE_ERR: Missing left bracket.
+Line 1, character 4: if 1.33  << error
+```
+Dla kodu w rodzaju:
+```
+if (1.33 to int == 1 && {}) {
+  a = a+1;
+}
+```
+Przerwie się dalsze sprawdzanie i pojawi się błąd
+```
+PARSE_ERR: Wrong character after and operator.
+Line 1, character 22: && {}  << error
+```
+### Błędy semantyczne
+Dla kodu w rodzaju:
+```
+vv a = 0;
+vv b = 0;
+if (1.33 to int == 1 & true) {
+  a = b();
+}
+```
+Pojawi się błąd
+```
+ERR: b is not a function or method.
+Line 4, character 7: b()  << error
+```
+Dla kodu w rodzaju:
+```
+figure Triangle {a:(0.0, 0.0), b:(0.0, 1.0), c:(1.0, 0.0)}
+
+func main() {
+  vv tr1 = Triangle();
+  vv d = tr1.d;
+}
+```
+Pojawi się błąd
+```
+ERR: Triangle does not have attribute d.
+Line 4, character 7: tr1.d  << error
+```
+## Operatory
+
+Im większa liczba, tym wyższy priorytet.
+
+|Operator|Priorytet|
+|---|---|
+|  &#124;  &#124;  | 1  |
+| &&  |  2  |
+| <,>,<=,>=,==,!=  |  3 |
+| is  |  4 |
+| to  |  5 |
+| +,-  |  6 |
+| *,/  |  7 |
+| !,-  |  8 |
+| .  |  9 |
+| [ ]  |  10 |
+| ( )  |  11 |
+
 ## Gramatyka
 ```
 - program             :== {func_declaration | figure_declaration};
@@ -454,3 +488,8 @@ func main() {
 - digit               :==  digit_without_zero | "0";
 - digit_without_zero  :== [1-9]
 ```
+## Testowanie
+
+Analizator leksykalny będzie testowany poprzez sprawdzanie, czy dane tekstowe wyprodukują spodziewaną sekwencję tokenów.
+
+W przypadku testowania analizatora składniowego będziemy sprawdzać, czy z przekazanych przez analizator leksykalny tokenów powstają odpowiednie drzewa składniowe.
