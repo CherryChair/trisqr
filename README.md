@@ -42,19 +42,13 @@ Typy:
 - boolowska
 - napis
 - lista
-- figury: 
-  - trójkąt 
-  - prostokąt
-  - kwadrat
-  - romb
-  - trapez
-  - koło
-  - linia
+- figura
+- punkt 
 - pusta wartośc none
   
-Lista przyjmuje dowolne typy. Ma metodę .append, która dodaje pojedynczy element na koniec listy, dwie listy można łączyć za pomocą "+", zwraca kopię złączonej listy.
+Lista przyjmuje dowolne typy. Ma metodę .append, która dodaje pojedynczy element na koniec listy, dwie listy można łączyć za pomocą "+", ta operacja zwraca nową listę będącą złączeniem 2 list. Wielkość listy można dostać za pomocą parametru ```.len```. Poszeczególne elementy indeksowane sa od 0 i dostajemy się do nich za pomocą nawiasów kwadratowcyh ```list[i]```.
 
-Zmienne typi str można konkatenować za pomocą "+".
+Zmienne typu str można konkatenować za pomocą "+".
 
 Przez silne typowanie wymagane jest wprowadzenie możliwości konwersji typów. Będziemy to robić za pomocą operatora "to", przy zmianie zmiennej *variable* na typ *type*: ```*variable* to *type*```.
 
@@ -129,7 +123,7 @@ Będzie możliwośc rekursji. Można zwracać pustą wartość za pomocą "retur
 
 Poza tym będą wbudowane funkcje:
 - print(str) - wypisuje w konsoli tekst zawarty w str
-- draw(list) - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami
+- draw(list, p1, p2) - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami, rysowana scena jest rozpięta w prostokącie, którego przeciwległe wierzchołki to p1 i p2
 
 ## Błędy
 
@@ -184,18 +178,18 @@ Istnieje zmienna typu ```point```, punkt zawiera współrzędną ```x``` i ```y`
 ## Tworzenie figur
 
 Typy figur będą tworzone za pomocą deklaracji 
-```figure <Identifier> {<point_name>, <point_name>, ...}```
+```figure <Identifier> {<point_name>:<default_point_value>, <point_name>:<default_point_value>, ...}```
 
 Np.
 ```
 figure Triangle{
-  a,
-  b,
-  c
+  a: (0.0,0.0),
+  b: (0.0,1.0),
+  c: (1.0,0.0),
 }
 ```
 
-Tak zadeklarowaną figurę tworzymy za pomocą ```vv triangle1 = Triangle((x1,y1), (x2,y2), (x3,y3))```. Potem możemy dostawać się do punktów za pomocą nazw nadanych w deklaracji. Np. ```triangle1.a```. 
+Tak zadeklarowaną figurę tworzymy za pomocą ```vv triangle1 = Triangle((x1,y1), (x2,y2), (x3,y3))``` lub za pomocą ```vv triangle2 = Triangle()```, wtedy jest tworzona z domylnymi wartościami punktów podanymi w deklaracji. Potem możemy dostawać się do punktów za pomocą nazw nadanych w deklaracji. Np. ```triangle1.a```. 
 
 Figury będą rysowane przez tworzenie linii między kolejno zadeklarowanymi punktami, np. w przykładowym ```Triangle```, rysujemy linie a->b, b->c, c->b.
 
@@ -231,30 +225,37 @@ Parametry:
 Coś à la trójkąt Sierpińskiego:
 
 ```
-func sierpinsky(x_off, y_off, x, y, n, startingTriangle, list){
+figure Triangle {
+  a: (0.0, 0.0),
+  b: (1.0, 0.0),
+  c: (0.0, 1.0),
+}
+
+func sierpinsky(a, b, c, n, list){
   if (n <= 0) {
     return;
   }
   vv n_n = n-1;
-  vv newTriangle = Triangle(0.0, y, x, 0.0);
-  newTriangle.rotate(pi);
+  vv newTriangle = Traingle(a, b, c);
+  x_off = (b.x-a.x)/2.0;
+  y_off = (c.y-a.y)/2.0;
   newTriangle.color = [255, 255, 255];
   newTriangle.border = 0;
-  newTriangle.transport(x_off + x, y_off + y);
   list.append(newTriangle);
-  sierpinsky(x/2.0 + x_off, y_off, x/2.0, y/2.0, n_n, list);
-  sierpinsky(x_off, y/2.0 + y_off, x/2.0, y/2.0, n_n, list);
-  sierpinsky(x_off, y_off, x/2.0, y/2.0, n_n, list);
+  sierpinsky((a.x-x_off, a.y-y_off), (b.x, b.y-y_off), (c.x-x_off, c.y), n_n, list);
+  sierpinsky((a.x+x_off, a.y-y_off), (b.x, b.y-y_off), (c.x+x_off, c.y), n_n, list);
+  sierpinsky((a.x-x_off, a.y+y_off), (b.x, b.y+y_off), (c.x-x_off, c.y), n_n, list);
 }
 
 func main() {
   vv sierpinskyList = [];
-  vv newTriangle = Triangle(0.0, 16.0, 16.0, 0.0);
+  vv newTriangle = Triangle();
   newTriangle.rotate(pi)
+  newTriangle.scale(16.0)
   newTriangle.color = [0, 0, 0];
   newTriangle.border = 0;
-  sierpinsky(0.0, 0.0, 16.0, 16.0, 6, sierpinskyList)
-  draw(sierpinskyList);
+  sierpinsky((8.0, 8.0), (0.0, 8.0), (8.0, 0.0), 6, sierpinskyList)
+  draw(sierpinskyList, (-1.0, -1.0), (17.0, 17.0));
 }
 
 ```
@@ -262,9 +263,18 @@ func main() {
 ### Przykład nr 2
 Tworzymy coraz minejsze kwadraty obrazujące kolejne elementy ciągów 1/n^2 i 1/2^(2*n):
 ```
+figure Square {
+  a: (0.0,0.0),
+  b: (0.0,1.0),
+  c: (1.0,0.0),
+  d: (1.0,1.0)
+}
+
 func power(base, n) {
   if(n>0){
     return base*power(base, n-1);
+  } elif (n < 0) {
+    return -1;
   }
   return 1;
 }
@@ -285,11 +295,12 @@ func main() {
   vv n = 10;
   vv sum_of_scale1 = 0.0;
   vv sum_of_scale2 = 0.0;
+  vv base_sqr = Square();
   fori i in (0, n){
     vv scale1 = power(0.5, i);
     vv scale2 = 1.0/(i to double);
-    vv sqr1 = Square(scale1);
-    vv sqr2 = Square(scale2);
+    vv sqr1 = base_sqr.copy().scale(scale1);
+    vv sqr2 = base_sqr.copy().scale(scale2);
     sqr1.transport(sum_of_scale1 + scale1/2.0, scale1/2.0);
     sqr2.transport(-sum_of_scale2 + -scale2/2.0, scale2/2.0);
     sum_of_scale1 = sum_of_scale1 + scale1;
@@ -299,10 +310,16 @@ func main() {
   }
   vv sum1 = sumAreas(list1);
   vv sum2 = sumAreas(list2);
+  vv max_sum = 0.0;
+  if (sum1 > sum2) {
+    max_sum = sum1;
+  } else {
+    max_sum = sum2;
+  }
   print("Suma 1: " + sum1 to str);
   print("Suma 2: " + sum2 to str);
   list_to_draw = list1 + list2;
-  draw(list_to_draw);
+  draw(list_to_draw, (list2[list2.len-1].a.x - 1.0, -1.0), (list1[list1.len-1].a.x + 1.0, max_sum + 1.0));
 }
 ```
 
@@ -312,7 +329,9 @@ func main() {
 - func_declaration    :== "func ", identifier, decl_argument_list, code_block;
 - decl_argument_list  :== "(", [identifier, {", ", identifier}], ")";
 - figure_declaration  :== "figure ", identifier, point_list;
-- point_list          :== "{", identifier, {",", identifier}, "}";
+- point_list          :== "{", point_declaration, {",", point_declaration}, "}";
+- point_declaration   :== identifier, ":", point_value;
+- point_value         :== "(", double_val, ",", "double_val, ")";
 - code_block          :== "{", {statement}, "}";
 - statement           :== while_stmnt
                         | fori_stmnt
