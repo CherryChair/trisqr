@@ -81,8 +81,8 @@ Deklaracja zmiennej:
 ```
 vv nazwa_zmiennej
 ```
-Zmienne będą mutowalne.
-Nie będzie zmiennych globalnych, zmienne do funkcji będą przekazywane przez referencje.
+Listy i figury będą mutowalne. Pozostałe zmienne nie będą.
+Nie będzie zmiennych globalnych.
 ## Instrukcja warunkowa
 
 Instrukcją warunkową będzie:
@@ -177,21 +177,36 @@ Pojawi się błąd
 ERR: Unrecognized symbol.
 Line 1, character 22: &  << error
 ```
+## Punkty
+
+Istnieje zmienna typu ```point```, punkt zawiera współrzędną ```x``` i ```y```. Tworzymy go tak ```(x, y)```. Do jego wartości moża się dostać za pomocą ```.x``` i ```.y```.
+
 ## Tworzenie figur
 
-Będą obsługiwane figury typu:
-```Triangle, Square, Rectangle, Rhombus, Trapezoid, Circle```.
+Typy figur będą tworzone za pomocą deklaracji 
+```figure <Identifier> {<point_name>, <point_name>, ...}```
 
-Dla wszystkich poza ```Circle``` tworzenie nowych figur będzie polegało na podawaniu punktów z wierzchołkami w listach typu:
-```[x_1, y_1, x_2, y_2, x_3, y_3]```. dla koła deklaracja bedzie wyglądała tak: ```Circle(x_1, y_1, r)```, gdzie ```x_1, y_1``` jest jego środkiem, a ```r``` jest jego promieniem.
+Np.
+```
+figure Triangle{
+  a,
+  b,
+  c
+}
+```
 
+Tak zadeklarowaną figurę tworzymy za pomocą ```vv triangle1 = Triangle((x1,y1), (x2,y2), (x3,y3))```. Potem możemy dostawać się do punktów za pomocą nazw nadanych w deklaracji. Np. ```triangle1.a```. 
 
+Figury będą rysowane przez tworzenie linii między kolejno zadeklarowanymi punktami, np. w przykładowym ```Triangle```, rysujemy linie a->b, b->c, c->b.
+
+Dodatkowo wprowadzona jest figura ```Circle```. dla koła deklaracja bedzie wyglądała tak: ```Circle(<middle_point>, r)```.
 
 ## Metody i atrybuty figur
 
 ### Współdzielone
 
 Metody:
+- .<nazwa_punktu_z_deklaracji> - punkt 
 - .circ() - zwraca obwód
 - .area() - zwraca pole
 - .scale(double scale) - skaluje figurę w stosunku do początku układu współrzędnych o skalę scale
@@ -202,7 +217,7 @@ Metody:
 
 Parametry:
 - color - (int r, int g, int b) kolor wypełnienia figury w RGB, jeśli ma wartość ```none```, oznacza, że figura nie ma koloru wypełnienia
-- border - (double) grubość obwódki
+- border - (double) grubość linii
 
 ### Charakterystyczne
 
@@ -293,45 +308,60 @@ func main() {
 
 ## Gramatyka
 ```
-- program             :== {func_declaration};
-- func_declaration    :== "func ", identifier, "(", [identifier, {", ", identifier}], "){", code_block, "}";
-- code_block          :== {statement};
+- program             :== {func_declaration | figure_declaration};
+- func_declaration    :== "func ", identifier, decl_argument_list, code_block;
+- decl_argument_list  :== "(", [identifier, {", ", identifier}], ")";
+- figure_declaration  :== "figure ", identifier, point_list;
+- point_list          :== "{", identifier, {",", identifier}, "}";
+- code_block          :== "{", {statement}, "}";
 - statement           :== while_stmnt
                         | fori_stmnt
                         | for_stmnt
                         | if_stmnt
                         | declaration
-                        | identifier_stmnt, ["=", expression], ";"
+                        | identifier_stmnt, ["=", bool_expression], ";"
                         | return;
-- while_stmnt         :== "while(",  bool_expression, "){", code_block, "}";
-- if_stmnt            :== "if(",  bool_expression, "){", code_block, "}", {"elif(",  bool_expression, "){", code_block, "}"}, ["else {", code_block, "}"];
-- fori_stmnt          :== "fori ", identifier, " in (", (identifier | int_val), (identifier | int_val), "){", code_block "}";
-- for_stmnt           :== "for ", identifier, " in ", identifier, "{", code_block "}";
+- while_stmnt         :== "while(",  bool_expression, ")", code_block;
+- if_stmnt            :== "if(",  bool_expression, ")", code_block, {"elif(",  bool_expression, ")", code_block }, ["else", code_block];
+- fori_stmnt          :== "fori ", identifier, " in (", (identifier | int_val), (identifier | int_val), ")", code_block;
+- for_stmnt           :== "for ", identifier, " in ", identifier, code_block;
 - bool_expression     :== bool_and, {"||",  bool_and};
-- bool_and            :== expression_is , {"&&",  expression_is};
+- bool_and            :== bool_comp , {"&&",  bool_comp};
+- bool_comp           :== expression_is, [comp_operator, expression_is];
 - expression_is       :== expression_to, [" is ",  type];
-- expression_to       :== bool_comp, [" to ",  type];
-- bool_comp           :== expression, [comp_operator, expression];
+- expression_to       :== expression, [" to ",  type];
 - declaration         :== "vv ", identifier, ["=", bool_expression], ";";
-- identifier_stmnt    :== part, {".", part};
-- part                :== identifier, ["(", bool_expression, {", ", bool_expression}, ")"];
+- identifier_stmnt    :== part_list, {".", part_list};
+- part_list           :== part, "[", bool_expression, "]";
+- part                :== identifier, [argument_list];
+- argument_list       :== "(", [bool_expression, {", ", bool_expression}], ")";
 - expression          :== expression_mul, {add_operator, expression_mul};
 - expression_mul      :== part_mul, {mul_operator, part_mul};
 - part_mul            :== [negation_operator], part_neg;
 - part_neg            :== value
                         | list
+                        | figure
+                        | point
                         | identifier_stmnt
                         | "(", bool_expression, ")";
-- return              :== "return ", identifier, ";"
-                        | "return ", variable_val, ";"
-- list                :== "[", (identifier_stmnt | expression), {", ", (identifier_stmnt | expression)} "]";  
+- return              :== "return ", [bool_expression], ";"
+- list                :== "[", bool_expression, {", ", bool_expression} "]";
+- figure              :== identifier, argument_list;  
+- point               :== "(", bool_expression, ",", bool_expression, ")";  
 - value               :== int_val
                         | bool_val
                         | double_val
                         | string_val
                         | "none";
 - identifier          :== [a-zA-Z][0-9a-zA-Z_]*
-- type                :== "none" | "int" | "bool" | "str" | "double" | "Figure";
+- type                :== "none" 
+                        | "int" 
+                        | "bool" 
+                        | "str" 
+                        | "double" 
+                        | "figure" 
+                        | "point" 
+                        | identifer;
 - comp_operator       :== "<"
                         | "=="
                         | ">"
