@@ -125,17 +125,16 @@ Poza tym będą wbudowane funkcje:
 - print(str) - wypisuje w konsoli tekst zawarty w str
 - draw(list, p1, p2) - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami, rysowana scena jest rozpięta w prostokącie, którego przeciwległe wierzchołki to p1 i p2
 
-## Błędy
+## Przykłady błędów
 
-Ta sekcja na razie zawiera tylko przykłady błędów leksykalnych, wraz z rozwojem języka dojdą kolejne przykłady.
-
+### Lexer
 Dla kodu w rodzaju:
 ```
 1.2 to str + '3 to int; \n\r\n \r vv a;  \r\n
 ```
 Pojawi się błąd:
 ```
-ERR: String is not closed.
+LEX_ERR: String is not closed.
 Line 1, character 14: '3 to int; \n\r\n \r vv a;  \r\n << error
 ```
 Dla kodu w rodzaju:
@@ -144,7 +143,7 @@ Dla kodu w rodzaju:
 ```
 Pojawi się błąd:
 ```
-ERR: String is not closed.
+LEX_ERR: String is not closed.
 Line 1, character 4: '3 to int; \n\r\n \r vv a;  \r\n << error
 ```
 Dla kodu w rodzaju:
@@ -153,11 +152,11 @@ Dla kodu w rodzaju:
 ```
 Pojawi się błąd:
 ```
-ERR: Number after . is too big.
+LEX_ERR: Number after . is too big.
 Line 1, character 1: 2.2147483648 << error
-ERR: Number is too big.
+LEX_ERR: Number is too big.
 Line 1, character 14: 2147483648 << error
-ERR: Number is too big.
+LEX_ERR: Number is too big.
 Line 1, character 25: 2147483648 << error
 ```
 Dla kodu w rodzaju:
@@ -168,8 +167,59 @@ if (1.33 to int == 1 & true) {
 ```
 Pojawi się błąd
 ```
-ERR: Unrecognized symbol.
+LEX_ERR: Unrecognized symbol.
 Line 1, character 22: &  << error
+```
+### Parser
+Dla kodu w rodzaju:
+```
+if 1.33 to int == 1 && true) {
+  a = a+1;
+}
+```
+Przerwie się dalsze sprawdzanie i pojawi się błąd
+```
+PARSE_ERR: Missing left bracket.
+Line 1, character 4: if 1.33  << error
+```
+Dla kodu w rodzaju:
+```
+if (1.33 to int == 1 && {}) {
+  a = a+1;
+}
+```
+Przerwie się dalsze sprawdzanie i pojawi się błąd
+```
+PARSE_ERR: Wrong character after and operator.
+Line 1, character 22: && {}  << error
+```
+### Interpreter
+Dla kodu w rodzaju:
+```
+vv a = 0;
+vv b = 0;
+if (1.33 to int == 1 & true) {
+  a = b();
+}
+```
+Pojawi się błąd
+```
+ERR: b is not a function or figure method.
+Line 4, character 7: b()  << error
+```
+Dla kodu w rodzaju:
+```
+figure Triangle {a:(0.0, 0.0), b:(0.0, 1.0), c:(1.0, 0.0)}
+
+func main() {
+  vv tr1 = Triangle();
+  vv d = tr1.d;
+}
+```
+Pojawi się błąd
+```
+ERR: Triangle does not have attribute d.
+Line 4, character 7: tr1.d  << error
 ```
 ## Punkty
 
@@ -404,6 +454,3 @@ func main() {
 - digit               :==  digit_without_zero | "0";
 - digit_without_zero  :== [1-9]
 ```
-## Sposób testowania
-
-Testy są zrealizowane za pomocą GTEST, do tej pory zaimplementowane zostały testy do leksera.
