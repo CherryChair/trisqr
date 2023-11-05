@@ -5,13 +5,17 @@ Autor: **Michał Kowalczyk**
 
 Nazwa języka: **TriSqr**
 
+Język realizacji: **c++**
+
 ## Spis treści
 
 - [Projekt TKOM](#projekt-tkom)
   - [Informacje wstępne](#informacje-wstępne)
   - [Spis treści](#spis-treści)
   - [Treść zadania](#treść-zadania)
-  - [Wymagania](#wymagania)
+  - [Wymagania funkcjonalne](#wymagania-funkcjonalne)
+  - [Wymagania niefunkcjonalne](#wymagania-niefunkcjonalne)
+  - [Konfiguracja](#konfiguracja)
   - [Obsługiwane typy zmiennych](#obsługiwane-typy-zmiennych)
   - [Komentarze](#komentarze)
   - [Tworzenie zmiennych](#tworzenie-zmiennych)
@@ -38,10 +42,21 @@ Nazwa języka: **TriSqr**
 
 Język do opisu figur geometrycznych i ich właściwości. Podstawowe typy figur geometrycznych (trójkąt, prostokąt, romb, trapez, koło itd.) są wbudowanymi typami języka. Każdy typ posiada wbudowane metody służące do wyznaczania charakterystycznych dla niego wielkości, np. obwód, pole powierzchni, wysokość, średnica itp. Kolekcja figur tworzy scenę wyświetlaną na ekranie.
 
-## Wymagania
+## Wymagania funkcjonalne
 
-- w komunikatach o błędach bedzie widać linię i znak
-- zmienne 
+- możliwość rysowania wielu scen
+- możliwość rysowania figur w różnych kolorach 
+- możliwość wykonania kodu z pliku lub interaktywnego wpisywania kodu w terminalu
+- komunikaty o błędach wyświetlają numer linii i znaku miejsca wystąpienia błędu
+
+## Wymagania niefunkcjonalne
+- leniwe odczytywanie strumienia danych
+- testowanie błędów
+- testowanie poprawności realizowania przykładów kodu
+
+## Konfiguracja
+
+W plikach konfiguracyjnych zdefiniujemy m.in. wartość PI, maksymalną długość wartości napisów w kodzie. 
 
 ## Obsługiwane typy zmiennych
 
@@ -66,7 +81,7 @@ Metody listy:
 
 Zmienne typu str można konkatenować za pomocą "+".
 
-Przez silne typowanie wymagane jest wprowadzenie możliwości konwersji typów. Będziemy to robić za pomocą operatora "to", przy zmianie zmiennej *variable* na typ *type*: ```*variable* to *type*```.
+Przez silne typowanie wymagane jest wprowadzenie możliwości konwersji typów. Będziemy to robić za pomocą operatora ```to```, przy zmianie zmiennej *variable* na typ *type*: ```*variable* to *type*```.
 
 Możliwe konwersje typów:
 - ```int to double```
@@ -135,7 +150,7 @@ func NazwaFunkcji(a, b, c){
     *kod*
 }
 ```
-Będzie możliwośc rekursji. Można zwracać pustą wartość za pomocą "return;". Nie trzeba podawać return na końcu funkcji, wtedy automatycznie zwraca pustą wartość.
+Będzie możliwośc rekursji. Można zwracać pustą wartość za pomocą "return;". Nie trzeba podawać return na końcu funkcji, wtedy automatycznie zwraca pustą wartość. Argumenty funkcji są przechowywane poprzez referencje dla zmiennych figurowych i list, pozostałe przekazywane są poprzez wartość.
 
 Poza tym będą wbudowane funkcje:
 - print(str) - wypisuje w konsoli tekst zawarty w str
@@ -143,7 +158,7 @@ Poza tym będą wbudowane funkcje:
 
 ## Punkty
 
-Istnieje zmienna typu ```point```, punkt zawiera współrzędną ```x``` i ```y```. Tworzymy go tak ```(x, y)```. Do jego wartości moża się dostać za pomocą ```.x``` i ```.y```. Można zmienić ich wartości.
+Istnieje zmienna typu ```point```, punkt zawiera współrzędną ```x``` i ```y``` o wartościach double. Tworzymy go tak ```(x, y)```. Do jego wartości moża się dostać za pomocą ```.x``` i ```.y```. Można zmienić ich wartości.
 
 ## Tworzenie figur
 
@@ -163,7 +178,7 @@ Tak zadeklarowaną figurę tworzymy za pomocą ```vv triangle1 = Triangle((x1,y1
 
 Figury będą rysowane przez tworzenie linii między kolejno zadeklarowanymi punktami, np. w przykładowym ```Triangle```, rysujemy linie a->b, b->c, c->b.
 
-Dodatkowo wprowadzona jest figura ```Circle```. dla koła deklaracja bedzie wyglądała tak: ```Circle(<middle_point>, r)```.
+Dodatkowo wprowadzona jest figura ```Circle```. Nowe koło jest tworzone przez: ```Circle(<middle_point>, <radius>)``` lub ```Circle()```, które tworzy koło jednostkowe o środku w punkcie ```(0,0)```.
 
 ## Metody i atrybuty figur
 
@@ -172,7 +187,7 @@ Dodatkowo wprowadzona jest figura ```Circle```. dla koła deklaracja bedzie wygl
 Metody:
 - .<nazwa_punktu_z_deklaracji> - punkt 
 - .circ() - zwraca obwód
-- .area() - zwraca pole
+- .area() - zwraca pole, w przypadku figur, których boki się przecinają zwracane jest ```-1```.
 - .scale(double scale) - skaluje figurę w stosunku do początku układu współrzędnych o skalę scale
 - .rotate(double angle) - obraca figurę wokół początku układu współrzędnych o kąt angle podawany w radianach
 - .transport(double x, double y) - przesuwa figurę o wektor (x, y)
@@ -490,6 +505,10 @@ Im większa liczba, tym wyższy priorytet.
 ```
 ## Testowanie
 
+Testy jednostkowe zrealizowane będą w GTEST.
+
 Analizator leksykalny będzie testowany poprzez sprawdzanie, czy dane tekstowe wyprodukują spodziewaną sekwencję tokenów.
 
-W przypadku testowania analizatora składniowego będziemy sprawdzać, czy z przekazanych przez analizator leksykalny tokenów powstają odpowiednie drzewa składniowe.
+W przypadku testowania analizatora składniowego będziemy sprawdzać, czy z przekazanych przez analizator leksykalny tokenów powstają odpowiednie drzewa składniowe, oczywiście testować też będziemy błędy.
+
+Konieczne też będzie przetestowanie wykrywania błędów semantycznych i poprawne wykonywanie kodu.
