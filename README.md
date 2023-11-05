@@ -154,7 +154,7 @@ Będzie możliwośc rekursji. Można zwracać pustą wartość za pomocą "retur
 
 Poza tym będą wbudowane funkcje:
 - print(str) - wypisuje w konsoli tekst zawarty w str
-- draw(list, p1, p2) - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami, rysowana scena jest rozpięta w prostokącie, którego przeciwległe wierzchołki to p1 i p2
+- draw(list, p1, p2) - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami, rysowana scena jest rozpięta w prostokącie, którego przeciwległe wierzchołki to p1 i p2. Można pominąć p1 i p2 przy wywoływaniu metody wtedy zostanie narysowana scena, która będzie zawierać wszystkie podane figury (poprzez analizę najmniejszych i największych wartości x i y punktów należacych do sceny)
 
 ## Punkty
 
@@ -511,4 +511,4 @@ Analizator leksykalny będzie testowany poprzez sprawdzanie, czy dane tekstowe w
 
 W przypadku testowania analizatora składniowego będziemy sprawdzać, czy z przekazanych przez analizator leksykalny tokenów powstają odpowiednie drzewa składniowe, oczywiście testować też będziemy błędy.
 
-Konieczne też będzie przetestowanie wykrywania błędów semantycznych i poprawne wykonywanie kodu.
+Konieczne też będzie przetestowanie wykrywania błędów semantycznych i poprawne wykonywanie kodu, jak np. obroty i skalowanie figur.
