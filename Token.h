@@ -5,6 +5,9 @@
 #ifndef LEXER_TOKEN_H
 #define LEXER_TOKEN_H
 
+#include <variant>
+#include <string>
+
 enum token_type {
     IDENTIFIER_TYPE,
     INTEGER_TYPE,
