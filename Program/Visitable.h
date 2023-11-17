@@ -8,9 +8,9 @@
 #include "Visitator.h"
 
 class Visitable {
-    void accept(Visitator visitator){
-        visitator.visit(this);
-    };
+//    void accept(Visitator visitator){
+//        visitator.visit(this);
+//    };
 };
 
 

@@ -8,7 +8,9 @@
 #include "Visitable.h"
 
 class Visitator {
-
+//    void visit(Visitable visitable){
+//
+//    }
 };
 
 
