@@ -43,6 +43,13 @@ TEST(BasicTests, funcTest) {
     ASSERT_EQ(lexer->nextToken()->getTokenType(), FUNC_TYPE);
 }
 
+TEST(BasicTests, figureTest) {
+    std::string a = "figure";
+    std::stringbuf ss(a);
+    Lexer * lexer = new Lexer(ss);
+    ASSERT_EQ(lexer->nextToken()->getTokenType(), FIGURE_TYPE);
+}
+
 TEST(BasicTests, returnTest) {
     std::string a = "return";
     std::stringbuf ss(a);
@@ -50,18 +57,11 @@ TEST(BasicTests, returnTest) {
     ASSERT_EQ(lexer->nextToken()->getTokenType(), RETURN_TYPE);
 }
 
-TEST(BasicTests, foraTest) {
-    std::string a = "fora";
+TEST(BasicTests, forTest) {
+    std::string a = "for";
     std::stringbuf ss(a);
     Lexer * lexer = new Lexer(ss);
-    ASSERT_EQ(lexer->nextToken()->getTokenType(), FORA_TYPE);
-}
-
-TEST(BasicTests, foriTest) {
-    std::string a = "fori";
-    std::stringbuf ss(a);
-    Lexer * lexer = new Lexer(ss);
-    ASSERT_EQ(lexer->nextToken()->getTokenType(), FORI_TYPE);
+    ASSERT_EQ(lexer->nextToken()->getTokenType(), FOR_TYPE);
 }
 
 TEST(BasicTests, vvTest) {
@@ -267,6 +267,13 @@ TEST(BasicTests, semicolonTest) {
     ASSERT_EQ(lexer->nextToken()->getTokenType(), SEMICOLON_TYPE);
 }
 
+TEST(BasicTests, colonTest) {
+    std::string a = ":";
+    std::stringbuf ss(a);
+    Lexer * lexer = new Lexer(ss);
+    ASSERT_EQ(lexer->nextToken()->getTokenType(), COLON_TYPE);
+}
+
 TEST(BasicTests, commentTest) {
     std::string a = "# @*(je8901  <PSA{l-s a)C";
     std::stringbuf ss(a);
@@ -340,7 +347,7 @@ TEST(TypeSpecificTests, identifierTest) {
 }
 
 TEST(CombinationsTests, simpleHelloWorldTest) {
-    std::string a = "func HelloWorld(){\r\n print('Hello world!');\r\nif(1.23 to int==1){\r\n       fori   in (  0,   11   )    }";
+    std::string a = "func HelloWorld(){\r\n print('Hello world!');\r\nif(1.23 to int==1){\r\n       for   in (  0,   11   )    }";
     unsigned short int expected_values[1000] {
             FUNC_TYPE,
             IDENTIFIER_TYPE,
@@ -361,7 +368,7 @@ TEST(CombinationsTests, simpleHelloWorldTest) {
             INTEGER_TYPE,
             R_BRACKET_TYPE,
             L_CURL_BRACKET_TYPE,
-            FORI_TYPE,
+            FOR_TYPE,
             IN_TYPE,
             L_BRACKET_TYPE,
             INTEGER_TYPE,
@@ -382,7 +389,7 @@ TEST(CombinationsTests, simpleHelloWorldTest) {
 }
 
 TEST(CombinationsTests, simpleHelloWorldTestWithComments) {
-    std::string a = "func #HelloWorld(){\r\n print('Hell#o world#!#');\r\nif(1.23 t#o int==1){\r\n       fori   in (  0,   11   #)    }";
+    std::string a = "func #HelloWorld(){\r\n print('Hell#o world#!#');\r\nif(1.23 t#o int==1){\r\n       for   in (  0,   11   #)    }";
     unsigned short int expected_values[1000] {
             FUNC_TYPE,
             COMMENT_TYPE,
@@ -396,7 +403,7 @@ TEST(CombinationsTests, simpleHelloWorldTestWithComments) {
             DOUBLE_TYPE,
             IDENTIFIER_TYPE,
             COMMENT_TYPE,
-            FORI_TYPE,
+            FOR_TYPE,
             IN_TYPE,
             L_BRACKET_TYPE,
             INTEGER_TYPE,
@@ -456,7 +463,7 @@ TEST(errorTests, notClosedStringTest) {
 }
 
 TEST(errorTests, notClosedLongStringTest) {
-    std::string a = "vv a = 'vv if while fora fori func main []psad[]p#  assa() {}././.;.;[lopk,opp\\'oijiojmddmdkopasdk opaskop aksop";
+    std::string a = "vv a = 'vv if while for func main []psad[]p#  assa() {}././.;.;[lopk,opp\\'oijiojmddmdkopasdk opaskop aksop";
     unsigned short int expected_values[1000] {
             VV_TYPE,
             IDENTIFIER_TYPE,

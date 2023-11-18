@@ -10,9 +10,9 @@ std::unordered_map<std::string, unsigned short int> const Lexer::keywordMap = {
         {"elsif", ELSIF_TYPE},
         {"else", ELSE_TYPE},
         {"func", FUNC_TYPE},
+        {"figure", FIGURE_TYPE},
         {"return", RETURN_TYPE},
-        {"fora", FORA_TYPE},
-        {"fori", FORI_TYPE},
+        {"for", FOR_TYPE},
         {"vv", VV_TYPE},
         {"true", TRUE_TYPE},
         {"false", FALSE_TYPE},
@@ -38,6 +38,7 @@ std::unordered_map<char, unsigned short int> const Lexer::oneCharMap = {
         {']', R_SQR_BRACKET_TYPE},
         {',', COMMA_TYPE},
         {';', SEMICOLON_TYPE},
+        {':', COLON_TYPE},
 };
 
 Lexer::~Lexer()

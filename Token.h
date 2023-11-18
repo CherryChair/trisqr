@@ -18,9 +18,9 @@ enum token_type {
     ELSIF_TYPE,
     ELSE_TYPE,
     FUNC_TYPE,
+    FIGURE_TYPE,
     RETURN_TYPE,
-    FORA_TYPE,
-    FORI_TYPE,
+    FOR_TYPE,
     VV_TYPE,
     TRUE_TYPE,
     FALSE_TYPE,
@@ -50,6 +50,7 @@ enum token_type {
     ASSIGN_TYPE,
     COMMA_TYPE,
     SEMICOLON_TYPE,
+    COLON_TYPE,
     COMMENT_TYPE,
     EOF_TYPE,
     ERR_TYPE,
@@ -71,35 +72,23 @@ private:
     std::variant<int, double, std::string> value;
     Position pos;
 public:
-    Token(){};
-    Token(Position pos, unsigned short int token_type) : pos(pos), token_type(token_type){};
-    Token(Position pos, int value, unsigned short int token_type) : pos(pos), value(value), token_type(token_type){};
-    Token(Position pos, double value, unsigned short int token_type)  : pos(pos), value(value), token_type(token_type){};
-    Token(Position pos, std::string value, unsigned short int token_type)  : pos(pos), value(value), token_type(token_type){}
+    Token();
+    Token(Position pos, unsigned short int token_type);
+    Token(Position pos, int value, unsigned short int token_type);
+    Token(Position pos, double value, unsigned short int token_type);
+    Token(Position pos, std::string value, unsigned short int token_type);
 
-    unsigned short getTokenType() const {
-        return token_type;
-    }
+    unsigned short getTokenType() const;
 
-    void setTokenType(unsigned short tokenType) {
-        token_type = tokenType;
-    }
+    void setTokenType(unsigned short tokenType);
 
-    const std::variant<int, double, std::string> &getValue() const {
-        return value;
-    }
+    const std::variant<int, double, std::string> &getValue() const;
 
-    void setValue(const std::variant<int, double, std::string> &value) {
-        Token::value = value;
-    }
+    void setValue(const std::variant<int, double, std::string> &value);
 
-    const Position &getPos() const {
-        return pos;
-    }
+    const Position &getPos() const;
 
-    void setPos(const Position &pos) {
-        Token::pos = pos;
-    };
+    void setPos(const Position &pos);
 };
 
 
