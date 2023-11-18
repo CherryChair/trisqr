@@ -175,7 +175,7 @@ std::optional<Token> Lexer::tryBuildIdentifierOrKeyword()
         }
         if(identifier.length() == UCHAR_MAX) {
             error(ERR_MAX_LEN_EXCEEDED);
-            return buildToken(ERR_MAX_LEN_EXCEEDED);
+            return buildToken(ERR_TYPE);
         }
         if (this->keywordMap.find(identifier) != this->keywordMap.end()){
             return buildToken(this->keywordMap.at(identifier));
@@ -196,7 +196,7 @@ std::optional<Token> Lexer::tryBuildNumber()
     while (isdigit(this->character)) {
         if ((INT_MAX - (this->character - '0')) / 10 < before_dot) {
             error(ERR_INT_TOO_BIG);
-            return buildToken(ERR_INT_TOO_BIG);
+            return buildToken(ERR_TYPE);
         }
         before_dot = before_dot*10 + int(this->character - '0');
         moveToNextCharacter();
@@ -207,7 +207,7 @@ std::optional<Token> Lexer::tryBuildNumber()
         while (isdigit(this->character)) {
             if ((INT_MAX - (this->character - '0')) / 10 < after_dot) {
                 error(ERR_INT_TOO_BIG);
-                return buildToken(ERR_INT_TOO_BIG);
+                return buildToken(ERR_TYPE);
             }
             after_dot = after_dot * 10 + int(this->character - '0');
             dec++;
@@ -263,7 +263,7 @@ std::optional<Token> Lexer::tryBuildString()
     if(this->character == '\''){
         std::string str= "";
         moveToNextCharacter();
-        while(!is.eof()){
+        while(!is.eof() || str.length()<max_string_chars){
             if(str.length()>1 && *(str.end()-1) == '\\'){
                 *(str.end()-1) = escape_characters.at(this->character);
             }
@@ -274,9 +274,9 @@ std::optional<Token> Lexer::tryBuildString()
             }
             moveToNextCharacter();
         }
-        if(is.eof()) {
+        if(is.eof() || str.length()==max_string_chars) {
             error(ERR_NOT_CLOSED_STRING);
-            return buildToken(ERR_NOT_CLOSED_STRING);
+            return buildToken(ERR_TYPE);
         }
         moveToNextCharacter();
         return buildToken(STRING_TYPE, str);
@@ -296,7 +296,7 @@ std::optional<Token> Lexer::tryBuildComment()
         }
         if(comment.length() == 1000) {
             error(ERR_MAX_LEN_EXCEEDED);
-            return buildToken(ERR_MAX_LEN_EXCEEDED);
+            return buildToken(ERR_TYPE);
         }
         return buildToken(COMMENT_TYPE, comment);
     }
@@ -368,14 +368,14 @@ std::optional<Token> Lexer::tryBuildAndOrOr() {
             return buildToken(AND_TYPE);
         }
         error(ERR_WRONG_LOGICAL_OPERATOR);
-        return buildToken(ERR_WRONG_LOGICAL_OPERATOR);
+        return buildToken(ERR_TYPE);
     } else if (this->character == '|'){
         moveToNextCharacter();
         if(this->character == '|'){
             return buildToken(OR_TYPE);
         }
         error(ERR_WRONG_LOGICAL_OPERATOR);
-        return buildToken(ERR_WRONG_LOGICAL_OPERATOR);
+        return buildToken(ERR_TYPE);
     }
     return std::nullopt;
 }
@@ -393,5 +393,4 @@ void printToken(Token tkn) {
     }
     std::cout << ", ";
     std::cout << "L: " << tkn.getPos().line << ", C: " << tkn.getPos().characterNum << '\n';
-
 }

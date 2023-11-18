@@ -16,29 +16,7 @@
 #include <unordered_map>
 #include <optional>
 #include "Token.h"
-
-//Error constants
-#define ERR_MAX_LEN_EXCEEDED -1
-#define ERR_NOT_CLOSED_STRING -2
-#define ERR_WRONG_ENDLINE_CHAR -3
-#define ERR_WRONG_LOGICAL_OPERATOR -4
-#define ERR_INT_TOO_BIG -5
-#define ERR_UNRECOGNIZED_CHARACTER -6
-#define ERR_NON_ASCII_CHAR -7
-
-//Type constants
-
-
-
-static const std::unordered_map<short int, std::string> error_mesages= {
-        {ERR_MAX_LEN_EXCEEDED, "Maximal length of token exceeded."},
-        {ERR_NOT_CLOSED_STRING, "String is not closed."},
-        {ERR_WRONG_ENDLINE_CHAR, "Inconsistent newline characters."},
-        {ERR_WRONG_LOGICAL_OPERATOR, "Wrong logical operator."},
-        {ERR_INT_TOO_BIG, "Number is too big."},
-        {ERR_UNRECOGNIZED_CHARACTER, "Character not recognized."},
-        {ERR_NON_ASCII_CHAR, "Non ascii char in source."},
-};
+#include "ErrorHandler.h"
 
 static const std::unordered_map<char, char> escape_characters= {
         {'"','\"'},
@@ -66,13 +44,6 @@ static const std::unordered_map<char, std::string> escape_sequences= {
 };
 
 static const std::unordered_map<unsigned short int, std::string> type_map= {
-        {ERR_MAX_LEN_EXCEEDED, "ERR_MAX_LEN_EXCEEDED"},
-        {ERR_NOT_CLOSED_STRING, "ERR_NOT_CLOSED_STRING"},
-        {ERR_WRONG_ENDLINE_CHAR, "ERR_WRONG_ENDLINE_CHAR"},
-        {ERR_WRONG_LOGICAL_OPERATOR, "ERR_WRONG_LOGICAL_OPERATOR"},
-        {ERR_INT_TOO_BIG, "ERR_INT_TOO_BIG"},
-        {ERR_UNRECOGNIZED_CHARACTER, "ERR_UNRECOGNIZED_CHARACTER"},
-        {ERR_NON_ASCII_CHAR, "ERR_NON_ASCII_CHAR"},
         {IDENTIFIER_TYPE, "IDENTIFIER_TYPE"},
         {INTEGER_TYPE, "INTEGER_TYPE"},
         {DOUBLE_TYPE, "DOUBLE_TYPE"},
@@ -124,20 +95,18 @@ static const std::unordered_map<unsigned short int, std::string> type_map= {
 };
 
 
-
-
-
 class Lexer
 {
 private:
     Position pos;
     static const std::unordered_map<std::string, unsigned short int> keywordMap;
-    static const std::unordered_map<char, unsigned short int> Lexer::oneCharMap;
+    static const std::unordered_map<char, unsigned short int> oneCharMap;
     char character;
     unsigned short int bufferLen = 0;
-    Token token;
+    int max_string_chars = 2048;
     std::string endline_char = "";
     std::istream is;
+    ErrorHandler errorHandler;
     bool Lexer::tryMoveEndline();
     bool moveNewline();
     std::optional<Token> tryBuildIdentifierOrKeyword();
@@ -157,7 +126,8 @@ private:
     bool moveToNextCharacter();
     void error(int error_type);
 public:
-    Lexer(std::streambuf & sr): is(& sr){pos.characterNum=0; pos.line=1; moveToNextCharacter();};
+    Lexer(std::streambuf & sr, ErrorHandler & errorHandler): is(& sr), errorHandler(errorHandler){pos.characterNum=0; pos.line=1; moveToNextCharacter();};
+    Lexer(std::streambuf & sr, ErrorHandler & errorHandler, int max_string_chars): is(& sr), errorHandler(errorHandler), max_string_chars(max_string_chars){pos.characterNum=0; pos.line=1; moveToNextCharacter();};
     ~Lexer();
     std::optional<Token> nextToken();
 };

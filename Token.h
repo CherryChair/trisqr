@@ -7,6 +7,7 @@
 
 #include <variant>
 #include <string>
+#include "Position.h"
 
 enum token_type {
     IDENTIFIER_TYPE,
@@ -57,12 +58,6 @@ enum token_type {
     DOUBLE_KEYWORD_TYPE,
     INT_KEYWORD_TYPE,
     STRING_KEYWORD_TYPE,
-};
-
-struct Position
-{
-    unsigned int line;
-    unsigned int characterNum;
 };
 
 struct Token

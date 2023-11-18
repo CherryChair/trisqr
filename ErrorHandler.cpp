@@ -8,14 +8,10 @@ void ErrorHandler::onLexerError(int error_type) {
 
 }
 
-void ErrorHandler::onLexerError(int error_type, std::string value) {
+void ErrorHandler::onLexerError(int error_type, Position position) {
 
 }
 
-void ErrorHandler::onParserError(int error_type) {
-
-}
-
-void ErrorHandler::onParserError(int error_type, std::string value) {
+void ErrorHandler::onLexerError(int error_type,  Position position, std::string value) {
 
 }
