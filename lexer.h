@@ -109,9 +109,11 @@ private:
     std::optional<Token> tryBuildOther();
     unsigned int nextInCompEq(unsigned int type1, unsigned int type2);
     std::optional<Token> buildToken(unsigned int type);
+    std::optional<Token> buildToken(unsigned int type, Position position);
     std::optional<Token> buildToken(unsigned int type, int value);
     std::optional<Token> buildToken(unsigned int type, double value);
     std::optional<Token> buildToken(unsigned int type, std::string value);
+    std::optional<Token> buildToken(unsigned int type, std::string value, Position position);
     bool moveToNextCharacter();
     void error(int error_type);
 public:
@@ -119,6 +121,7 @@ public:
     Lexer(std::streambuf & sr, ErrorHandler & errorHandler, int max_string_chars): is(& sr), errorHandler(errorHandler), max_string_chars(max_string_chars){pos.characterNum=0; pos.line=1; moveToNextCharacter();};
     ~Lexer();
     std::optional<Token> nextToken();
+
 };
 
 void printToken(Token token);
