@@ -49,8 +49,7 @@ bool Lexer::moveToNextCharacter()
 {
     if (is >> std::noskipws >> this->character) {
         if(this->character < 0 && this->character!=EOF){
-            errorHandler.onLexerError(ERR_NON_ASCII_CHAR, this->pos, {this->character});
-            moveToNextCharacter();
+            bufferLen++;
         } else {
             bufferLen++;
         }
@@ -101,14 +100,6 @@ std::optional<Token> Lexer::buildToken(unsigned int type)
     return token;
 }
 
-std::optional<Token> Lexer::buildToken(unsigned int type, Position position)
-{
-    Token token = Token(position, type);
-    pos.characterNum += bufferLen;
-    bufferLen = 0;
-    return token;
-}
-
 std::optional<Token> Lexer::buildToken(unsigned int type, int value)
 {
     Token token = Token(this->pos, value, type);
@@ -128,14 +119,6 @@ std::optional<Token> Lexer::buildToken(unsigned int type, double value)
 std::optional<Token> Lexer::buildToken(unsigned int type, std::string value)
 {
     Token token = Token(this->pos, value, type);
-    pos.characterNum += bufferLen;
-    bufferLen = 0;
-    return token;
-}
-
-std::optional<Token> Lexer::buildToken(unsigned int type, std::string value, Position position)
-{
-    Token token = Token(position, value, type);
     pos.characterNum += bufferLen;
     bufferLen = 0;
     return token;
@@ -196,16 +179,16 @@ bool Lexer::moveNewline()
 
 std::optional<Token> Lexer::tryBuildIdentifierOrKeyword()
 {
-    if (isalpha(this->character) || this->character == '_') {
+    if (isalpha((unsigned char) this->character) || this->character == '_') {
         std::string identifier = "";
         identifier += this->character;
         moveToNextCharacter();
-        while((isalnum(this->character) || this->character == '_') && identifier.length()<UCHAR_MAX){
+        while((isalnum((unsigned char)this->character) || this->character == '_')){
             identifier += this->character;
             moveToNextCharacter();
         }
-        if(identifier.length() == UCHAR_MAX) {
-            errorHandler.onLexerError(ERR_MAX_LEN_EXCEEDED, this->pos, identifier);
+        if(identifier.length() > this->max_identifier_chars) {
+            errorHandler.onLexerError(ERR_MAX_IDENTIFIER_LEN_EXCEEDED, this->pos, identifier);
             moveToNextCharacter();
             return buildToken(ERR_TYPE);
         }
@@ -219,13 +202,13 @@ std::optional<Token> Lexer::tryBuildIdentifierOrKeyword()
 
 std::optional<Token> Lexer::tryBuildNumber()
 {
-    if(! isdigit(this->character)) {
+    if(! isdigit((unsigned char) this->character)) {
         return std::nullopt;
     }
     int before_dot = int(this->character - '0');
     int after_dot = 0;
     moveToNextCharacter();
-    while (isdigit(this->character)) {
+    while (isdigit((unsigned char) this->character)) {
         if ((INT_MAX - (this->character - '0')) / 10 < before_dot) {
             std::string analyzed_string = std::to_string(before_dot) + std::string{this->character};
             bool dot_found = false;
@@ -236,7 +219,7 @@ std::optional<Token> Lexer::tryBuildNumber()
                     } else {
                         dot_found = true;
                     }
-                } else if (!isdigit(this->character)) {
+                } else if (!isdigit((unsigned char) this->character)) {
                     break;
                 }
                 analyzed_string += this->character;
@@ -250,14 +233,14 @@ std::optional<Token> Lexer::tryBuildNumber()
     int dec = 0;
     if (this->character == '.') {
         moveToNextCharacter();
-        while (isdigit(this->character)) {
+        while (isdigit((unsigned char) this->character)) {
             if ((INT_MAX - (this->character - '0')) / 10 < after_dot) {
                 std::string analyzed_string = std::to_string(before_dot);
                 analyzed_string += '.';
                 analyzed_string += std::to_string(after_dot);
                 analyzed_string += this->character;
                 moveToNextCharacter();
-                while (isdigit(this->character)) {
+                while (isdigit((unsigned char) this->character)) {
                     analyzed_string += this->character;
                     moveToNextCharacter();
                 }
@@ -316,30 +299,25 @@ std::optional<Token> Lexer::tryBuildEOF()
 std::optional<Token> Lexer::tryBuildString()
 {
     if(this->character == '\''){
-        Position string_pos = {pos.line, pos.characterNum};
         std::string str= "";
         moveToNextCharacter();
-        while(!is.eof() && str.length()<max_string_chars){
-            if (tryMoveEndline()) {
+        while(!is.eof() && this->character != '\n' && this->character != '\r'){
+            if(str.length()>1 && *(str.end()-1) == '\\'){
+                *(str.end()-1) = escape_characters.at(this->character);
+            }
+            else if(this->character=='\'' ){
+                break;
             } else {
-                if(str.length()>1 && *(str.end()-1) == '\\'){
-                    *(str.end()-1) = escape_characters.at(this->character);
-                }
-                else if(this->character=='\'' ){
-                    break;
-                } else {
-                    str += this->character;
-                }
+                str += this->character;
             }
             moveToNextCharacter();
         }
-        if(is.eof() || str.length()==max_string_chars) {
-            errorHandler.onLexerError(ERR_NOT_CLOSED_STRING, string_pos, "'" + str);
-            moveToNextCharacter();
-            return buildToken(ERR_TYPE, string_pos);
+        if(is.eof() || str.length()==max_string_chars || this->character == '\n' || this->character == '\r') {
+            errorHandler.onLexerError(ERR_NOT_CLOSED_STRING, this->pos, "'" + str);
+            return buildToken(ERR_TYPE);
         }
         moveToNextCharacter();
-        return buildToken(STRING_TYPE, str, string_pos);
+        return buildToken(STRING_TYPE, str);
     }
 
     return std::nullopt;

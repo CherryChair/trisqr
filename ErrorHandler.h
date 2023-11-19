@@ -13,13 +13,12 @@
 //Type constants
 
 static const std::unordered_map<short int, std::string> error_mesages= {
-        {ERR_MAX_LEN_EXCEEDED, "Maximal length of identifier exceeded."},
-        {ERR_NOT_CLOSED_STRING, "String is not closed."},
-        {ERR_WRONG_ENDLINE_CHAR, "Inconsistent newline characters."},
-        {ERR_WRONG_LOGICAL_OPERATOR, "Unfinished logical operator."},
-        {ERR_INT_TOO_BIG, "Number is too big."},
-        {ERR_UNRECOGNIZED_CHARACTER, "Character not recognized."},
-        {ERR_NON_ASCII_CHAR, "Non ascii char in source."},
+        {ERR_MAX_IDENTIFIER_LEN_EXCEEDED, "Maximal length of identifier exceeded."},
+        {ERR_NOT_CLOSED_STRING,           "String is not closed."},
+        {ERR_WRONG_ENDLINE_CHAR,          "Inconsistent newline characters."},
+        {ERR_WRONG_LOGICAL_OPERATOR,      "Unfinished logical operator."},
+        {ERR_INT_TOO_BIG,                 "Number is too big."},
+        {ERR_UNRECOGNIZED_CHARACTER,      "Character not recognized."},
 };
 
 static const std::unordered_map<char, std::string> escape_sequences= {
