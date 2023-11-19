@@ -4,7 +4,7 @@
 int main() {
 //    std::string a = "func #HelloWorld(){\r\n print('Hell#o world#!#');\r\nif(1.23 t#o int==1){\r\n       for   in (  0,   11   #)    }\n\r";
 //    std::string a = "123.12312312132896128736127836178256367125476235647812346578934265897623453142389748923748923423.1.23.123.12.31.23.12";
-    std::string a = "'abcdef'";
+    std::string a = "'abcde'";
 //    a += EOF;
     std::stringbuf ss(a);
     ErrorHandler eh = ErrorHandler();

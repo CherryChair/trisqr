@@ -428,13 +428,23 @@ TEST(errorTests, longDoubleTest) {
     ErrorTest(a, expected_values, expected_errors, 64, 1024);
 }
 
-TEST(errorTests, maxStringLengthTest) {
+TEST(errorTests, maxStringLengthErrorTest) {
     std::string a = "'abcdef'";
     unsigned short int expected_values[1000] {
             ERR_TYPE,
             EOF_TYPE
     };
     std::string expected_errors = "LEX_ERR: " + error_mesages.at(ERR_MAX_STRING_LEN_EXCEEDED) +"\n" + "Line 1, character 1: 'abcdef' << error\n";
+    ErrorTest(a, expected_values, expected_errors, 64, 5);
+}
+
+TEST(errorTests, maxStringLengthTest) {
+    std::string a = "'abcde'";
+    unsigned short int expected_values[1000] {
+            STRING_TYPE,
+            EOF_TYPE
+    };
+    std::string expected_errors = "";
     ErrorTest(a, expected_values, expected_errors, 64, 5);
 }
 
