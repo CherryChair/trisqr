@@ -32,17 +32,6 @@ static const std::unordered_map<char, char> escape_characters= {
         {'v', '\v'},
 };
 
-static const std::unordered_map<char, std::string> escape_sequences= {
-        {'\?', "\\?"},
-        { '\a', "\\a",},
-        { '\b', "\\b",},
-        { '\f', "\\f",},
-        { '\n', "\\n",},
-        { '\r', "\\r",},
-        { '\t', "\\t",},
-        { '\v', "\\v",},
-};
-
 static const std::unordered_map<unsigned short int, std::string> type_map= {
         {IDENTIFIER_TYPE, "IDENTIFIER_TYPE"},
         {INTEGER_TYPE, "INTEGER_TYPE"},

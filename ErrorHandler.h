@@ -16,19 +16,29 @@ static const std::unordered_map<short int, std::string> error_mesages= {
         {ERR_MAX_LEN_EXCEEDED, "Maximal length of token exceeded."},
         {ERR_NOT_CLOSED_STRING, "String is not closed."},
         {ERR_WRONG_ENDLINE_CHAR, "Inconsistent newline characters."},
-        {ERR_WRONG_LOGICAL_OPERATOR, "Wrong logical operator."},
+        {ERR_WRONG_LOGICAL_OPERATOR, "Unfinished logical operator."},
         {ERR_INT_TOO_BIG, "Number is too big."},
         {ERR_UNRECOGNIZED_CHARACTER, "Character not recognized."},
         {ERR_NON_ASCII_CHAR, "Non ascii char in source."},
 };
 
-class ErrorHandler {
-public:
-    ErrorHandler() {}
+static const std::unordered_map<char, std::string> escape_sequences= {
+        {'\?', "\\?"},
+        { '\a', "\\a",},
+        { '\b', "\\b",},
+        { '\f', "\\f",},
+        { '\n', "\\n",},
+        { '\r', "\\r",},
+        { '\t', "\\t",},
+        { '\v', "\\v",},
+};
 
+class ErrorHandler {
 private:
-    void onLexerError(int error_type);
-    void onLexerError(int error_type, Position position);
+    int line_max_char_displayed = 64;
+public:
+    ErrorHandler() {};
+    ErrorHandler(int line_max_char_displayed): line_max_char_displayed(line_max_char_displayed) {};
     void onLexerError(int error_type, Position position, std::string value);
 };
 
