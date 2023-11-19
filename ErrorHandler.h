@@ -19,6 +19,7 @@ static const std::unordered_map<short int, std::string> error_mesages= {
         {ERR_WRONG_LOGICAL_OPERATOR,      "Unfinished logical operator."},
         {ERR_INT_TOO_BIG,                 "Number is too big."},
         {ERR_UNRECOGNIZED_CHARACTER,      "Character not recognized."},
+        {ERR_MAX_STRING_LEN_EXCEEDED,     "Maximal length of string exceeded."},
 };
 
 static const std::unordered_map<char, std::string> escape_sequences= {

@@ -35,7 +35,7 @@ enum token_type {
     LEQ_TYPE,
     LESS_TYPE,
     GEQ_TYPE,
-    GRATER_TYPE,
+    GREATER_TYPE,
     AND_TYPE,
     OR_TYPE,
     L_BRACKET_TYPE,

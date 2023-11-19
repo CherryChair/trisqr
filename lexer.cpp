@@ -272,7 +272,7 @@ std::optional<Token> Lexer::tryBuildCompOrAssign()
             return buildToken(nextInCompEq(LEQ_TYPE, LESS_TYPE));
         case '>':
             moveToNextCharacter();
-            return buildToken(nextInCompEq(GEQ_TYPE, GRATER_TYPE));
+            return buildToken(nextInCompEq(GEQ_TYPE, GREATER_TYPE));
         default:
             return std::nullopt;
     }
@@ -312,8 +312,12 @@ std::optional<Token> Lexer::tryBuildString()
             }
             moveToNextCharacter();
         }
-        if(is.eof() || str.length()==max_string_chars || this->character == '\n' || this->character == '\r') {
+        if(is.eof() || this->character == '\n' || this->character == '\r') {
             errorHandler.onLexerError(ERR_NOT_CLOSED_STRING, this->pos, "'" + str);
+            return buildToken(ERR_TYPE);
+        } else if (str.length()>max_string_chars) {
+            moveToNextCharacter();
+            errorHandler.onLexerError(ERR_MAX_STRING_LEN_EXCEEDED, this->pos, "'" + str + "'");
             return buildToken(ERR_TYPE);
         }
         moveToNextCharacter();
