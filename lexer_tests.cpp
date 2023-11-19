@@ -736,3 +736,24 @@ TEST(errorTests, unrecognizedErrorAndEscaping) {
     std::string output = testing::internal::GetCapturedStderr();
     EXPECT_EQ(expected_errors, output);
 }
+
+TEST(errorTests, stringErrorAndEscaping) {
+    std::string a = "'\?\"\a\b\f\t\v";
+    unsigned short int expected_values[1000] {
+            ERR_TYPE,
+            EOF_TYPE
+    };
+    std::string expected_errors = "LEX_ERR: " + error_mesages.at(ERR_NOT_CLOSED_STRING) +"\n" + "Line 1, character 1: '\\?\"\\a\\b\\f\\t\\v << error\n";
+    std::stringbuf ss(a);
+    ErrorHandler eh = ErrorHandler();
+    testing::internal::CaptureStderr();
+    Lexer * lexer = new Lexer(ss, eh, 12, 5);
+    std::optional<Token> tkn;
+    int i= 0;
+    while((tkn = lexer->nextToken()) && tkn->getTokenType() != EOF_TYPE){
+        EXPECT_EQ(tkn->getTokenType(), expected_values[i]);
+        i++;
+    }
+    std::string output = testing::internal::GetCapturedStderr();
+    EXPECT_EQ(expected_errors, output);
+}
