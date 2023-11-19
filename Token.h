@@ -22,6 +22,7 @@ enum token_type {
     FIGURE_TYPE,
     RETURN_TYPE,
     FOR_TYPE,
+    RANGE_TYPE,
     VV_TYPE,
     TRUE_TYPE,
     FALSE_TYPE,

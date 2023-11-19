@@ -46,6 +46,10 @@ TEST(BasicTests, forTest) {
     basic_test("for", FOR_TYPE);
 }
 
+TEST(BasicTests, rangeTest) {
+    basic_test("range", RANGE_TYPE);
+}
+
 TEST(BasicTests, vvTest) {
     basic_test("vv", VV_TYPE);
 }

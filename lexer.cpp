@@ -13,6 +13,7 @@ std::unordered_map<std::string, unsigned short int> const Lexer::keywordMap = {
         {"figure", FIGURE_TYPE},
         {"return", RETURN_TYPE},
         {"for", FOR_TYPE},
+        {"range", RANGE_TYPE},
         {"vv", VV_TYPE},
         {"true", TRUE_TYPE},
         {"false", FALSE_TYPE},
