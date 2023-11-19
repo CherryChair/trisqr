@@ -20,6 +20,7 @@ void ErrorHandler::onLexerError(int error_type,  Position position, std::string 
             char current_char = value[i];
             if (escape_sequences.find(current_char) != escape_sequences.end()) {
                 value.replace(i, 1, escape_sequences.at(current_char));
+                i++;
             }
         }
     }

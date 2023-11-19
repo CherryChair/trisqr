@@ -703,3 +703,36 @@ TEST(errorTests, maxIdentifierLenExceeded) {
     std::string output = testing::internal::GetCapturedStderr();
     EXPECT_EQ(expected_errors, output);
 }
+
+TEST(errorTests, unrecognizedErrorAndEscaping) {
+    std::string a = "\?\"\a\b\f\t\v";
+    unsigned short int expected_values[1000] {
+            ERR_TYPE,
+            ERR_TYPE,
+            ERR_TYPE,
+            ERR_TYPE,
+            ERR_TYPE,
+            ERR_TYPE,
+            ERR_TYPE,
+            EOF_TYPE
+    };
+    std::string expected_errors = "LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +"\n" + "Line 1, character 1: \\? << error\n" +
+                                  "LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +"\n" + "Line 1, character 2: \" << error\n" +
+                                  "LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +"\n" + "Line 1, character 3: \\a << error\n" +
+                                  "LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +"\n" + "Line 1, character 4: \\b << error\n" +
+                                  "LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +"\n" + "Line 1, character 5: \\f << error\n" +
+                                  "LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +"\n" + "Line 1, character 6: \\t << error\n" +
+                                  "LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +"\n" + "Line 1, character 7: \\v << error\n";
+    std::stringbuf ss(a);
+    ErrorHandler eh = ErrorHandler();
+    testing::internal::CaptureStderr();
+    Lexer * lexer = new Lexer(ss, eh, 12, 5);
+    std::optional<Token> tkn;
+    int i= 0;
+    while((tkn = lexer->nextToken()) && tkn->getTokenType() != EOF_TYPE){
+        EXPECT_EQ(tkn->getTokenType(), expected_values[i]);
+        i++;
+    }
+    std::string output = testing::internal::GetCapturedStderr();
+    EXPECT_EQ(expected_errors, output);
+}
