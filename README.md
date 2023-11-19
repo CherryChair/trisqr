@@ -46,7 +46,7 @@ Język do opisu figur geometrycznych i ich właściwości. Podstawowe typy figur
 
 - możliwość rysowania wielu scen
 - możliwość rysowania figur w różnych kolorach 
-- możliwość wykonania kodu z pliku lub interaktywnego wpisywania kodu w terminalu
+- możliwość wykonania kodu z pliku
 - komunikaty o błędach wyświetlają numer linii i znaku miejsca wystąpienia błędu
 
 ## Wymagania niefunkcjonalne
@@ -136,7 +136,7 @@ for el in list {
 ```
 iteracja po elementach "el" listy "list".
 ```
-fori i in (s,k){
+for i in range(s,k){
   *kod*
 }
 ```
@@ -154,6 +154,7 @@ Będzie możliwośc rekursji. Można zwracać pustą wartość za pomocą "retur
 
 Poza tym będą wbudowane funkcje:
 - print(str) - wypisuje w konsoli tekst zawarty w str
+- input() - przyjmuje dane od użytkownika ze standardowego wejścia
 - draw(list, p1, p2) - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami, rysowana scena jest rozpięta w prostokącie, którego przeciwległe wierzchołki to p1 i p2. Można pominąć p1 i p2 przy wywoływaniu metody wtedy zostanie narysowana scena, która będzie zawierać wszystkie podane figury (poprzez analizę najmniejszych i największych wartości x i y punktów należacych do sceny)
 
 ## Punkty
@@ -163,7 +164,7 @@ Istnieje zmienna typu ```point```, punkt zawiera współrzędną ```x``` i ```y`
 ## Tworzenie figur
 
 Typy figur będą tworzone za pomocą deklaracji 
-```figure <Identifier> {<point_name>:<default_point_value>, <point_name>:<default_point_value>, ...}```
+```figure <Identifier> {<point_name>:<default_point_value>, <point_name>:<default_point_value>, ..., <point_name>:<default_point_value>, color:<defalut_color_value>}```
 
 Np.
 ```
@@ -171,10 +172,11 @@ figure Triangle{
   a: (0.0,0.0),
   b: (0.0,1.0),
   c: (1.0,0.0),
+  color: [255,0,0]
 }
 ```
 
-Tak zadeklarowaną figurę tworzymy za pomocą ```vv triangle1 = Triangle((x1,y1), (x2,y2), (x3,y3))``` lub za pomocą ```vv triangle2 = Triangle()```, wtedy jest tworzona z domylnymi wartościami punktów podanymi w deklaracji. Potem możemy dostawać się do punktów za pomocą nazw nadanych w deklaracji. Np. ```triangle1.a```. 
+Tak zadeklarowaną figurę tworzymy za pomocą ```vv triangle1 = Triangle((x1,y1), (x2,y2), (x3,y3), [r,g,b])``` lub za pomocą ```vv triangle2 = Triangle()```, wtedy jest tworzona z domylnymi wartościami punktów podanymi w deklaracji. Potem możemy dostawać się do punktów za pomocą nazw nadanych w deklaracji. Np. ```triangle1.a```. 
 
 Figury będą rysowane przez tworzenie linii między kolejno zadeklarowanymi punktami, np. w przykładowym ```Triangle```, rysujemy linie a->b, b->c, c->b.
 
@@ -189,13 +191,14 @@ Metody:
 - .circ() - zwraca obwód
 - .area() - zwraca pole, w przypadku figur, których boki się przecinają zwracane jest ```-1```.
 - .scale(double scale) - skaluje figurę w stosunku do początku układu współrzędnych o skalę scale
+- .scale(double scale, (double x1, double y1)) - skaluje figurę o skalę scale w stosunku do wybranego punktu
 - .rotate(double angle) - obraca figurę wokół początku układu współrzędnych o kąt angle podawany w radianach
 - .transport(double x, double y) - przesuwa figurę o wektor (x, y)
 - .vertex() - zwraca listę wierzchołków (oprócz koła)
 - .copy() - zwraca kopię danej figury
 
 Parametry:
-- color - (int r, int g, int b) kolor wypełnienia figury w RGB, jeśli ma wartość ```none```, oznacza, że figura nie ma koloru wypełnienia
+- color - [int r, int g, int b] kolor wypełnienia figury w RGB, jeśli ma wartość ```none```, oznacza, że figura nie ma koloru wypełnienia
 - border - (double) grubość linii
 
 ### Charakterystyczne
@@ -413,59 +416,60 @@ Im większa liczba, tym wyższy priorytet.
 |  &#124;  &#124;  | 1  |
 | &&  |  2  |
 | <,>,<=,>=,==,!=  |  3 |
-| is  |  4 |
-| to  |  5 |
-| +,-  |  6 |
-| *,/  |  7 |
+| +,-  |  4 |
+| *,/  |  5 |
+| is  |  6 |
+| to  |  7 |
 | !,-  |  8 |
-| .  |  9 |
+| ( )  |  9 |
 | [ ]  |  10 |
-| ( )  |  11 |
+| .  |  11 |
 
 ## Gramatyka
 ```
 - program             :== {func_declaration | figure_declaration};
-- func_declaration    :== "func ", identifier, decl_argument_list, code_block;
-- decl_argument_list  :== "(", [identifier, {", ", identifier}], ")";
-- figure_declaration  :== "figure ", identifier, point_list;
-- point_list          :== "{", point_declaration, {",", point_declaration}, "}";
-- point_declaration   :== identifier, ":", point_value;
-- point_value         :== "(", double_val, ",", "double_val, ")";
+- func_declaration    :== "func ", identifier, "(", decl_argument_list, ")", code_block;
+- decl_argument_list  :== [identifier, {", ", identifier}];
+- figure_declaration  :== "figure ", identifier, "{", point_list, "}";
+- point_list          :== point_declaration, {",", point_declaration}, "," "color", ":", expression;
+- point_declaration   :== identifier, ":", expression;
 - code_block          :== "{", {statement}, "}";
 - statement           :== while_stmnt
                         | fori_stmnt
                         | for_stmnt
                         | if_stmnt
                         | declaration
-                        | identifier_stmnt, ["=", bool_expression], ";"
+                        | identifier_stmnt, ["=", expression], ";"
                         | return;
-- while_stmnt         :== "while(",  bool_expression, ")", code_block;
-- if_stmnt            :== "if(",  bool_expression, ")", code_block, {"elif(",  bool_expression, ")", code_block }, ["else", code_block];
-- fori_stmnt          :== "fori ", identifier, " in (", (identifier | int_val), (identifier | int_val), ")", code_block;
-- for_stmnt           :== "for ", identifier, " in ", identifier, code_block;
-- bool_expression     :== bool_and, {"||",  bool_and};
+- while_stmnt         :== "while", "(",  expression, ")", code_block;
+- if_stmnt            :== "if", "(",  expression, ")", code_block, {"elif", "(",  expression, ")", code_block }, ["else", code_block];
+- for_stmnt           :== "for ", identifier, " in ", expression_or_range, code_block;
+- expression_or_range :== expression
+                        | range;
+- range               :== "range" "(", expression, ",", expression, ")"
+- expression          :== bool_and, {"||",  bool_and};
 - bool_and            :== bool_comp , {"&&",  bool_comp};
-- bool_comp           :== expression_is, [comp_operator, expression_is];
+- bool_comp           :== expression_add, [comp_operator, expression_add];
+- declaration         :== "vv ", identifier, ["=", expression], ";";
+- identifier_stmnt    :== part_list, "(", argument_list, ")";
+- part_list           :== part_dot, "[", expression, "]", {"[", expression, "]"};
+- part_dot            :== identifier, {".", identifier_statement};
+- argument_list       :== [expression, {", ", expression}];
+- expression_add      :== expression_mul, {add_operator, expression_mul};
+- expression_mul      :== expression_is, {mul_operator, expression_is};
 - expression_is       :== expression_to, [" is ",  type];
-- expression_to       :== expression, [" to ",  type];
-- declaration         :== "vv ", identifier, ["=", bool_expression], ";";
-- identifier_stmnt    :== part_list, {".", part_list};
-- part_list           :== part, "[", bool_expression, "]";
-- part                :== identifier, [argument_list];
-- argument_list       :== "(", [bool_expression, {", ", bool_expression}], ")";
-- expression          :== expression_mul, {add_operator, expression_mul};
-- expression_mul      :== part_mul, {mul_operator, part_mul};
-- part_mul            :== [negation_operator], part_neg;
-- part_neg            :== value
+- expression_to       :== nagated_value, [" to ",  type];
+- negated_value       :== [negation_operator], accessed_value;
+- accessed_value      :== value
                         | list
                         | figure
                         | point
                         | identifier_stmnt
-                        | "(", bool_expression, ")";
-- return              :== "return ", [bool_expression], ";"
-- list                :== "[", bool_expression, {", ", bool_expression} "]";
+                        | "(", expression, ")";
+- return              :== "return ", [expression], ";"
+- list                :== "[", expression, {", ", expression} "]";
 - figure              :== identifier, argument_list;  
-- point               :== "(", bool_expression, ",", bool_expression, ")";  
+- point               :== "(", expression, ",", expression, ")";  
 - value               :== int_val
                         | bool_val
                         | double_val
