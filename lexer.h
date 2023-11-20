@@ -42,7 +42,7 @@ private:
     wchar_t character = ' ';
     int max_string_chars = 1024;
     int max_identifier_chars = 64;
-    int max_comment_lenght = 2048;
+    int max_comment_length = 2048;
     int max_analyzed_chars = 8096;
     std::wstring endline_char = L"";
     std::wistream is;
@@ -67,7 +67,10 @@ private:
     bool moveToNextCharacter();
 public:
     Lexer(std::wstreambuf & sr, ErrorHandler & errorHandler): is(& sr), errorHandler(errorHandler){pos.characterNum=0; pos.line=1;};
-    Lexer(std::wstreambuf & sr, ErrorHandler & errorHandler, int max_string_chars, int max_identifier_chars): is(& sr), errorHandler(errorHandler), max_string_chars(max_string_chars), max_identifier_chars(max_identifier_chars){pos.characterNum=0; pos.line=1;};
+    Lexer(std::wstreambuf &sr, ErrorHandler &errorHandler, int max_string_chars, int max_identifier_chars,
+          int maxCommentLength, int maxAnalyzedChars)
+            : is(& sr), errorHandler(errorHandler), max_string_chars(max_string_chars), max_identifier_chars(max_identifier_chars),
+              max_comment_length(maxCommentLength), max_analyzed_chars(maxAnalyzedChars) { pos.characterNum=0; pos.line=1;};
     ~Lexer();
     std::optional<Token> nextToken();
 
