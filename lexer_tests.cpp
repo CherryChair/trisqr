@@ -341,7 +341,7 @@ void ErrorTest(std::wstring a, unsigned short int expected_values[], std::wstrin
     std::wstringbuf ss(a);
     ErrorHandler eh = ErrorHandler();
     testing::internal::CaptureStderr();
-    Lexer * lexer = new Lexer(ss, eh, max_string_chars, max_identifier_chars, 1024, 1024);
+    Lexer * lexer = new Lexer(ss, eh, max_string_chars, max_identifier_chars, 1024, 2048);
     std::optional<Token> tkn;
     int i= 0;
     while((tkn = lexer->nextToken()) && tkn->getTokenType() != EOF_TYPE){
@@ -545,29 +545,118 @@ TEST(errorTests, stringErrorAndEscaping) {
     ErrorTest(a, expected_values, expected_errors, 64, 1024);
 }
 
-TEST(PostionTests, simpleHelloWorldTestWithComments) {
-    std::wstring a = L"func #HelloWorld(){\r\n print('Hell#o world#!#');\r\nif(1.23 t#o int==1){\r\n       for   in (  0,   11   #)    }";
+TEST(errorTests, commentLenExceeded) {
+    std::wstring a = L"#" + std::wstring(1025, 'a');
     unsigned short int expected_values[1000] {
-            FUNC_TYPE,
-            COMMENT_TYPE,
+            ERR_TYPE,
+            EOF_TYPE
+    };
+    std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_MAX_COMMENT_LENGTH_EXCEEDED) +L"\n" + L"Line 1, character 1: #" +
+                                   std::wstring(63, 'a') + L"... << error\n";
+    ErrorTest(a, expected_values, expected_errors, 64, 1024);
+}
+
+TEST(errorTests, commentAnalyzedLenExceeded) {
+    std::wstring a = L"#" + std::wstring(2047, 'a');
+    unsigned short int expected_values[1000] {
+            CRITICAL_ERR_TYPE,
+            EOF_TYPE
+    };
+    std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_MAX_ANALYZED_CHARS_EXCEEDED) +L"\n" + L"Line 1, character 1: #" +
+                                   std::wstring(63, 'a') + L"... << error\n";
+    ErrorTest(a, expected_values, expected_errors, 64, 1024);
+}
+
+TEST(errorTests, stringAnalyzedLenExceeded) {
+    std::wstring a = L"'" + std::wstring(2048, 'a');
+    unsigned short int expected_values[1000] {
+            CRITICAL_ERR_TYPE,
+            EOF_TYPE
+    };
+    std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_MAX_ANALYZED_CHARS_EXCEEDED) +L"\n" + L"Line 1, character 1: '" +
+                                   std::wstring(63, 'a') + L"... << error\n";
+    ErrorTest(a, expected_values, expected_errors, 64, 1024);
+}
+
+TEST(errorTests, intAnalyzedLenExceeded) {
+    std::wstring a = std::wstring(2048, '1');
+    unsigned short int expected_values[1000] {
+            CRITICAL_ERR_TYPE,
+            EOF_TYPE
+    };
+    std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_MAX_ANALYZED_CHARS_EXCEEDED) +L"\n" + L"Line 1, character 1: " +
+                                   std::wstring(11, '1') + L" << error\n";
+    ErrorTest(a, expected_values, expected_errors, 64, 1024);
+}
+
+TEST(errorTests, doubleAnalyzedLenExceeded) {
+    std::wstring a = L"123123." + std::wstring(2041, '1');
+    unsigned short int expected_values[1000] {
+            CRITICAL_ERR_TYPE,
+            EOF_TYPE
+    };
+    std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_MAX_ANALYZED_CHARS_EXCEEDED) +L"\n" + L"Line 1, character 1: " +
+                                   L"123123.11111111111 << error\n";
+    ErrorTest(a, expected_values, expected_errors, 64, 1024);
+}
+
+void PositionTest(std::wstring a, unsigned short int expected_values[], Position expected_positions[], std::wstring expected_errors, int max_identifier_chars, int max_string_chars) {
+    std::wstringbuf ss(a);
+    ErrorHandler eh = ErrorHandler();
+    testing::internal::CaptureStderr();
+    Lexer * lexer = new Lexer(ss, eh, max_string_chars, max_identifier_chars, 1024, 2048);
+    std::optional<Token> tkn;
+    int i= 0;
+    while((tkn = lexer->nextToken()) && tkn->getTokenType() != EOF_TYPE){
+        EXPECT_EQ(tkn->getTokenType(), expected_values[i]);
+        EXPECT_EQ(tkn->getPos().characterNum, expected_positions[i].characterNum);
+        EXPECT_EQ(tkn->getPos().line, expected_positions[i].line);
+        i++;
+    }
+    std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    std::wstring output = converter.from_bytes(testing::internal::GetCapturedStderr());
+    EXPECT_EQ(expected_errors, output);
+}
+
+TEST(PositionTests, largePostionTest) {
+    std::wstring a = L"\n\rvv a  = 3.3 ;   \n\r  \n\r   if ( a != 5.4)  { \n\rfigure && ||   \n\r}";
+    unsigned short int expected_values[1000] {
+            VV_TYPE,
             IDENTIFIER_TYPE,
-            L_BRACKET_TYPE,
-            STRING_TYPE,
-            R_BRACKET_TYPE,
+            ASSIGN_TYPE,
+            DOUBLE_TYPE,
             SEMICOLON_TYPE,
             IF_TYPE,
             L_BRACKET_TYPE,
-            DOUBLE_TYPE,
             IDENTIFIER_TYPE,
-            COMMENT_TYPE,
-            FOR_TYPE,
-            IN_TYPE,
-            L_BRACKET_TYPE,
-            INTEGER_TYPE,
-            COMMA_TYPE,
-            INTEGER_TYPE,
-            COMMENT_TYPE,
+            NEQ_TYPE,
+            DOUBLE_TYPE,
+            R_BRACKET_TYPE,
+            L_CURL_BRACKET_TYPE,
+            FIGURE_TYPE,
+            AND_TYPE,
+            OR_TYPE,
+            R_CURL_BRACKET_TYPE,
             EOF_TYPE
     };
-    CombinationTest(a, expected_values);
+    std::wstring expected_errors = L"";
+    Position expected_positions[1000] {
+            {2, 1},//vv
+            {2,4},//a
+            {2,7},//=
+            {2,9},//3.3
+            {2,13},//;
+            {4,4},//if
+            {4, 7},//(
+            {4,9},//a
+            {4,11},// !=
+            {4,14},//5.4
+            {4,17},//)
+            {4,20},//{
+            {5,1},//figure
+            {5,8},//&&
+            {5,11},//||
+            {6,1},//}
+    };
+    PositionTest(a, expected_values, expected_positions, expected_errors,  64, 1024);
 }

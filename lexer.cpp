@@ -48,8 +48,12 @@ Lexer::~Lexer()
 
 bool Lexer::moveToNextCharacter()
 {
+    if (this->character == '\n') {
+        this->pos.characterNum = 0;
+    }
     if (this->is >> std::noskipws >> this->character) {
-        if(!tryMoveEndline()) this->pos.characterNum++;
+        this->pos.characterNum++;
+        tryMoveEndline();
         return true;
     } else {
         this->character = WEOF;
@@ -103,7 +107,7 @@ bool Lexer::tryMoveEndline()
 bool Lexer::moveNewline()
 {
     this->pos.line++;
-    this->pos.characterNum=1;
+    this->pos.characterNum=0;
     this->character = '\n';
     return true;
 }
@@ -226,7 +230,7 @@ std::optional<Token> Lexer::handleDoubleError(int value_before_dot, int value_af
     analyzed_string += std::to_wstring(value_after_dot);
     analyzed_string += this->character;
     moveToNextCharacter();
-    int i = 1;
+    int i = analyzed_string.length();
     while (iswdigit(this->character) && i<this->max_analyzed_chars) {
         moveToNextCharacter();
         i++;
@@ -340,7 +344,7 @@ std::optional<Token> Lexer::tryBuildString()
             moveToNextCharacter();
             return buildToken(STRING_TYPE, token_position, str);
         } else if (str.length()>=this->max_string_chars) {
-            int i=0;
+            int i=str.length();
             while(!is.eof() && this->character != '\n' && this->character!='\'' && i < this->max_analyzed_chars) {
                 moveToNextCharacter();
                 i++;
@@ -372,16 +376,16 @@ std::optional<Token> Lexer::tryBuildComment()
         }
         if (comment.length() >= this->max_comment_length) {
             int i = comment.length();
-            while (i < this->max_analyzed_chars) {
+            while (!is.eof() && this->character!='\n' && i < this->max_analyzed_chars) {
                 moveToNextCharacter();
                 i++;
             }
             if (i >= this->max_analyzed_chars) {
-                errorHandler.onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, L"'" + comment);
+                errorHandler.onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, L"#" + comment);
                 return buildToken(CRITICAL_ERR_TYPE, token_position);
             }
-            errorHandler.onLexerError(ERR_MAX_COMMENT_LENGTH_EXCEEDED, token_position, L"'" + comment);
-            return buildToken(CRITICAL_ERR_TYPE, token_position);
+            errorHandler.onLexerError(ERR_MAX_COMMENT_LENGTH_EXCEEDED, token_position, L"#" + comment);
+            return buildToken(ERR_TYPE, token_position);
         }
         return buildToken(COMMENT_TYPE, token_position, comment);
     }
