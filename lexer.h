@@ -43,6 +43,7 @@ private:
     unsigned short int bufferLen = 0;
     int max_string_chars = 2048;
     int max_identifier_chars = 64;
+    int max_analyzed_chars = 8096;
     std::wstring endline_char = L"";
     std::wistream is;
     ErrorHandler errorHandler;
@@ -50,7 +51,7 @@ private:
     bool moveNewline();
     std::optional<Token> tryBuildIdentifierOrKeyword();
     std::optional<Token> tryBuildNumber();
-    std::optional<Token> tryBuildCompOrAssign();
+    std::optional<Token> tryBuildCompOrAssignOrNegate();
     std::optional<Token> tryBuildEOF();
     std::optional<Token> tryBuildString();
     std::optional<Token> tryBuildNegationOrNeq();

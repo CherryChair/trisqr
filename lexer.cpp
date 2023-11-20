@@ -76,15 +76,13 @@ std::optional<Token> Lexer::nextToken()
         return token;
     if (token = tryBuildNumber())
         return token;
-    if (token = tryBuildCompOrAssign())
+    if (token = tryBuildCompOrAssignOrNegate())
         return token;
     if (token = tryBuildAndOrOr())
         return token;
     if (token = tryBuildOther())
         return token;
     if (token = tryBuildString())
-        return token;
-    if (token = tryBuildNegationOrNeq())
         return token;
     if (token = tryBuildComment())
         return token;
@@ -266,7 +264,7 @@ std::optional<Token> Lexer::tryBuildNumber()
     return buildToken(INTEGER_TYPE, value_before_dot);
 }
 
-std::optional<Token> Lexer::tryBuildCompOrAssign()
+std::optional<Token> Lexer::tryBuildCompOrAssignOrNegate()
 {
     switch (this->character) {
         case '=':
@@ -278,6 +276,9 @@ std::optional<Token> Lexer::tryBuildCompOrAssign()
         case '>':
             moveToNextCharacter();
             return buildToken(nextInCompEq(GEQ_TYPE, GREATER_TYPE));
+        case '!':
+            moveToNextCharacter();
+            return buildToken(nextInCompEq(NEQ_TYPE, NEGATION_TYPE));
         default:
             return std::nullopt;
     }
@@ -340,18 +341,6 @@ std::optional<Token> Lexer::tryBuildComment()
             comment += this->character;
         }
         return buildToken(COMMENT_TYPE, comment);
-    }
-    return std::nullopt;
-}
-
-std::optional<Token> Lexer::tryBuildNegationOrNeq() {
-    if(this->character == '!'){
-        moveToNextCharacter();
-        if(this->character == '=') {
-            return buildToken(NEQ_TYPE);
-        } else {
-            return buildToken(NEGATION_TYPE);
-        }//funkcja z comp użyc i wrzucic do nich
     }
     return std::nullopt;
 }
