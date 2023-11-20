@@ -19,10 +19,12 @@ static const std::unordered_map<short int, std::wstring> error_mesages= {
         {ERR_WRONG_LOGICAL_OPERATOR,      L"Unfinished logical operator."},
         {ERR_INT_TOO_BIG,                 L"Number is too big."},
         {ERR_UNRECOGNIZED_CHARACTER,      L"Character not recognized."},
+        {ERR_MAX_ANALYZED_CHARS_EXCEEDED, L"Maximal length of string exceeded."},
         {ERR_MAX_STRING_LEN_EXCEEDED,     L"Maximal length of string exceeded."},
+        {ERR_MAX_COMMENT_LENGTH_EXCEEDED, L"Maximal length of comment exceeded."}
 };
 
-static const std::unordered_map<char, std::wstring> escape_sequences= {
+static const std::unordered_map<wchar_t, std::wstring> escape_sequences= {
         {'\?', L"\\?"},
         { '\a', L"\\a",},
         { '\b', L"\\b",},

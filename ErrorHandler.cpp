@@ -17,8 +17,9 @@ void ErrorHandler::onLexerError(int error_type,  Position position, std::wstring
     }
     for(int i=0; i<value.length(); i++){
         char current_char = value[i];
-        if (escape_sequences.find(current_char) != escape_sequences.end()) {
-            value.replace(i, 1, escape_sequences.at(current_char));
+        std::unordered_map<wchar_t, std::wstring>::const_iterator iter = escape_sequences.find(current_char);
+        if (iter != escape_sequences.end()) {
+            value.replace(i, 1, iter->second);
             i++;
         }
     }

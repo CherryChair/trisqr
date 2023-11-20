@@ -39,10 +39,10 @@ private:
     Position pos;
     static const std::unordered_map<std::wstring, unsigned short int> keywordMap;
     static const std::unordered_map<wchar_t, unsigned short int> oneCharMap;
-    wchar_t character;
-    unsigned short int bufferLen = 0;
-    int max_string_chars = 2048;
+    wchar_t character = ' ';
+    int max_string_chars = 1024;
     int max_identifier_chars = 64;
+    int max_comment_lenght = 2048;
     int max_analyzed_chars = 8096;
     std::wstring endline_char = L"";
     std::wistream is;
@@ -54,19 +54,20 @@ private:
     std::optional<Token> tryBuildCompOrAssignOrNegate();
     std::optional<Token> tryBuildEOF();
     std::optional<Token> tryBuildString();
-    std::optional<Token> tryBuildNegationOrNeq();
     std::optional<Token> tryBuildComment();
     std::optional<Token> tryBuildAndOrOr();
     std::optional<Token> tryBuildOther();
+    std::optional<Token> handleIntegerError(int value_before_dot, Position token_position);
+    std::optional<Token> handleDoubleError(int value_before_dot, int value_after_dot, Position token_position);
     unsigned int nextInCompEq(unsigned int type1, unsigned int type2);
-    std::optional<Token> buildToken(unsigned int type);
-    std::optional<Token> buildToken(unsigned int type, int value);
-    std::optional<Token> buildToken(unsigned int type, double value);
-    std::optional<Token> buildToken(unsigned int type, std::wstring value);
+    std::optional<Token> buildToken(unsigned int type, Position position);
+    std::optional<Token> buildToken(unsigned int type, Position position, int value);
+    std::optional<Token> buildToken(unsigned int type, Position position, double value);
+    std::optional<Token> buildToken(unsigned int type, Position position, std::wstring value);
     bool moveToNextCharacter();
 public:
-    Lexer(std::wstreambuf & sr, ErrorHandler & errorHandler): is(& sr), errorHandler(errorHandler){pos.characterNum=0; pos.line=1; moveToNextCharacter();};
-    Lexer(std::wstreambuf & sr, ErrorHandler & errorHandler, int max_string_chars, int max_identifier_chars): is(& sr), errorHandler(errorHandler), max_string_chars(max_string_chars), max_identifier_chars(max_identifier_chars){pos.characterNum=0; pos.line=1; moveToNextCharacter();};
+    Lexer(std::wstreambuf & sr, ErrorHandler & errorHandler): is(& sr), errorHandler(errorHandler){pos.characterNum=0; pos.line=1;};
+    Lexer(std::wstreambuf & sr, ErrorHandler & errorHandler, int max_string_chars, int max_identifier_chars): is(& sr), errorHandler(errorHandler), max_string_chars(max_string_chars), max_identifier_chars(max_identifier_chars){pos.characterNum=0; pos.line=1;};
     ~Lexer();
     std::optional<Token> nextToken();
 
