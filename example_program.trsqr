@@ -1,0 +1,58 @@
+figure Square {
+  a: (0.0,0.0),
+  b: (0.0,1.0),
+  c: (1.0,0.0),
+  d: (1.0,1.0)
+}
+
+func power(base, n) {
+  if(n>0){
+    return base*power(base, n-1);
+  } elif (n < 0) {
+    return -1;
+  }
+  return 1;
+}
+
+func sumAreas(list) {
+  vv sum = 0;
+  for el in list{
+    if(el is Figure){
+      sum = sum + el.area();
+    }
+  }
+  return sum;
+}
+
+func main() {
+  vv list1 = [];
+  vv list2 = [];
+  vv n = 10;
+  vv sum_of_scale1 = 0.0;
+  vv sum_of_scale2 = 0.0;
+  vv base_sqr = Square();
+  for i in (0, n){
+    vv scale1 = power(0.5, i);
+    vv scale2 = 1.0/(i to double);
+    vv sqr1 = base_sqr.copy().scale(scale1);
+    vv sqr2 = base_sqr.copy().scale(scale2);
+    sqr1.transport(sum_of_scale1 + scale1/2.0, scale1/2.0);
+    sqr2.transport(-sum_of_scale2 + -scale2/2.0, scale2/2.0);
+    sum_of_scale1 = sum_of_scale1 + scale1;
+    sum_of_scale2 = sum_of_scale2 + scale2;
+    list1.append(sqr1);
+    list2.append(sqr2);
+  }
+  vv sum1 = sumAreas(list1);
+  vv sum2 = sumAreas(list2);
+  vv max_sum = 0.0;
+  if (sum1 > sum2) {
+    max_sum = sum1;
+  } else {
+    max_sum = sum2;
+  }
+  print("Suma 1: " + sum1 to str);
+  print("Suma 2: " + sum2 to str);
+  list_to_draw = list1 + list2;
+  draw(list_to_draw, (list2[list2.len-1].a.x - 1.0, -1.0), (list1[list1.len-1].a.x + 1.0, max_sum + 1.0));
+}
