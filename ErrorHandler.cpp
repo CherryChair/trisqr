@@ -5,15 +5,15 @@
 #include "ErrorHandler.h"
 #include <iostream>
 
-std::ostream & operator<< (std::ostream& os, Position pos) {
-    os << "Line " << std::to_string(pos.line) << ", character " << pos.characterNum;
-    return os;
+std::wostream & operator<< (std::wostream& wos, Position pos) {
+    wos << L"Line " << std::to_wstring(pos.line) << L", character " << pos.characterNum;
+    return wos;
 }
 
-void ErrorHandler::onLexerError(int error_type,  Position position, std::string value) {
+void ErrorHandler::onLexerError(int error_type,  Position position, std::wstring value) {
     if (value.length() > line_max_char_displayed) {
         value.erase(line_max_char_displayed);
-        value += "...";
+        value += L"...";
     }
     for(int i=0; i<value.length(); i++){
         char current_char = value[i];
@@ -22,6 +22,6 @@ void ErrorHandler::onLexerError(int error_type,  Position position, std::string 
             i++;
         }
     }
-    std::cerr << "LEX_ERR: " + error_mesages.at(error_type) << std:: endl;
-    std::cerr << position << ": " << value << " << error" << std::endl;
+    std::wcerr << L"LEX_ERR: " + error_mesages.at(error_type) << std:: endl;
+    std::wcerr << position << L": " << value << L" << error" << std::endl;
 }

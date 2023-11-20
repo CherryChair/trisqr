@@ -12,25 +12,25 @@
 
 //Type constants
 
-static const std::unordered_map<short int, std::string> error_mesages= {
-        {ERR_MAX_IDENTIFIER_LEN_EXCEEDED, "Maximal length of identifier exceeded."},
-        {ERR_NOT_CLOSED_STRING,           "String is not closed."},
-        {ERR_WRONG_ENDLINE_CHAR,          "Inconsistent newline characters."},
-        {ERR_WRONG_LOGICAL_OPERATOR,      "Unfinished logical operator."},
-        {ERR_INT_TOO_BIG,                 "Number is too big."},
-        {ERR_UNRECOGNIZED_CHARACTER,      "Character not recognized."},
-        {ERR_MAX_STRING_LEN_EXCEEDED,     "Maximal length of string exceeded."},
+static const std::unordered_map<short int, std::wstring> error_mesages= {
+        {ERR_MAX_IDENTIFIER_LEN_EXCEEDED, L"Maximal length of identifier exceeded."},
+        {ERR_NOT_CLOSED_STRING,           L"String is not closed."},
+        {ERR_WRONG_ENDLINE_CHAR,          L"Inconsistent newline characters."},
+        {ERR_WRONG_LOGICAL_OPERATOR,      L"Unfinished logical operator."},
+        {ERR_INT_TOO_BIG,                 L"Number is too big."},
+        {ERR_UNRECOGNIZED_CHARACTER,      L"Character not recognized."},
+        {ERR_MAX_STRING_LEN_EXCEEDED,     L"Maximal length of string exceeded."},
 };
 
-static const std::unordered_map<char, std::string> escape_sequences= {
-        {'\?', "\\?"},
-        { '\a', "\\a",},
-        { '\b', "\\b",},
-        { '\f', "\\f",},
-        { '\n', "\\n",},
-        { '\r', "\\r",},
-        { '\t', "\\t",},
-        { '\v', "\\v",},
+static const std::unordered_map<char, std::wstring> escape_sequences= {
+        {'\?', L"\\?"},
+        { '\a', L"\\a",},
+        { '\b', L"\\b",},
+        { '\f', L"\\f",},
+        { '\n', L"\\n",},
+        { '\r', L"\\r",},
+        { '\t', L"\\t",},
+        { '\v', L"\\v",},
 };
 
 class ErrorHandler {
@@ -39,7 +39,7 @@ private:
 public:
     ErrorHandler() {};
     ErrorHandler(int line_max_char_displayed): line_max_char_displayed(line_max_char_displayed) {};
-    void onLexerError(int error_type, Position position, std::string value);
+    void onLexerError(int error_type, Position position, std::wstring value);
 };
 
 
