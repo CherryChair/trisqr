@@ -215,6 +215,9 @@ TEST(BasicTests, stringKwrdTest) {
     basic_test(a, STRING_KEYWORD_TYPE);
 }
 
+TEST(BasicTests, nonASCIITest) {
+basic_test(L"'ąćęłóśźż'", STRING_TYPE);
+}
 
 Lexer * prepareLexer(std::wstring a) {
     std::wstringbuf ss(a);
@@ -251,6 +254,17 @@ TEST(TypeSpecificTests, stringTest) {
     std::optional<Token> tkn = lexer->nextToken();
     EXPECT_EQ(tkn->getTokenType(), STRING_TYPE);
     ASSERT_EQ(std::get<std::wstring>(tkn->getValue()), L"dasdqd  while 12.31as zxc");
+}
+
+
+TEST(TypeSpecificTests, stringWithNonASCIITest) {
+    std::wstring a = L"'ąćęłóźż dasdqd  while 12.31as zxc'";
+    std::wstringbuf ss(a);
+    ErrorHandler * eh = new ErrorHandler();
+    Lexer * lexer = new Lexer(ss, eh);
+    std::optional<Token> tkn = lexer->nextToken();
+    EXPECT_EQ(tkn->getTokenType(), STRING_TYPE);
+    ASSERT_EQ(std::get<std::wstring>(tkn->getValue()), L"ąćęłóźż dasdqd  while 12.31as zxc");
 }
 
 TEST(TypeSpecificTests, identifierTest) {
@@ -491,20 +505,6 @@ TEST(errorTests, wrongLogicalOperatorTest) {
                                    L"LEX_ERR: " + error_mesages.at(ERR_WRONG_LOGICAL_OPERATOR) +L"\n" + L"Line 1, character 38: &= << error\n";
     ErrorTest(a, expected_values, expected_errors, 64, 1024);
 }
-
-//TEST(errorTests, unrecognizedCharTest) {
-//    std::wstring a = L"if ł 'Michał'";
-//    unsigned short int expected_values[1000] {
-//            IF_TYPE,
-//            ERR_TYPE,
-//            ERR_TYPE,
-//            STRING_TYPE,
-//            EOF_TYPE
-//    };
-//    std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +L"\n" + L"Line 1, character 4: \xC5 << error\n" +
-//                                  L"LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +L"\n" + L"Line 1, character 5: \x82 << error\n";
-//    ErrorTest(a, expected_values, expected_errors, 64, 1024);
-//}
 
 TEST(errorTests, maxIdentifierLenExceeded) {
     std::wstring a = L"a123456789";
