@@ -11,7 +11,7 @@
 
 void basic_test(std::wstring a, token_type tkn_type) {
     std::wstringbuf ss(a);
-    ErrorHandler eh = ErrorHandler();
+    ErrorHandler * eh = new ErrorHandler();
     Lexer * lexer = new Lexer(ss, eh);
     EXPECT_EQ(lexer->nextToken()->getTokenType(), tkn_type);
     ASSERT_EQ(lexer->nextToken()->getTokenType(), EOF_TYPE);
@@ -218,14 +218,14 @@ TEST(BasicTests, stringKwrdTest) {
 
 Lexer * prepareLexer(std::wstring a) {
     std::wstringbuf ss(a);
-    ErrorHandler eh = ErrorHandler();
+    ErrorHandler * eh = new ErrorHandler();
     return new Lexer(ss, eh);
 }
 
 TEST(TypeSpecificTests, doubleTest) {
     std::wstring a = L"2.3455";
     std::wstringbuf ss(a);
-    ErrorHandler eh = ErrorHandler();
+    ErrorHandler * eh = new ErrorHandler();
     Lexer * lexer = new Lexer(ss, eh);
     std::optional<Token> tkn = lexer->nextToken();
     EXPECT_EQ(tkn->getTokenType(), DOUBLE_TYPE);
@@ -236,7 +236,7 @@ TEST(TypeSpecificTests, doubleTest) {
 TEST(TypeSpecificTests, intTest) {
     std::wstring a = L"23455";
     std::wstringbuf ss(a);
-    ErrorHandler eh = ErrorHandler();
+    ErrorHandler * eh = new ErrorHandler();
     Lexer * lexer = new Lexer(ss, eh);
     std::optional<Token> tkn = lexer->nextToken();
     EXPECT_EQ(tkn->getTokenType(), INTEGER_TYPE);
@@ -246,7 +246,7 @@ TEST(TypeSpecificTests, intTest) {
 TEST(TypeSpecificTests, stringTest) {
     std::wstring a = L"'dasdqd  while 12.31as zxc'";
     std::wstringbuf ss(a);
-    ErrorHandler eh = ErrorHandler();
+    ErrorHandler * eh = new ErrorHandler();
     Lexer * lexer = new Lexer(ss, eh);
     std::optional<Token> tkn = lexer->nextToken();
     EXPECT_EQ(tkn->getTokenType(), STRING_TYPE);
@@ -256,7 +256,7 @@ TEST(TypeSpecificTests, stringTest) {
 TEST(TypeSpecificTests, identifierTest) {
     std::wstring a = L"variable";
     std::wstringbuf ss(a);
-    ErrorHandler eh = ErrorHandler();
+    ErrorHandler * eh = new ErrorHandler();
     Lexer * lexer = new Lexer(ss, eh);
     std::optional<Token> tkn = lexer->nextToken();
     EXPECT_EQ(tkn->getTokenType(), IDENTIFIER_TYPE);
@@ -265,7 +265,7 @@ TEST(TypeSpecificTests, identifierTest) {
 
 void CombinationTest(std::wstring a, unsigned short int expected_values[]) {
     std::wstringbuf ss(a);
-    ErrorHandler eh = ErrorHandler();
+    ErrorHandler * eh = new ErrorHandler();
     Lexer * lexer = new Lexer(ss, eh);
     std::optional<Token> tkn;
     int i= 0;
@@ -339,7 +339,7 @@ TEST(CombinationsTests, simpleHelloWorldTestWithComments) {
 
 void ErrorTest(std::wstring a, unsigned short int expected_values[], std::wstring expected_errors, int max_identifier_chars, int max_string_chars) {
     std::wstringbuf ss(a);
-    ErrorHandler eh = ErrorHandler();
+    ErrorHandler * eh = new ErrorHandler();
     testing::internal::CaptureStderr();
     Lexer * lexer = new Lexer(ss, eh, max_string_chars, max_identifier_chars, 1024, 2048);
     std::optional<Token> tkn;
@@ -602,7 +602,7 @@ TEST(errorTests, doubleAnalyzedLenExceeded) {
 
 void PositionTest(std::wstring a, unsigned short int expected_values[], Position expected_positions[], std::wstring expected_errors, int max_identifier_chars, int max_string_chars) {
     std::wstringbuf ss(a);
-    ErrorHandler eh = ErrorHandler();
+    ErrorHandler * eh = new ErrorHandler();
     testing::internal::CaptureStderr();
     Lexer * lexer = new Lexer(ss, eh, max_string_chars, max_identifier_chars, 1024, 2048);
     std::optional<Token> tkn;

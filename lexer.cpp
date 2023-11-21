@@ -82,7 +82,7 @@ bool Lexer::tryMoveEndline()
                     this->is >> std::noskipws >> this->character;
                     endline += this->character;
                 }
-                errorHandler.onLexerError(ERR_WRONG_ENDLINE_CHAR, current_pos, endline);
+                errorHandler->onLexerError(ERR_WRONG_ENDLINE_CHAR, current_pos, endline);
                 return moveNewline();
             } else if(this->endline_char.length() == 2){
                 char next_char = this->is.peek();
@@ -90,11 +90,11 @@ bool Lexer::tryMoveEndline()
                     this->is >> std::noskipws >> this->character;
                     endline += this->character;
                     if(endline != this->endline_char){
-                        errorHandler.onLexerError(ERR_WRONG_ENDLINE_CHAR, current_pos, endline);
+                        errorHandler->onLexerError(ERR_WRONG_ENDLINE_CHAR, current_pos, endline);
                         return moveNewline();
                     }
                 } else {
-                    errorHandler.onLexerError(ERR_WRONG_ENDLINE_CHAR, current_pos, endline);
+                    errorHandler->onLexerError(ERR_WRONG_ENDLINE_CHAR, current_pos, endline);
                     return moveNewline();
                 }
             }
@@ -136,7 +136,7 @@ std::optional<Token> Lexer::nextToken()
     if (token = tryBuildComment())
         return token;
     Position token_position = this->pos;
-    errorHandler.onLexerError(ERR_UNRECOGNIZED_CHARACTER, token_position, {this->character});
+    errorHandler->onLexerError(ERR_UNRECOGNIZED_CHARACTER, token_position, {this->character});
     moveToNextCharacter();
     return buildToken(ERR_TYPE, token_position);
 }
@@ -183,10 +183,10 @@ std::optional<Token> Lexer::tryBuildIdentifierOrKeyword()
                 i++;
             }
             if (i<this->max_analyzed_chars) {
-                errorHandler.onLexerError(ERR_MAX_IDENTIFIER_LEN_EXCEEDED, token_position, identifier);
+                errorHandler->onLexerError(ERR_MAX_IDENTIFIER_LEN_EXCEEDED, token_position, identifier);
                 return buildToken(ERR_TYPE, token_position);
             } else {
-                errorHandler.onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, identifier);
+                errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, identifier);
                 return buildToken(CRITICAL_ERR_TYPE, token_position);
             }
         }
@@ -216,10 +216,10 @@ std::optional<Token> Lexer::handleIntegerError(int value_before_dot, Position to
         i++;
     }
     if (i < this->max_analyzed_chars) {
-        errorHandler.onLexerError(ERR_INT_TOO_BIG, token_position, analyzed_string);
+        errorHandler->onLexerError(ERR_INT_TOO_BIG, token_position, analyzed_string);
         return buildToken(ERR_TYPE, token_position);
     } else {
-        errorHandler.onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, analyzed_string);
+        errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, analyzed_string);
         return buildToken(CRITICAL_ERR_TYPE, token_position);
     }
 }
@@ -236,10 +236,10 @@ std::optional<Token> Lexer::handleDoubleError(int value_before_dot, int value_af
         i++;
     }
     if (i < this->max_analyzed_chars) {
-        errorHandler.onLexerError(ERR_INT_TOO_BIG, token_position, analyzed_string);
+        errorHandler->onLexerError(ERR_INT_TOO_BIG, token_position, analyzed_string);
         return buildToken(ERR_TYPE, token_position);
     } else {
-        errorHandler.onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, analyzed_string);
+        errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, analyzed_string);
         return buildToken(CRITICAL_ERR_TYPE, token_position);
     }
 }
@@ -350,14 +350,14 @@ std::optional<Token> Lexer::tryBuildString()
                 i++;
             }
             if (i >= this->max_analyzed_chars) {
-                errorHandler.onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, L"'" + str);
+                errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, L"'" + str);
                 return buildToken(CRITICAL_ERR_TYPE, token_position);
             }
             moveToNextCharacter();
-            errorHandler.onLexerError(ERR_MAX_STRING_LEN_EXCEEDED, token_position, L"'" + str);
+            errorHandler->onLexerError(ERR_MAX_STRING_LEN_EXCEEDED, token_position, L"'" + str);
             return buildToken(ERR_TYPE, token_position);
         } else {
-            errorHandler.onLexerError(ERR_NOT_CLOSED_STRING, token_position, L"'" + str);
+            errorHandler->onLexerError(ERR_NOT_CLOSED_STRING, token_position, L"'" + str);
             return buildToken(ERR_TYPE, token_position);
         }
     }
@@ -381,10 +381,10 @@ std::optional<Token> Lexer::tryBuildComment()
                 i++;
             }
             if (i >= this->max_analyzed_chars) {
-                errorHandler.onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, L"#" + comment);
+                errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, L"#" + comment);
                 return buildToken(CRITICAL_ERR_TYPE, token_position);
             }
-            errorHandler.onLexerError(ERR_MAX_COMMENT_LENGTH_EXCEEDED, token_position, L"#" + comment);
+            errorHandler->onLexerError(ERR_MAX_COMMENT_LENGTH_EXCEEDED, token_position, L"#" + comment);
             return buildToken(ERR_TYPE, token_position);
         }
         return buildToken(COMMENT_TYPE, token_position, comment);
@@ -410,7 +410,7 @@ std::optional<Token> Lexer::tryBuildAndOrOr() {
         if(this->character == '&'){
             moveToNextCharacter();
         } else {
-            errorHandler.onLexerError(ERR_WRONG_LOGICAL_OPERATOR, token_position, L"&" + std::wstring{this->character});
+            errorHandler->onLexerError(ERR_WRONG_LOGICAL_OPERATOR, token_position, L"&" + std::wstring{this->character});
         }
         return buildToken(AND_TYPE, token_position);
     } else if (this->character == '|'){
@@ -419,7 +419,7 @@ std::optional<Token> Lexer::tryBuildAndOrOr() {
         if (this->character == '|'){
             moveToNextCharacter();
         } else {
-            errorHandler.onLexerError(ERR_WRONG_LOGICAL_OPERATOR, token_position, L"|" + std::wstring{this->character});
+            errorHandler->onLexerError(ERR_WRONG_LOGICAL_OPERATOR, token_position, L"|" + std::wstring{this->character});
         }
         return buildToken(OR_TYPE, token_position);
     }
