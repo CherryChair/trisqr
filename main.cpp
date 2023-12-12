@@ -3,7 +3,7 @@
 
 
 int main() {
-    std::wstring a = L"'łąćóżźę'";
+    std::wstring a = L"asd";
 //    std::string a = "123.12312312132896128736127836178256367125476235647812346578934265897623453142389748923748923423.1.23.123.12.31.23.12";
 //    std::wstring a = L"\n\rvv a  = 3.3 ;   \n\r  \n\r   if ( a != 5.4) { \n\rfigure && ||   \n\r}";
     std::wstringbuf ss(a);

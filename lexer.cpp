@@ -137,13 +137,12 @@ std::optional<Token> Lexer::nextToken()
         return token;
     if (token = tryBuildComment())
         return token;
-    Position token_position = this->pos;
-    errorHandler->onLexerError(ERR_UNRECOGNIZED_CHARACTER, token_position, {this->character});
+    errorHandler->onLexerError(ERR_UNRECOGNIZED_CHARACTER, this->token_position, {this->character});
     moveToNextCharacter();
-    return buildToken(ERR_TYPE, token_position);
+    return buildToken(ERR_TYPE);
 }
 
-std::optional<Token> Lexer::buildToken(unsigned int type, Position position)
+std::optional<Token> Lexer::buildToken(unsigned int type)
 {
     Token token = Token(this->token_position, type);
     return token;
@@ -184,7 +183,7 @@ std::optional<Token> Lexer::handleIdentiferError(std::wstring & identifier){
             errorHandler->onLexerError(ERR_MAX_IDENTIFIER_LEN_EXCEEDED, this->token_position, identifier);
         } else {
             errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, identifier);
-            return buildToken(CRITICAL_ERR_TYPE, this->token_position);
+            return buildToken(CRITICAL_ERR_TYPE);
         }
     }
 }
@@ -215,12 +214,12 @@ std::optional<Token> Lexer::tryBuildIdentifierOrKeyword()
             errorHandler->onLexerError(ERR_MAX_IDENTIFIER_LEN_EXCEEDED, this->token_position, identifier);
         } else {
             errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, identifier);
-            return buildToken(CRITICAL_ERR_TYPE, this->token_position);
+            return buildToken(CRITICAL_ERR_TYPE);
         }
     }
     std::unordered_map<std::wstring, unsigned short int>::const_iterator iter = this->keywordMap.find(identifier);
     if (iter != this->keywordMap.end()){
-        return buildToken(iter->second, this->token_position);
+        return buildToken(iter->second);
     }
     return buildToken(IDENTIFIER_TYPE, identifier);
 }
@@ -243,10 +242,10 @@ std::optional<Token> Lexer::handleIntegerError(int value_before_dot) {
     }
     if (i < this->max_analyzed_chars) {
         errorHandler->onLexerError(ERR_INT_TOO_BIG, this->token_position, analyzed_string);
-        return buildToken(ERR_TYPE, this->token_position);
+        return buildToken(ERR_TYPE);
     } else {
         errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, analyzed_string);
-        return buildToken(CRITICAL_ERR_TYPE, this->token_position);
+        return buildToken(CRITICAL_ERR_TYPE);
     }
 }
 
@@ -263,10 +262,10 @@ std::optional<Token> Lexer::handleDoubleError(int value_before_dot, int value_af
     }
     if (i < this->max_analyzed_chars) {
         errorHandler->onLexerError(ERR_INT_TOO_BIG, this->token_position, analyzed_string);
-        return buildToken(ERR_TYPE, this->token_position);
+        return buildToken(ERR_TYPE);
     } else {
         errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, analyzed_string);
-        return buildToken(CRITICAL_ERR_TYPE, this->token_position);
+        return buildToken(CRITICAL_ERR_TYPE);
     }
 }
 
@@ -313,16 +312,16 @@ std::optional<Token> Lexer::tryBuildCompOrAssignOrNegate()
     switch (this->character) {
         case '=':
             moveToNextCharacter();
-            return buildToken(nextInCompEq(EQ_TYPE, ASSIGN_TYPE), this->token_position);
+            return buildToken(nextInCompEq(EQ_TYPE, ASSIGN_TYPE));
         case '<':
             moveToNextCharacter();
-            return buildToken(nextInCompEq(LEQ_TYPE, LESS_TYPE), this->token_position);
+            return buildToken(nextInCompEq(LEQ_TYPE, LESS_TYPE));
         case '>':
             moveToNextCharacter();
-            return buildToken(nextInCompEq(GEQ_TYPE, GREATER_TYPE), this->token_position);
+            return buildToken(nextInCompEq(GEQ_TYPE, GREATER_TYPE));
         case '!':
             moveToNextCharacter();
-            return buildToken(nextInCompEq(NEQ_TYPE, NEGATION_TYPE), this->token_position);
+            return buildToken(nextInCompEq(NEQ_TYPE, NEGATION_TYPE));
         default:
             return std::nullopt;
     }
@@ -340,7 +339,7 @@ unsigned int Lexer::nextInCompEq(unsigned int type1, unsigned int type2){
 std::optional<Token> Lexer::tryBuildEOF()
 {
     if(this->character == WEOF){
-        return buildToken(EOF_TYPE, token_position);
+        return buildToken(EOF_TYPE);
     }
     return std::nullopt;
 }
@@ -379,7 +378,7 @@ std::optional<Token> Lexer::tryBuildString()
             }
             if (i >= this->max_analyzed_chars) {
                 errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, L"'" + str);
-                return buildToken(CRITICAL_ERR_TYPE, this->token_position);
+                return buildToken(CRITICAL_ERR_TYPE);
             }
             moveToNextCharacter();
             errorHandler->onLexerError(ERR_MAX_STRING_LEN_EXCEEDED, this->token_position, L"'" + str);
@@ -408,7 +407,7 @@ std::optional<Token> Lexer::tryBuildComment()
             }
             if (i >= this->max_analyzed_chars) {
                 errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, L"#" + comment);
-                return buildToken(CRITICAL_ERR_TYPE, this->token_position);
+                return buildToken(CRITICAL_ERR_TYPE);
             }
             errorHandler->onLexerError(ERR_MAX_COMMENT_LENGTH_EXCEEDED, this->token_position, L"#" + comment);
         }
@@ -421,7 +420,7 @@ std::optional<Token> Lexer::tryBuildOther() {
     std::unordered_map<wchar_t, unsigned short int>::const_iterator iter = this->oneCharMap.find(this->character);
     if(iter != this->oneCharMap.end()){
         moveToNextCharacter();
-        return buildToken(iter->second, this->token_position);
+        return buildToken(iter->second);
     }
     return std::nullopt;
 }
@@ -434,7 +433,7 @@ std::optional<Token> Lexer::tryBuildAndOrOr() {
         } else {
             errorHandler->onLexerError(ERR_WRONG_LOGICAL_OPERATOR, this->token_position, L"&" + std::wstring{this->character});
         }
-        return buildToken(AND_TYPE, this->token_position);
+        return buildToken(AND_TYPE);
     } else if (this->character == '|'){
         moveToNextCharacter();
         if (this->character == '|'){
@@ -442,7 +441,7 @@ std::optional<Token> Lexer::tryBuildAndOrOr() {
         } else {
             errorHandler->onLexerError(ERR_WRONG_LOGICAL_OPERATOR, this->token_position, L"|" + std::wstring{this->character});
         }
-        return buildToken(OR_TYPE, this->token_position);
+        return buildToken(OR_TYPE);
     }
     return std::nullopt;
 }
