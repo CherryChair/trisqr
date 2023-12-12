@@ -37,6 +37,7 @@ class Lexer
 {
 private:
     Position pos;
+    Position token_position;
     static const std::unordered_map<std::wstring, unsigned short int> keywordMap;
     static const std::unordered_map<wchar_t, unsigned short int> oneCharMap;
     wchar_t character = ' ';
@@ -57,13 +58,17 @@ private:
     std::optional<Token> tryBuildComment();
     std::optional<Token> tryBuildAndOrOr();
     std::optional<Token> tryBuildOther();
-    std::optional<Token> handleIntegerError(int value_before_dot, Position token_position);
-    std::optional<Token> handleDoubleError(int value_before_dot, int value_after_dot, Position token_position);
-    unsigned int nextInCompEq(unsigned int type1, unsigned int type2);
+    std::optional<Token> handleIntegerError(int value_before_dot);
+    std::optional<Token> handleDoubleError(int value_before_dot, int value_after_dot);
+    std::optional<Token> handleIdentiferError(std::wstring & identifier);
+        unsigned int nextInCompEq(unsigned int type1, unsigned int type2);
     std::optional<Token> buildToken(unsigned int type, Position position);
-    std::optional<Token> buildToken(unsigned int type, Position position, int value);
-    std::optional<Token> buildToken(unsigned int type, Position position, double value);
-    std::optional<Token> buildToken(unsigned int type, Position position, std::wstring value);
+//    std::optional<Token> buildToken(unsigned int type, Position position, int value);
+//    std::optional<Token> buildToken(unsigned int type, Position position, double value);
+//    std::optional<Token> buildToken(unsigned int type, Position position, std::wstring value);
+
+    template<typename T>
+    std::optional<Token> buildToken(unsigned int type, T value);
     bool moveToNextCharacter();
 public:
     Lexer(std::wstreambuf & sr, ErrorHandler * errorHandler): is(& sr), errorHandler(errorHandler){pos.characterNum=0; pos.line=1;};

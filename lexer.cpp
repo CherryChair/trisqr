@@ -49,7 +49,10 @@ Lexer::~Lexer()
 bool Lexer::moveToNextCharacter()
 {
     if (this->character == '\n') {
+        this->pos.line++;
         this->pos.characterNum = 0;
+    } else if(this->character == WEOF) {
+        return false;
     }
     if (this->is >> std::noskipws >> this->character) {
         this->pos.characterNum++;
@@ -81,7 +84,7 @@ bool Lexer::tryMoveEndline()
                 if((this->is.peek() == '\n' || this->is.peek() == '\r') && this->is.peek()!=endline[0]){
                     this->is >> std::noskipws >> this->character;
                     endline += this->character;
-                }
+                }//\n \r\n
                 errorHandler->onLexerError(ERR_WRONG_ENDLINE_CHAR, current_pos, endline);
                 return moveNewline();
             } else if(this->endline_char.length() == 2){
@@ -106,8 +109,6 @@ bool Lexer::tryMoveEndline()
 
 bool Lexer::moveNewline()
 {
-    this->pos.line++;
-    this->pos.characterNum=0;
     this->character = '\n';
     return true;
 }
@@ -119,6 +120,7 @@ std::optional<Token> Lexer::nextToken()
     while(iswspace(this->character)){
         moveToNextCharacter();
     }
+    this->token_position = this->pos;
     if (token = tryBuildEOF())
         return token;
     if (token = tryBuildIdentifierOrKeyword())
@@ -143,63 +145,87 @@ std::optional<Token> Lexer::nextToken()
 
 std::optional<Token> Lexer::buildToken(unsigned int type, Position position)
 {
-    Token token = Token(position, type);
+    Token token = Token(this->token_position, type);
     return token;
 }
 
-std::optional<Token> Lexer::buildToken(unsigned int type, Position position, int value)
+//std::optional<Token> Lexer::buildToken(unsigned int type, Position position, int value)
+//{
+//    Token token = Token(position, value, type);
+//    return token;
+//}
+//
+//std::optional<Token> Lexer::buildToken(unsigned int type, Position position, double value)
+//{
+//    Token token = Token(position, value, type);
+//    return token;
+//}
+//
+//std::optional<Token> Lexer::buildToken(unsigned int type, Position position, std::wstring value)
+//{
+//    Token token = Token(position, value, type);
+//    return token;
+//}//const &&
+template <typename T>
+std::optional<Token> Lexer::buildToken(unsigned int type, T value)
 {
-    Token token = Token(position, value, type);
+    Token token = Token(this->token_position, value, type);
     return token;
 }
 
-std::optional<Token> Lexer::buildToken(unsigned int type, Position position, double value)
-{
-    Token token = Token(position, value, type);
-    return token;
-}
-
-std::optional<Token> Lexer::buildToken(unsigned int type, Position position, std::wstring value)
-{
-    Token token = Token(position, value, type);
-    return token;
+std::optional<Token> Lexer::handleIdentiferError(std::wstring & identifier){
+    if(identifier.length() >= this->max_identifier_chars) {
+        int i = 0;
+        while (iswalnum(this->character) || this->character == '_' && i<max_analyzed_chars) {
+            moveToNextCharacter();
+            i++;
+        }
+        if (i<this->max_analyzed_chars) {
+            errorHandler->onLexerError(ERR_MAX_IDENTIFIER_LEN_EXCEEDED, this->token_position, identifier);
+        } else {
+            errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, identifier);
+            return buildToken(CRITICAL_ERR_TYPE, this->token_position);
+        }
+    }
 }
 
 std::optional<Token> Lexer::tryBuildIdentifierOrKeyword()
 {
-    if (iswalpha( this->character) || this->character == '_') {
-        Position token_position = this->pos;
-        std::wstring identifier = L"";
-        identifier += this->character;
-        moveToNextCharacter();
-        while((iswalnum(this->character) || this->character == '_') && identifier.length() < this->max_identifier_chars){
+    if (!iswalpha( this->character) && this->character != '_') {
+        return std::nullopt;
+    }
+    std::wstring identifier = L"";
+    identifier += this->character;
+    moveToNextCharacter();
+    while((iswalnum(this->character) || this->character == '_') && identifier.length() < this->max_identifier_chars){
+        if (identifier.length() < this->max_identifier_chars) {
             identifier += this->character;
             moveToNextCharacter();
+        } else {
+            //obsluga bledu w innej metodzie handleToolongIdentifier()
         }
-        if(identifier.length() >= this->max_identifier_chars) {
-            int i = 0;
-            while (iswalnum(this->character) || this->character == '_' && i<max_analyzed_chars) {
-                moveToNextCharacter();
-                i++;
-            }
-            if (i<this->max_analyzed_chars) {
-                errorHandler->onLexerError(ERR_MAX_IDENTIFIER_LEN_EXCEEDED, token_position, identifier);
-                return buildToken(ERR_TYPE, token_position);
-            } else {
-                errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, identifier);
-                return buildToken(CRITICAL_ERR_TYPE, token_position);
-            }
-        }
-        std::unordered_map<std::wstring, unsigned short int>::const_iterator iter = this->keywordMap.find(identifier);
-        if (iter != this->keywordMap.end()){
-            return buildToken(iter->second, token_position);
-        }
-        return buildToken(IDENTIFIER_TYPE, token_position, identifier);//szablon
     }
-    return std::nullopt;
+    if(identifier.length() >= this->max_identifier_chars) {
+        int i = 0;
+        while (iswalnum(this->character) || this->character == '_' && i<max_analyzed_chars) {
+            moveToNextCharacter();
+            i++;
+        }
+        if (i<this->max_analyzed_chars) {
+            errorHandler->onLexerError(ERR_MAX_IDENTIFIER_LEN_EXCEEDED, this->token_position, identifier);
+        } else {
+            errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, identifier);
+            return buildToken(CRITICAL_ERR_TYPE, this->token_position);
+        }
+    }
+    std::unordered_map<std::wstring, unsigned short int>::const_iterator iter = this->keywordMap.find(identifier);
+    if (iter != this->keywordMap.end()){
+        return buildToken(iter->second, this->token_position);
+    }
+    return buildToken(IDENTIFIER_TYPE, identifier);
 }
 
-std::optional<Token> Lexer::handleIntegerError(int value_before_dot, Position token_position) {
+std::optional<Token> Lexer::handleIntegerError(int value_before_dot) {
     std::wstring analyzed_string = std::to_wstring(value_before_dot) + std::wstring{this->character};
     bool dot_found = false;
     int i = analyzed_string.length();
@@ -216,15 +242,15 @@ std::optional<Token> Lexer::handleIntegerError(int value_before_dot, Position to
         i++;
     }
     if (i < this->max_analyzed_chars) {
-        errorHandler->onLexerError(ERR_INT_TOO_BIG, token_position, analyzed_string);
-        return buildToken(ERR_TYPE, token_position);
+        errorHandler->onLexerError(ERR_INT_TOO_BIG, this->token_position, analyzed_string);
+        return buildToken(ERR_TYPE, this->token_position);
     } else {
-        errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, analyzed_string);
-        return buildToken(CRITICAL_ERR_TYPE, token_position);
+        errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, analyzed_string);
+        return buildToken(CRITICAL_ERR_TYPE, this->token_position);
     }
 }
 
-std::optional<Token> Lexer::handleDoubleError(int value_before_dot, int value_after_dot, Position token_position) {
+std::optional<Token> Lexer::handleDoubleError(int value_before_dot, int value_after_dot) {
     std::wstring analyzed_string = std::to_wstring(value_before_dot);
     analyzed_string += '.';
     analyzed_string += std::to_wstring(value_after_dot);
@@ -236,11 +262,11 @@ std::optional<Token> Lexer::handleDoubleError(int value_before_dot, int value_af
         i++;
     }
     if (i < this->max_analyzed_chars) {
-        errorHandler->onLexerError(ERR_INT_TOO_BIG, token_position, analyzed_string);
-        return buildToken(ERR_TYPE, token_position);
+        errorHandler->onLexerError(ERR_INT_TOO_BIG, this->token_position, analyzed_string);
+        return buildToken(ERR_TYPE, this->token_position);
     } else {
-        errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, analyzed_string);
-        return buildToken(CRITICAL_ERR_TYPE, token_position);
+        errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, analyzed_string);
+        return buildToken(CRITICAL_ERR_TYPE, this->token_position);
     }
 }
 
@@ -249,13 +275,12 @@ std::optional<Token> Lexer::tryBuildNumber()
     if(!iswdigit( this->character)) {
         return std::nullopt;
     }
-    Position token_position = this->pos;
     int value_before_dot = int(this->character - '0');
     moveToNextCharacter();
     if(value_before_dot > 0) {
         while (iswdigit( this->character)) {
             if ((INT_MAX - (this->character - '0')) / 10 < value_before_dot) {
-                return handleIntegerError(value_before_dot, token_position);
+                return handleIntegerError(value_before_dot);
             }
             value_before_dot = value_before_dot * 10 + int(this->character - '0');
             moveToNextCharacter();
@@ -267,7 +292,7 @@ std::optional<Token> Lexer::tryBuildNumber()
         moveToNextCharacter();
         while (iswdigit( this->character)) {
             if ((INT_MAX - (this->character - '0')) / 10 < value_after_dot) {
-                return handleDoubleError(value_before_dot, value_after_dot, token_position);
+                return handleDoubleError(value_before_dot, value_after_dot);
             }
             value_after_dot = value_after_dot * 10 + int(this->character - '0');
             dec++;
@@ -278,27 +303,26 @@ std::optional<Token> Lexer::tryBuildNumber()
             magnitude *= 10;
         }
         double remainder = (double) value_after_dot / (double) magnitude;
-        return buildToken(DOUBLE_TYPE, token_position, (double) value_before_dot + remainder);
+        return buildToken(DOUBLE_TYPE, (double) value_before_dot + remainder);
     }
-    return buildToken(INTEGER_TYPE, token_position, value_before_dot);
+    return buildToken(INTEGER_TYPE, value_before_dot);
 }
 
 std::optional<Token> Lexer::tryBuildCompOrAssignOrNegate()
 {
-    Position token_position = this->pos;
     switch (this->character) {
         case '=':
             moveToNextCharacter();
-            return buildToken(nextInCompEq(EQ_TYPE, ASSIGN_TYPE), token_position);
+            return buildToken(nextInCompEq(EQ_TYPE, ASSIGN_TYPE), this->token_position);
         case '<':
             moveToNextCharacter();
-            return buildToken(nextInCompEq(LEQ_TYPE, LESS_TYPE), token_position);
+            return buildToken(nextInCompEq(LEQ_TYPE, LESS_TYPE), this->token_position);
         case '>':
             moveToNextCharacter();
-            return buildToken(nextInCompEq(GEQ_TYPE, GREATER_TYPE), token_position);
+            return buildToken(nextInCompEq(GEQ_TYPE, GREATER_TYPE), this->token_position);
         case '!':
             moveToNextCharacter();
-            return buildToken(nextInCompEq(NEQ_TYPE, NEGATION_TYPE), token_position);
+            return buildToken(nextInCompEq(NEQ_TYPE, NEGATION_TYPE), this->token_position);
         default:
             return std::nullopt;
     }
@@ -315,34 +339,38 @@ unsigned int Lexer::nextInCompEq(unsigned int type1, unsigned int type2){
 
 std::optional<Token> Lexer::tryBuildEOF()
 {
-    Position token_position = this->pos;
     if(this->character == WEOF){
         return buildToken(EOF_TYPE, token_position);
     }
     return std::nullopt;
 }
 
+
+
 std::optional<Token> Lexer::tryBuildString()
 {
     if(this->character == '\''){
-        Position token_position = this->pos;
         std::wstring str= L"";
         moveToNextCharacter();
-        while(!is.eof() && this->character != '\n' && str.length() < this->max_string_chars && this->character!='\''){
+        while(!is.eof() && this->character != '\n' && this->character!='\''){//if str.length() < this->max_string_chars
+            wchar_t char_to_add = this->character;
             if(this->character == '\\'){
                 moveToNextCharacter();
                 std::unordered_map<wchar_t, wchar_t>::const_iterator iter = escape_characters.find(this->character);
                 if(iter != escape_characters.end()) {
-                    str += iter->second;
+                    char_to_add = iter->second;
                 }
-            } else {
-                str += this->character;
             }
-            moveToNextCharacter();
+            if (str.length() < this->max_string_chars) {
+                str += char_to_add;
+                moveToNextCharacter();
+            } else {
+                //handleStrLenError
+            }
         }
-        if(this->character == '\'') {
+        if(this->character == '\'') {//zostaje
             moveToNextCharacter();
-            return buildToken(STRING_TYPE, token_position, str);
+            return buildToken(STRING_TYPE, str);
         } else if (str.length()>=this->max_string_chars) {
             int i=str.length();
             while(!is.eof() && this->character != '\n' && this->character!='\'' && i < this->max_analyzed_chars) {
@@ -350,16 +378,15 @@ std::optional<Token> Lexer::tryBuildString()
                 i++;
             }
             if (i >= this->max_analyzed_chars) {
-                errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, L"'" + str);
-                return buildToken(CRITICAL_ERR_TYPE, token_position);
+                errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, L"'" + str);
+                return buildToken(CRITICAL_ERR_TYPE, this->token_position);
             }
             moveToNextCharacter();
-            errorHandler->onLexerError(ERR_MAX_STRING_LEN_EXCEEDED, token_position, L"'" + str);
-            return buildToken(ERR_TYPE, token_position);
+            errorHandler->onLexerError(ERR_MAX_STRING_LEN_EXCEEDED, this->token_position, L"'" + str);
         } else {
-            errorHandler->onLexerError(ERR_NOT_CLOSED_STRING, token_position, L"'" + str);
-            return buildToken(ERR_TYPE, token_position);
+            errorHandler->onLexerError(ERR_NOT_CLOSED_STRING, this->token_position, L"'" + str);
         }
+        return buildToken(STRING_TYPE, str);
     }
 
     return std::nullopt;
@@ -368,12 +395,11 @@ std::optional<Token> Lexer::tryBuildString()
 std::optional<Token> Lexer::tryBuildComment()
 {
     if(this->character == '#'){
-        Position token_position = this->pos;
         std::wstring comment = L"";
         while (!is.eof() && this->character!='\n' && comment.length() < this->max_comment_length){
             moveToNextCharacter();
             comment += this->character;
-        }
+        } //handlery ze wstrzyknietym warunkiem i komunikatem
         if (comment.length() >= this->max_comment_length) {
             int i = comment.length();
             while (!is.eof() && this->character!='\n' && i < this->max_analyzed_chars) {
@@ -381,13 +407,12 @@ std::optional<Token> Lexer::tryBuildComment()
                 i++;
             }
             if (i >= this->max_analyzed_chars) {
-                errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, token_position, L"#" + comment);
-                return buildToken(CRITICAL_ERR_TYPE, token_position);
+                errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, L"#" + comment);
+                return buildToken(CRITICAL_ERR_TYPE, this->token_position);
             }
-            errorHandler->onLexerError(ERR_MAX_COMMENT_LENGTH_EXCEEDED, token_position, L"#" + comment);
-            return buildToken(ERR_TYPE, token_position);
+            errorHandler->onLexerError(ERR_MAX_COMMENT_LENGTH_EXCEEDED, this->token_position, L"#" + comment);
         }
-        return buildToken(COMMENT_TYPE, token_position, comment);
+        return buildToken(COMMENT_TYPE, comment);
     }
     return std::nullopt;
 }
@@ -395,33 +420,29 @@ std::optional<Token> Lexer::tryBuildComment()
 std::optional<Token> Lexer::tryBuildOther() {
     std::unordered_map<wchar_t, unsigned short int>::const_iterator iter = this->oneCharMap.find(this->character);
     if(iter != this->oneCharMap.end()){
-        Position token_position = this->pos;
-        unsigned int token_type = iter->second;
         moveToNextCharacter();
-        return buildToken(token_type, token_position);
+        return buildToken(iter->second, this->token_position);
     }
     return std::nullopt;
 }
 
 std::optional<Token> Lexer::tryBuildAndOrOr() {
     if(this->character == '&') {
-        Position token_position = this->pos;
         moveToNextCharacter();
         if(this->character == '&'){
             moveToNextCharacter();
         } else {
-            errorHandler->onLexerError(ERR_WRONG_LOGICAL_OPERATOR, token_position, L"&" + std::wstring{this->character});
+            errorHandler->onLexerError(ERR_WRONG_LOGICAL_OPERATOR, this->token_position, L"&" + std::wstring{this->character});
         }
-        return buildToken(AND_TYPE, token_position);
+        return buildToken(AND_TYPE, this->token_position);
     } else if (this->character == '|'){
-        Position token_position = this->pos;
         moveToNextCharacter();
         if (this->character == '|'){
             moveToNextCharacter();
         } else {
-            errorHandler->onLexerError(ERR_WRONG_LOGICAL_OPERATOR, token_position, L"|" + std::wstring{this->character});
+            errorHandler->onLexerError(ERR_WRONG_LOGICAL_OPERATOR, this->token_position, L"|" + std::wstring{this->character});
         }
-        return buildToken(OR_TYPE, token_position);
+        return buildToken(OR_TYPE, this->token_position);
     }
     return std::nullopt;
 }
