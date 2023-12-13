@@ -13,7 +13,7 @@
 //Type constants
 
 static const std::unordered_map<short int, std::wstring> error_mesages= {
-        {ERR_MAX_IDENTIFIER_LEN_EXCEEDED, L"Maximal length of identifier exceeded."},
+    {ERR_MAX_IDENTIFIER_LEN_EXCEEDED,     L"Maximal length of identifier exceeded"},
         {ERR_NOT_CLOSED_STRING,           L"String is not closed."},
         {ERR_WRONG_ENDLINE_CHAR,          L"Inconsistent newline characters."},
         {ERR_WRONG_LOGICAL_OPERATOR,      L"Unfinished logical operator."},
@@ -21,7 +21,9 @@ static const std::unordered_map<short int, std::wstring> error_mesages= {
         {ERR_UNRECOGNIZED_CHARACTER,      L"Character not recognized."},
         {ERR_MAX_ANALYZED_CHARS_EXCEEDED, L"Maximal length of analyzed chars exceeded."},
         {ERR_MAX_STRING_LEN_EXCEEDED,     L"Maximal length of string exceeded."},
-        {ERR_MAX_COMMENT_LENGTH_EXCEEDED, L"Maximal length of comment exceeded."}
+        {ERR_MAX_COMMENT_LENGTH_EXCEEDED, L"Maximal length of comment exceeded."},
+        {ERR_INVALID_SYNTAX,              L"Invalid syntax."},
+        {ERR_SEMANTIC,                    L"Semantic error."},
 };
 
 static const std::unordered_map<wchar_t, std::wstring> escape_sequences= {
@@ -42,6 +44,9 @@ public:
     ErrorHandler() {};
     ErrorHandler(int line_max_char_displayed): line_max_char_displayed(line_max_char_displayed) {};
     void onLexerError(int error_type, Position position, std::wstring value);
+    void onSyntaxError(Position position, std::wstring value);
+    void onSemanticError(Position position, std::wstring value);
+    void displayError(std::wstring error_type, int error_subtype, Position position, std::wstring value, bool escape);
 };
 
 

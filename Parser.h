@@ -11,7 +11,6 @@
 
 #ifndef LEXER_PARSER_H
 #define LEXER_PARSER_H
-class BoolExpression;
 class WhileStatement;
 class IfStatement;
 class ForiStatement;
@@ -46,18 +45,14 @@ private:
     Position position;
 };
 
-class BoolExpression {
-
-};
-
 class WhileStatement : public Statement {
 private:
-    BoolExpression condition;
+    Expression * condition;
 };
 
 class IfStatement : public Statement {
 private:
-    BoolExpression condition;
+    Expression * condition;
     CodeBlock * blockTrue;
     CodeBlock * blockFalse;
 
@@ -74,8 +69,8 @@ private:
 
 class DeclarationStatement : public Statement {
 private:
-    std::wstring identifireName;
-    BoolExpression expression;
+    std::wstring identifierName;
+    Expression * expression;
 };
 
 class ReturnStatement : public Statement {
@@ -108,7 +103,7 @@ private:
 class FuncDeclaration {
 public:
 
-    FuncDeclaration(const std::wstring &name, const std::vector<Parameter> &params, const CodeBlock &statements, const Position & position) : name(
+    FuncDeclaration(const std::wstring &name, const std::vector<Parameter *> &params, CodeBlock * statements, const Position & position) : name(
             name), params(params), statements(statements), position(position) {}
 
     FuncDeclaration() {}
@@ -120,14 +115,14 @@ public:
 private:
     Position position;
     std::wstring name;
-    std::vector<Parameter> params;
-    CodeBlock statements;
+    std::vector<Parameter *> params;
+    CodeBlock * statements;
 };
 
 class FigureDeclaration {
 public:
 
-    FigureDeclaration(const std::wstring &name, const std::vector<Parameter> &params, const CodeBlock &statements, const Position & position) : name(
+    FigureDeclaration(const std::wstring &name, const std::vector<Parameter> &params, CodeBlock * statements, const Position & position) : name(
             name), params(params), statements(statements), position(position) {}
 
     FigureDeclaration() {}
@@ -140,7 +135,7 @@ private:
     Position position;
     std::wstring name;
     std::vector<Parameter> params;
-    CodeBlock statements;
+    CodeBlock * statements;
 };
 
 class Program {
@@ -155,22 +150,25 @@ private:
 };
 
 class Parser {
+    bool syntax_error = false;
     Lexer * lexer;
+    ErrorHandler * errorHandler;
     std::optional<Token> token;
     Program parse();
     bool consumeIf(unsigned int token_type);
 
-    std::optional<FuncDeclaration> parseFuncDecl();
-    std::optional<FigureDeclaration> parseFigureDecl();
-    std::vector<Parameter> parseParams();
-    std::optional<Parameter> parseParam();
-    std::optional<CodeBlock> parseCodeBlock();
+    FuncDeclaration * parseFuncDecl();
+    FigureDeclaration * parseFigureDecl();
+    std::vector<Parameter *> parseParams();
+    Parameter * parseParam();
+    CodeBlock * parseCodeBlock();
     Statement * parseStatement();
     Statement * parseWhileStatement();
     Statement * parseIfStatement();
     Statement * parseForStatement();
     Statement * parseDeclarationStatement();
     Statement * parseReturnStatement();
+    nullptr_t handleSyntaxError(const Position &position, const std::wstring &message);
 
 };
 

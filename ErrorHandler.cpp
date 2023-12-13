@@ -11,18 +11,32 @@ std::wostream & operator<< (std::wostream& wos, Position pos) {
 }
 
 void ErrorHandler::onLexerError(int error_type,  Position position, std::wstring value) {
+    this->displayError(L"LEX_ERR", error_type, position, value, true);
+}
+
+void ErrorHandler::displayError(std::wstring error_type, int error_subtype,  Position position, std::wstring value, bool escape) {
     if (value.length() > line_max_char_displayed) {
         value.erase(line_max_char_displayed);
         value += L"...";
     }
-    for(int i=0; i<value.length(); i++){
-        char current_char = value[i];
-        std::unordered_map<wchar_t, std::wstring>::const_iterator iter = escape_sequences.find(current_char);
-        if (iter != escape_sequences.end()) {
-            value.replace(i, 1, iter->second);
-            i++;
+    if(escape) {
+        for(int i=0; i<value.length(); i++){
+            char current_char = value[i];
+            std::unordered_map<wchar_t, std::wstring>::const_iterator iter = escape_sequences.find(current_char);
+            if (iter != escape_sequences.end()) {
+                value.replace(i, 1, iter->second);
+                i++;
+            }
         }
     }
-    std::wcerr << L"LEX_ERR: " + error_mesages.at(error_type) << std:: endl;
+    std::wcerr << error_type + L": " + error_mesages.at(error_subtype) << std:: endl;
     std::wcerr << position << L": " << value << L" << error" << std::endl;
+}
+
+void ErrorHandler::onSyntaxError(Position position, std::wstring value) {
+    this->displayError(L"SYN_ERR", ERR_INVALID_SYNTAX, position, value, true);
+}
+
+void ErrorHandler::onSemanticError(Position position, std::wstring value) {
+    this->displayError(L"SEM_ERR", ERR_SEMANTIC, position, value, true);
 }
