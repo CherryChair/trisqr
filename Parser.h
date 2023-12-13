@@ -18,25 +18,42 @@ class ForiStatement;
 class ForaStatement;
 class DeclarationStatement;
 class ExpressionStatement;
+class Expression;
 class ReturnStatement;
+class Statement;
 
 typedef std::variant<WhileStatement, IfStatement, ForiStatement, ForaStatement, DeclarationStatement, ExpressionStatement, ReturnStatement> statementType;
 
 class CodeBlock;
 class Parameter;
+class FigureDeclaration;
 class FuncDeclaration;
 class Program;
+
+class Statement {
+public:
+    Statement(){}
+};
+
+class Expression {
+    Expression(Expression * left_expression, Expression * right_expression, const Position & position) : left_expression(left_expression), right_expression(right_expression),
+                                                                                          position(position) {}
+private:
+    Expression * left_expression;
+    Expression * right_expression;
+    Position position;
+};
 
 class BoolExpression {
 
 };
 
-class WhileStatement {
+class WhileStatement : Statement {
 private:
     BoolExpression condition;
 };
 
-class IfStatement {
+class IfStatement : Statement {
 private:
     BoolExpression condition;
     CodeBlock * blockTrue;
@@ -44,85 +61,101 @@ private:
 
 };
 
-class ForiStatement {
+class ForStatement : Statement {
 private:
-    std::variant<int, std::string> loop_beg;
-    std::variant<int, std::string> loop_end;
-    std::string identifier;
+    bool isRange;
+    Expression * range_beg;
+    Expression * range_end;
+    std::wstring identifier;
     CodeBlock * block;
 };
 
-class ForaStatement {
+class DeclarationStatement : Statement {
 private:
-    std::string identifier;
-    std::string listIdentifer;
-    CodeBlock * block;
-};
-
-class DeclarationStatement {
-private:
-    std::string identifireName;
+    std::wstring identifireName;
     BoolExpression expression;
 };
 
 class ExpressionStatement {
 private:
-    std::string identifireName;
+    std::wstring identifireName;
     BoolExpression expression;
 };
 
-class ReturnStatement {
+class ReturnStatement : Statement{
 private:
-    BoolExpression expression;
+    Expression expression;
 };
+
 
 class CodeBlock {
 public:
-    CodeBlock(const std::vector<statementType> &statement) : statement(statement) {}
+    CodeBlock(const std::vector<Statement> &statements) : statements(statements) {}
 
     CodeBlock() {}
 
 private:
-    std::vector<statementType> statement;
+    std::vector<Statement> statements;
 };
 
 class Parameter {
 public:
-    Parameter(const std::string &name) : name(name) {}
+    Parameter(const std::wstring &name) : name(name) {}
 
-    const std::string &getName() const {
+    const std::wstring &getName() const {
         return name;
     }
 private:
-    std::string name;
+    std::wstring name;
 };
 
 class FuncDeclaration {
 public:
 
-    FuncDeclaration(const std::string &name, const std::vector<Parameter> &params, const CodeBlock &statements) : name(
-            name), params(params), statements(statements) {}
+    FuncDeclaration(const std::wstring &name, const std::vector<Parameter> &params, const CodeBlock &statements, const Position & position) : name(
+            name), params(params), statements(statements), position(position) {}
 
     FuncDeclaration() {}
 
-    const std::string &getName() const {
+    const std::wstring &getName() const {
         return name;
     }
 
 private:
-    std::string name;
+    Position position;
+    std::wstring name;
+    std::vector<Parameter> params;
+    CodeBlock statements;
+};
+
+class FigureDeclaration {
+public:
+
+    FigureDeclaration(const std::wstring &name, const std::vector<Parameter> &params, const CodeBlock &statements, const Position & position) : name(
+            name), params(params), statements(statements), position(position) {}
+
+    FigureDeclaration() {}
+
+    const std::wstring &getName() const {
+        return name;
+    }
+
+private:
+    Position position;
+    std::wstring name;
     std::vector<Parameter> params;
     CodeBlock statements;
 };
 
 class Program {
 public:
-    Program(const std::unordered_map<std::string, FuncDeclaration> &functions) : functions(functions) {}
+    Program(const std::unordered_map<std::wstring, FuncDeclaration> &functions, const std::unordered_map<std::wstring, FigureDeclaration> &figures) : functions(functions), figures(figures) {}
 
     Program() {}
 
 private:
-    std::unordered_map<std::string, FuncDeclaration> functions;
+    std::unordered_map<std::wstring, FuncDeclaration> functions;
+    std::unordered_map<std::wstring, FigureDeclaration> figures;
 };
 
 class Parser {
@@ -132,14 +165,14 @@ class Parser {
     bool consumeIf(unsigned int token_type);
 
     std::optional<FuncDeclaration> parseFuncDecl();
+    std::optional<FigureDeclaration> parseFigureDecl();
     std::vector<Parameter> parseParams();
     std::optional<Parameter> parseParam();
-    CodeBlock parseCodeBlock();
-    std::optional<statementType> parseStatement();
+    std::optional<CodeBlock> parseCodeBlock();
+    std::optional<Statement> parseStatement();
     std::optional<WhileStatement> parseWhileStatement();
     std::optional<IfStatement> parseIfStatement();
-    std::optional<ForiStatement> parseForiStatement();
-    std::optional<ForaStatement> parseForaStatement();
+    std::optional<ForStatement> parseForStatement();
     std::optional<DeclarationStatement> parseDeclarationStatement();
     std::optional<ExpressionStatement> parseExpressionStatement();
     std::optional<ReturnStatement> parseReturnStatement();

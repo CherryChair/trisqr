@@ -435,7 +435,6 @@ Im większa liczba, tym wyższy priorytet.
 - point_declaration   :== identifier, ":", expression;
 - code_block          :== "{", {statement}, "}";
 - statement           :== while_stmnt
-                        | fori_stmnt
                         | for_stmnt
                         | if_stmnt
                         | declaration
@@ -451,10 +450,10 @@ Im większa liczba, tym wyższy priorytet.
 - bool_and            :== bool_comp , {"&&",  bool_comp};
 - bool_comp           :== expression_add, [comp_operator, expression_add];
 - declaration         :== "vv ", identifier, ["=", expression], ";";
-- identifier_stmnt    :== part_list, "(", argument_list, ")";
-- part_list           :== part_dot, "[", expression, "]", {"[", expression, "]"};
-- part_dot            :== identifier, {".", identifier_statement};
-- argument_list       :== [expression, {", ", expression}];
+- identifier_stmnt    :== part, {".", part};
+- part                :== part_call, {"[", expression, "]"};
+- part_call           :== identifier, ["(", argument_list, ")"];
+- argument_list       :== [expression, {",", expression}];
 - expression_add      :== expression_mul, {add_operator, expression_mul};
 - expression_mul      :== expression_is, {mul_operator, expression_is};
 - expression_is       :== expression_to, [" is ",  type];
