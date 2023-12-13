@@ -36,6 +36,8 @@ public:
 };
 
 class Expression {
+public:
+    Expression(){}
     Expression(Expression * left_expression, Expression * right_expression, const Position & position) : left_expression(left_expression), right_expression(right_expression),
                                                                                           position(position) {}
 private:
@@ -48,12 +50,12 @@ class BoolExpression {
 
 };
 
-class WhileStatement : Statement {
+class WhileStatement : public Statement {
 private:
     BoolExpression condition;
 };
 
-class IfStatement : Statement {
+class IfStatement : public Statement {
 private:
     BoolExpression condition;
     CodeBlock * blockTrue;
@@ -61,7 +63,7 @@ private:
 
 };
 
-class ForStatement : Statement {
+class ForStatement : public Statement {
 private:
     bool isRange;
     Expression * range_beg;
@@ -70,32 +72,26 @@ private:
     CodeBlock * block;
 };
 
-class DeclarationStatement : Statement {
+class DeclarationStatement : public Statement {
 private:
     std::wstring identifireName;
     BoolExpression expression;
 };
 
-class ExpressionStatement {
+class ReturnStatement : public Statement {
 private:
-    std::wstring identifireName;
-    BoolExpression expression;
-};
-
-class ReturnStatement : Statement{
-private:
-    Expression expression;
+    Expression * expression;
 };
 
 
 class CodeBlock {
 public:
-    CodeBlock(const std::vector<Statement> &statements) : statements(statements) {}
+    CodeBlock(const std::vector<Statement*> &statements) : statements(statements) {}
 
     CodeBlock() {}
 
 private:
-    std::vector<Statement> statements;
+    std::vector<Statement*> statements;
 };
 
 class Parameter {
@@ -169,13 +165,12 @@ class Parser {
     std::vector<Parameter> parseParams();
     std::optional<Parameter> parseParam();
     std::optional<CodeBlock> parseCodeBlock();
-    std::optional<Statement> parseStatement();
-    std::optional<WhileStatement> parseWhileStatement();
-    std::optional<IfStatement> parseIfStatement();
-    std::optional<ForStatement> parseForStatement();
-    std::optional<DeclarationStatement> parseDeclarationStatement();
-    std::optional<ExpressionStatement> parseExpressionStatement();
-    std::optional<ReturnStatement> parseReturnStatement();
+    Statement * parseStatement();
+    Statement * parseWhileStatement();
+    Statement * parseIfStatement();
+    Statement * parseForStatement();
+    Statement * parseDeclarationStatement();
+    Statement * parseReturnStatement();
 
 };
 

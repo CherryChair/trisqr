@@ -124,10 +124,10 @@ std::optional<CodeBlock> Parser::parseCodeBlock() {
         //error missing l_curl_bracket
         return std::nullopt;
     }
-    std::vector<Statement> statements;
-    std::optional<Statement> statement;
+    std::vector<Statement*> statements;
+    Statement * statement;
     while (statement = parseStatement()){
-        statements.push_back(*statement);
+        statements.push_back(statement);
     }
     if (!this->consumeIf(R_CURL_BRACKET_TYPE)){
         //error missing l_curl_bracket
@@ -136,48 +136,64 @@ std::optional<CodeBlock> Parser::parseCodeBlock() {
     return CodeBlock(statements);
 }
 
-std::optional<Statement> Parser::parseStatement() {
-    std::optional<Statement> statement;
+Statement * Parser::parseStatement() {
+    Statement * statement;
     if((statement = parseWhileStatement()) ||
         (statement = parseIfStatement()) ||
         (statement = parseForStatement()) ||
         (statement = parseDeclarationStatement()) ||
-        (statement = parseExpressionStatement()) ||
         (statement = parseReturnStatement()))
         return statement;
-    return std::nullopt;
 
 }
 
-std::optional<WhileStatement> Parser::parseWhileStatement() {
+Statement * Parser::parseWhileStatement() {
     if(!this->consumeIf(IF_TYPE)){
-        return std::nullopt;
+        return NULL;
     }
     if(!this->consumeIf(L_BRACKET_TYPE)){
         //error missing bracket
     }
-
-
-    return std::optional<WhileStatement>();
+    return dynamic_cast<Statement*>(new WhileStatement());
 }
 
-std::optional<IfStatement> Parser::parseIfStatement() {
-    return std::optional<IfStatement>();
+Statement * Parser::parseIfStatement() {
+    if(!this->consumeIf(IF_TYPE)){
+        return NULL;
+    }
+    if(!this->consumeIf(L_BRACKET_TYPE)){
+        //error missing bracket
+    }
+    return dynamic_cast<Statement*>(new IfStatement());
 }
 
-std::optional<ForStatement> Parser::parseForStatement() {
-    return std::optional<ForStatement>();
+Statement * Parser::parseForStatement() {
+    if(!this->consumeIf(FOR_TYPE)){
+        return NULL;
+    }
+    if(!this->consumeIf(L_BRACKET_TYPE)){
+        //error missing bracket
+    }
+    return dynamic_cast<Statement*>(new ForStatement());
 }
 
 
-std::optional<DeclarationStatement> Parser::parseDeclarationStatement() {
-    return std::optional<DeclarationStatement>();
+Statement * Parser::parseDeclarationStatement() {
+    if(!this->consumeIf(VV_TYPE)){
+        return NULL;
+    }
+    if(!this->consumeIf(IDENTIFIER_TYPE)){
+        //error missing bracket
+    }
+    return dynamic_cast<Statement*>(new DeclarationStatement());
 }
 
-std::optional<ExpressionStatement> Parser::parseExpressionStatement() {
-    return std::optional<ExpressionStatement>();
-}
-
-std::optional<ReturnStatement> Parser::parseReturnStatement() {
-    return std::optional<ReturnStatement>();
+Statement * Parser::parseReturnStatement() {
+    if(!this->consumeIf(IF_TYPE)){
+        return NULL;
+    }
+    if(!this->consumeIf(L_BRACKET_TYPE)){
+        //error missing bracket
+    }
+    return dynamic_cast<Statement*>(new ReturnStatement());
 }
