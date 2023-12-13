@@ -46,10 +46,6 @@ bool Parser::consumeIf(unsigned int token_type) {
     return false;
 }
 
-std::variant<int, double, std::wstring> Parser::mustBe() {
-
-};
-
 
 nullptr_t Parser::handleSyntaxError(const Position & position, const std::wstring & message) {
     errorHandler->onSyntaxError(position, message);
@@ -88,10 +84,10 @@ FuncDeclaration * Parser::parseFuncDecl() {
     if (!this->consumeIf(FUNC_TYPE)){
         return nullptr;
     }
+    auto name = (token->getValue());
     if(!this->consumeIf(IDENTIFIER_TYPE)){
         return this->handleSyntaxError(position, L"Missing identifer in function declaration.");
     }
-    std::wstring name = std::get<std::wstring>(token->getValue());
     if (!this->consumeIf(L_BRACKET_TYPE)){
         return this->handleSyntaxError(position, L"Missing left bracket in function declaration.");
     }
@@ -103,7 +99,7 @@ FuncDeclaration * Parser::parseFuncDecl() {
     if (!block) {
         this->handleSyntaxError(position, L"Missing block after function declaration.");
     }
-    return new FuncDeclaration(name, params, block, position);
+    return new FuncDeclaration(std::get<std::wstring>(name), params, block, position);
 }
 
 //decl_argument_list  :== [identifier, {", ", identifier}];
@@ -133,8 +129,9 @@ std::vector<Parameter *> Parser::parseFunctionParams() {
 }
 
 Parameter * Parser::parseParam() {
+    auto name = token->getValue();
     if(this->consumeIf(IDENTIFIER_TYPE)){
-        return new Parameter(std::get<std::wstring>(token->getValue()));
+        return new Parameter(std::get<std::wstring>(name));
     }
     return nullptr;
 }
@@ -202,15 +199,17 @@ ConditionAndBlock * Parser::parseConditionAndBlock(const std::wstring & statemen
 
 //while_stmnt         :== "while", "(",  expression, ")", code_block;
 Statement * Parser::parseWhileStatement() {
+    Position position = token->getPos();
     ConditionAndBlock * conditionAndBlock = this->parseConditionAndBlock(L"while", WHILE_TYPE);
     if (!conditionAndBlock) {
         return nullptr;
     }
-    return new WhileStatement(conditionAndBlock);
+    return new WhileStatement(conditionAndBlock, position);
 }
 
 //if_stmnt            :== "if", "(",  expression, ")", code_block, {"elsif", "(",  expression, ")", code_block }, ["else", code_block];
 Statement * Parser::parseIfStatement() {
+    Position position = token->getPos();
     ConditionAndBlock * ifConditionAndBlock = this->parseConditionAndBlock(L"if", IF_TYPE);
     if (!ifConditionAndBlock) {
         return nullptr;
@@ -220,7 +219,7 @@ Statement * Parser::parseIfStatement() {
         elsifConditionsAndBlocks.push_back(elsifConditionAndBlock);
     }
     ConditionAndBlock * elseConditionAndBlock = this->parseConditionAndBlock(L"else", ELSE_TYPE);
-    return new IfStatement(ifConditionAndBlock, elsifConditionsAndBlocks, elseConditionAndBlock);
+    return new IfStatement(ifConditionAndBlock, elsifConditionsAndBlocks, elseConditionAndBlock, position);
 }
 
 //for_stmnt           :== "for", identifier, "in", expression_or_range, code_block;
@@ -229,47 +228,86 @@ Statement * Parser::parseForStatement() {
     if(!this->consumeIf(FOR_TYPE)){
         return nullptr;
     }
+    auto name = token->getValue();
     if(!this->consumeIf(IDENTIFIER_TYPE)){
         return this->handleSyntaxError(position, L"Missing identifier in for statement.");
     }
-    std::wstring name = std::get<std::wstring>(token->getValue()); //TODO to jest złe, bierze wartość z następnego tokena
     if(!this->consumeIf(IN_TYPE)){
         return this->handleSyntaxError(position, L"Missing 'in' keyword in for statement");
     }
 
-    position = this->token->getPos();
+
+    Position expressionPosition = this->token->getPos();
     Expression * expression;
     if(this->consumeIf(RANGE_TYPE)){
         if(!this->consumeIf(L_BRACKET_TYPE)){
-            return this->handleSyntaxError(position, L"Missing left bracket in range expression.");
+            return this->handleSyntaxError(expressionPosition, L"Missing left bracket in range expression.");
         }
     } else if (!(expression = this->parseExpression())) {
-        return this->handleSyntaxError(position, L"Missing expression or range in for statement.");
+        return this->handleSyntaxError(expressionPosition, L"Missing expression or range in for statement.");
     }
     CodeBlock * block = this->parseCodeBlock();
     if(!block) {
-        return this->handleSyntaxError(position, L"Missing code block after for statement.");
+        return this->handleSyntaxError(expressionPosition, L"Missing code block after for statement.");
     }
-    return new ForStatement(name, expression, block);
-
+    return new ForStatement(std::get<std::wstring>(name), expression, block, position);
 }
 
-
+// declaration         :== "vv ", identifier, ["=", expression], ";";
 Statement * Parser::parseDeclarationStatement() {
     Position position = this->token->getPos();
     if(!this->consumeIf(VV_TYPE)){
         return nullptr;
     }
+    auto name = token->getValue();
     if(!this->consumeIf(IDENTIFIER_TYPE)){
         return this->handleSyntaxError(position, L"Missing identifier in declaration statement.");
     }
-    return new DeclarationStatement();
+
+    Expression * expression = nullptr;
+    if(this->consumeIf(ASSIGN_TYPE)){
+        expression = this->parseExpression();
+    }
+
+    if(!this->consumeIf(SEMICOLON_TYPE)){
+        this->handleSyntaxError(position, L"Missing semicolon on end of declaration.");
+    }
+
+    return new DeclarationStatement(std::get<std::wstring>(name), expression, position);
 }
 
+//identifier_stmnt    :== part, {".", part};
+//part                :== part_call, {"[", expression, "]"};
+//part_call           :== identifier, ["(", argument_list, ")"];
 Statement * Parser::parseIdentifierOrAssignmentStatement() {
+    Position position = this->token->getPos();
+
+    Expression * expression = nullptr;
+    if(this->consumeIf(ASSIGN_TYPE)){
+        expression = this->parseExpression();
+    }
+
+    if(!this->consumeIf(SEMICOLON_TYPE)){
+        this->handleSyntaxError(position, L"Missing semicolon on end of declaration.");
+    }
+
     return nullptr;
 }
 
+//identifier_stmnt, ["=", expression], ";"
+Statement * Parser::parseIdentifierStatement() {
+    Position position = this->token->getPos();
+
+    Statement *
+
+    if(!this->consumeIf(SEMICOLON_TYPE)){
+        this->handleSyntaxError(position, L"Missing semicolon on end of declaration.");
+    }
+
+    return nullptr;
+}
+
+//return              :== "return ", [expression], ";"
 Statement * Parser::parseReturnStatement() {
     Position position = this->token->getPos();
     if(!this->consumeIf(IF_TYPE)){
@@ -278,6 +316,7 @@ Statement * Parser::parseReturnStatement() {
     return new ReturnStatement();
 }
 
+//expression          :== bool_and, {"||",  bool_and};
 Expression * Parser::parseExpression() {
     return nullptr;
 }

@@ -31,6 +31,8 @@ class FuncDeclaration;
 class Program;
 
 class Statement {
+protected:
+    Position position;
 public:
     Statement(){}
 };
@@ -56,7 +58,7 @@ class WhileStatement : public Statement {
 private:
     ConditionAndBlock * conditionAndBlock;
 public:
-    WhileStatement(ConditionAndBlock * conditionAndBlock) : conditionAndBlock(conditionAndBlock){};
+    WhileStatement(ConditionAndBlock * conditionAndBlock, Position position) : conditionAndBlock(conditionAndBlock) {this->position = position;};
 };
 
 class IfStatement : public Statement {
@@ -65,8 +67,8 @@ private:
     std::vector<ConditionAndBlock*> elsifConditionsAndBlocks;
     ConditionAndBlock * elseConditionAndBlock;
 public:
-    IfStatement(ConditionAndBlock * ifConditionAndBlock, std::vector<ConditionAndBlock*> elsifConditionsAndBlocks, ConditionAndBlock * elseConditionAndBlock)
-        : ifConditionAndBlock(ifConditionAndBlock), elsifConditionsAndBlocks(elsifConditionsAndBlocks), elseConditionAndBlock(elseConditionAndBlock){};
+    IfStatement(ConditionAndBlock * ifConditionAndBlock, std::vector<ConditionAndBlock*> elsifConditionsAndBlocks, ConditionAndBlock * elseConditionAndBlock, Position position)
+        : ifConditionAndBlock(ifConditionAndBlock), elsifConditionsAndBlocks(elsifConditionsAndBlocks), elseConditionAndBlock(elseConditionAndBlock){this->position = position;};
 };
 
 class ForStatement : public Statement {
@@ -75,14 +77,16 @@ private:
     Expression * expression;
     CodeBlock * block;
 public:
-    ForStatement(const std::wstring & identifier, Expression * expression, CodeBlock * block) :
-        identifier(identifier), expression(expression), block(block) {};
+    ForStatement(const std::wstring & identifier, Expression * expression, CodeBlock * block, Position position) :
+        identifier(identifier), expression(expression), block(block) {this->position = position;};
 };
 
 class DeclarationStatement : public Statement {
 private:
     std::wstring identifierName;
     Expression * expression;
+public:
+    DeclarationStatement(const std::wstring & identifierName, Expression * expression, Position position) : identifierName(identifierName), expression(expression) {this->position=position;};
 };
 
 class ReturnStatement : public Statement {
@@ -174,7 +178,6 @@ private:
     std::optional<Token> token;
 
     bool consumeIf(unsigned int token_type);
-    std::variant<int, double, std::wstring> mustBe(token_type tokenType, Position position, const std::wstring & message);
 
     FuncDeclaration * parseFuncDecl();
     FigureDeclaration * parseFigureDecl();
@@ -187,6 +190,7 @@ private:
     Statement * parseForStatement();
     Statement * parseDeclarationStatement();
     Statement * parseIdentifierOrAssignmentStatement();
+    Statement * parseIdentifierStatement();
     Statement * parseReturnStatement();
     ConditionAndBlock * parseConditionAndBlock(const std::wstring & statement_type, token_type tokenType);
     Expression * parseExpression();

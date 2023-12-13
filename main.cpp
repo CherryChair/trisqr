@@ -1,4 +1,5 @@
 #include "lexer.h"
+#include "parser.h"
 #include <fstream>
 
 
@@ -16,8 +17,12 @@ int main() {
     if(nullptr) {
         std::wcout << L"nullptr";
     }
-    if(NULL) {
-        std::wcout << L"NULL";
+
+    Expression * expression = nullptr;
+    if(expression) {
+        std::wcout << L"expr";
+    } else {
+        std::wcout << L"noexpr";
     }
 //    while(tkn = l->nextToken()){
 //        printToken(*tkn);
