@@ -441,7 +441,7 @@ Im większa liczba, tym wyższy priorytet.
                         | identifier_stmnt, ["=", expression], ";"
                         | return;
 - while_stmnt         :== "while", "(",  expression, ")", code_block;
-- if_stmnt            :== "if", "(",  expression, ")", code_block, {"elif", "(",  expression, ")", code_block }, ["else", code_block];
+- if_stmnt            :== "if", "(",  expression, ")", code_block, {"elsif", "(",  expression, ")", code_block }, ["else", code_block];
 - for_stmnt           :== "for ", identifier, " in ", expression_or_range, code_block;
 - expression_or_range :== expression
                         | range;

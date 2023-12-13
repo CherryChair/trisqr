@@ -5,7 +5,7 @@
 #include "Parser.h"
 
 //program             :== {func_declaration | figure_declaration};
-Program Parser::parse() {
+Program * Parser::parse() {
     std::unordered_map<std::wstring, FuncDeclaration> * functions = {};
     std::unordered_map<std::wstring, FigureDeclaration> * figures = {};
     token = lexer->nextToken();
@@ -14,7 +14,7 @@ Program Parser::parse() {
     FigureDeclaration * figureDecl;
     bool foundFunc = true;
     bool foundFigure = true;
-    while((foundFunc || foundFigure) && !this->syntax_error){
+    while((foundFunc || foundFigure) && !this->blocking_syntax_error){
         foundFunc = false;
         foundFigure = false;
         if (funcDecl = this->parseFuncDecl()){
@@ -22,7 +22,7 @@ Program Parser::parse() {
             if(functions->find(fName) != functions->end()){
                 (*functions)[fName] = *funcDecl;
             } else {
-                errorHandler->onSemanticError(pos, L"Redeclaration of function " + fName);
+                this->handleSemanticError(pos, L"Redeclaration of function " + fName);
             }
             foundFunc = true;
         } else if (figureDecl = this->parseFigureDecl()){
@@ -35,7 +35,7 @@ Program Parser::parse() {
             foundFigure = true;
         }
     }
-    return Program(*functions, *figures);
+    return new Program(*functions, *figures);
 }
 
 bool Parser::consumeIf(unsigned int token_type) {
@@ -46,10 +46,20 @@ bool Parser::consumeIf(unsigned int token_type) {
     return false;
 }
 
+std::variant<int, double, std::wstring> Parser::mustBe() {
+
+};
+
+
 nullptr_t Parser::handleSyntaxError(const Position & position, const std::wstring & message) {
     errorHandler->onSyntaxError(position, message);
-    this->syntax_error = true;
+    this->blocking_syntax_error = true;
     return nullptr;
+}
+
+void Parser::handleSemanticError(const Position &position, const std::wstring &message) {
+    errorHandler->onSemanticError(position, message);
+    this->semantic_error = true;
 }
 
 //figure_declaration  :== "figure ", identifier, "{", point_list, "}";
@@ -85,18 +95,19 @@ FuncDeclaration * Parser::parseFuncDecl() {
     if (!this->consumeIf(L_BRACKET_TYPE)){
         return this->handleSyntaxError(position, L"Missing left bracket in function declaration.");
     }
-    std::vector<Parameter *> params = parseParams();
+    std::vector<Parameter *> params = parseFunctionParams();
     if (!this->consumeIf(R_BRACKET_TYPE)){
         return this->handleSyntaxError(position, L"Missing right bracket in function declaration.");
     }
     CodeBlock * block = parseCodeBlock();
     if (!block) {
-        return this->handleSyntaxError(position, L"Missing block after function declaration.");
+        this->handleSyntaxError(position, L"Missing block after function declaration.");
     }
     return new FuncDeclaration(name, params, block, position);
 }
 
-std::vector<Parameter *> Parser::parseParams() {
+//decl_argument_list  :== [identifier, {", ", identifier}];
+std::vector<Parameter *> Parser::parseFunctionParams() {
     std::vector<Parameter *> params;
     std::unordered_map<std::wstring, bool> paramsMap;
     Parameter * param = parseParam();
@@ -107,10 +118,10 @@ std::vector<Parameter *> Parser::parseParams() {
             Position position = this->token->getPos();
             param = parseParam();
             if(!param){
-                this->handleSyntaxError(position, L"Missing block after function declaration.");
+                errorHandler->onSyntaxError(position, L"Missing param after comma.");
                 return params;
             } else if (paramsMap.find(param->getName()) != paramsMap.end()) {
-                errorHandler->onSemanticError(position, L"Duplicate param " + param->getName());
+                this->handleSemanticError(position, L"Duplicate param " + param->getName());
             } else {
                 params.push_back(param);
                 paramsMap[param->getName()] = true;
@@ -128,6 +139,7 @@ Parameter * Parser::parseParam() {
     return nullptr;
 }
 
+//code_block          :== "{", {statement}, "}";
 CodeBlock * Parser::parseCodeBlock() {
     Position position = this->token->getPos();
     if (!this->consumeIf(L_CURL_BRACKET_TYPE)){
@@ -139,54 +151,107 @@ CodeBlock * Parser::parseCodeBlock() {
         statements.push_back(statement);
     }
     if (!this->consumeIf(R_CURL_BRACKET_TYPE)){
-        return this->handleSyntaxError(position, L"Missing right bracket in code block.");
+        this->handleSyntaxError(position, L"Missing right bracket in code block.");
     }
 
     return new CodeBlock(statements);
 }
 
+//statement           :== while_stmnt
+//                        | for_stmnt
+//                        | if_stmnt
+//                        | declaration
+//                        | identifier_stmnt, ["=", expression], ";"
+//                        | return;
 Statement * Parser::parseStatement() {
     Statement * statement;
     if((statement = parseWhileStatement()) ||
         (statement = parseIfStatement()) ||
         (statement = parseForStatement()) ||
         (statement = parseDeclarationStatement()) ||
+        (statement = parseIdentifierOrAssignmentStatement()) ||
         (statement = parseReturnStatement()))
         return statement;
     return nullptr;
 }
 
+
+ConditionAndBlock * Parser::parseConditionAndBlock(const std::wstring & statement_type, token_type tokenType) {
+    Position position = this->token->getPos();
+    if(!this->consumeIf(tokenType)){
+        return nullptr;
+    }
+    if(!this->consumeIf(L_BRACKET_TYPE)){
+        return this->handleSyntaxError(position, L"Missing left bracket in " + statement_type + L" statement.");
+    }
+    Expression * expression = this->parseExpression();
+
+    if(!expression) {
+        return this->handleSyntaxError(position, L"Missing expression in " + statement_type + L" statement.");
+    }
+    if(!this->consumeIf(R_BRACKET_TYPE)){
+        return this->handleSyntaxError(position, L"Missing right bracket in " + statement_type + L" statement.");
+    }
+
+    CodeBlock * block = parseCodeBlock();
+    if (!block) {
+        return this->handleSyntaxError(position, L"Missing block after " + statement_type + L" statement.");
+    }
+    return new ConditionAndBlock(expression, block);
+}
+
+//while_stmnt         :== "while", "(",  expression, ")", code_block;
 Statement * Parser::parseWhileStatement() {
-    Position position = this->token->getPos();
-    if(!this->consumeIf(IF_TYPE)){
+    ConditionAndBlock * conditionAndBlock = this->parseConditionAndBlock(L"while", WHILE_TYPE);
+    if (!conditionAndBlock) {
         return nullptr;
     }
-    if(!this->consumeIf(L_BRACKET_TYPE)){
-        return this->handleSyntaxError(position, L"Missing left bracket in while statement.");
-    }
-    return dynamic_cast<Statement*>(new WhileStatement());
+    return new WhileStatement(conditionAndBlock);
 }
 
+//if_stmnt            :== "if", "(",  expression, ")", code_block, {"elsif", "(",  expression, ")", code_block }, ["else", code_block];
 Statement * Parser::parseIfStatement() {
-    Position position = this->token->getPos();
-    if(!this->consumeIf(IF_TYPE)){
+    ConditionAndBlock * ifConditionAndBlock = this->parseConditionAndBlock(L"if", IF_TYPE);
+    if (!ifConditionAndBlock) {
         return nullptr;
     }
-    if(!this->consumeIf(L_BRACKET_TYPE)){
-        return this->handleSyntaxError(position, L"Missing left bracket in if statement.");
+    std::vector<ConditionAndBlock *> elsifConditionsAndBlocks;
+    while(ConditionAndBlock * elsifConditionAndBlock = this->parseConditionAndBlock(L"elsif", ELSIF_TYPE)){
+        elsifConditionsAndBlocks.push_back(elsifConditionAndBlock);
     }
-    return dynamic_cast<Statement*>(new IfStatement());
+    ConditionAndBlock * elseConditionAndBlock = this->parseConditionAndBlock(L"else", ELSE_TYPE);
+    return new IfStatement(ifConditionAndBlock, elsifConditionsAndBlocks, elseConditionAndBlock);
 }
 
+//for_stmnt           :== "for", identifier, "in", expression_or_range, code_block;
 Statement * Parser::parseForStatement() {
     Position position = this->token->getPos();
     if(!this->consumeIf(FOR_TYPE)){
         return nullptr;
     }
-    if(!this->consumeIf(L_BRACKET_TYPE)){
-        return this->handleSyntaxError(position, L"Missing left bracket in for statement.");
+    if(!this->consumeIf(IDENTIFIER_TYPE)){
+        return this->handleSyntaxError(position, L"Missing identifier in for statement.");
     }
-    return dynamic_cast<Statement*>(new ForStatement());
+    std::wstring name = std::get<std::wstring>(token->getValue()); //TODO to jest złe, bierze wartość z następnego tokena
+    if(!this->consumeIf(IN_TYPE)){
+        return this->handleSyntaxError(position, L"Missing 'in' keyword in for statement");
+    }
+
+    position = this->token->getPos();
+    Expression * expression;
+    if(this->consumeIf(RANGE_TYPE)){
+        if(!this->consumeIf(L_BRACKET_TYPE)){
+            return this->handleSyntaxError(position, L"Missing left bracket in range expression.");
+        }
+    } else if (!(expression = this->parseExpression())) {
+        return this->handleSyntaxError(position, L"Missing expression or range in for statement.");
+    }
+    CodeBlock * block = this->parseCodeBlock();
+    if(!block) {
+        return this->handleSyntaxError(position, L"Missing code block after for statement.");
+    }
+    return new ForStatement(name, expression, block);
+
 }
 
 
@@ -198,7 +263,11 @@ Statement * Parser::parseDeclarationStatement() {
     if(!this->consumeIf(IDENTIFIER_TYPE)){
         return this->handleSyntaxError(position, L"Missing identifier in declaration statement.");
     }
-    return dynamic_cast<Statement*>(new DeclarationStatement());
+    return new DeclarationStatement();
+}
+
+Statement * Parser::parseIdentifierOrAssignmentStatement() {
+    return nullptr;
 }
 
 Statement * Parser::parseReturnStatement() {
@@ -206,5 +275,9 @@ Statement * Parser::parseReturnStatement() {
     if(!this->consumeIf(IF_TYPE)){
         return nullptr;
     }
-    return dynamic_cast<Statement*>(new ReturnStatement());
+    return new ReturnStatement();
+}
+
+Expression * Parser::parseExpression() {
+    return nullptr;
 }

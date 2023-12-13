@@ -20,6 +20,7 @@ class ExpressionStatement;
 class Expression;
 class ReturnStatement;
 class Statement;
+struct ConditionAndBlock;
 
 typedef std::variant<WhileStatement, IfStatement, ForiStatement, ForaStatement, DeclarationStatement, ExpressionStatement, ReturnStatement> statementType;
 
@@ -45,26 +46,37 @@ private:
     Position position;
 };
 
+struct ConditionAndBlock {
+    Expression * condition;
+    CodeBlock * block;
+    ConditionAndBlock(Expression * condition, CodeBlock * block) : condition(condition), block(block) {};
+};
+
 class WhileStatement : public Statement {
 private:
-    Expression * condition;
+    ConditionAndBlock * conditionAndBlock;
+public:
+    WhileStatement(ConditionAndBlock * conditionAndBlock) : conditionAndBlock(conditionAndBlock){};
 };
 
 class IfStatement : public Statement {
 private:
-    Expression * condition;
-    CodeBlock * blockTrue;
-    CodeBlock * blockFalse;
-
+    ConditionAndBlock * ifConditionAndBlock;
+    std::vector<ConditionAndBlock*> elsifConditionsAndBlocks;
+    ConditionAndBlock * elseConditionAndBlock;
+public:
+    IfStatement(ConditionAndBlock * ifConditionAndBlock, std::vector<ConditionAndBlock*> elsifConditionsAndBlocks, ConditionAndBlock * elseConditionAndBlock)
+        : ifConditionAndBlock(ifConditionAndBlock), elsifConditionsAndBlocks(elsifConditionsAndBlocks), elseConditionAndBlock(elseConditionAndBlock){};
 };
 
 class ForStatement : public Statement {
 private:
-    bool isRange;
-    Expression * range_beg;
-    Expression * range_end;
     std::wstring identifier;
+    Expression * expression;
     CodeBlock * block;
+public:
+    ForStatement(const std::wstring & identifier, Expression * expression, CodeBlock * block) :
+        identifier(identifier), expression(expression), block(block) {};
 };
 
 class DeclarationStatement : public Statement {
@@ -150,16 +162,23 @@ private:
 };
 
 class Parser {
-    bool syntax_error = false;
+public:
+    Program * parse();
+    bool getSemanticError() {return this->semantic_error;};
+    bool getSyntaxError() {return this->blocking_syntax_error;};
+private:
+    bool blocking_syntax_error = false;
+    bool semantic_error = false;
     Lexer * lexer;
     ErrorHandler * errorHandler;
     std::optional<Token> token;
-    Program parse();
+
     bool consumeIf(unsigned int token_type);
+    std::variant<int, double, std::wstring> mustBe(token_type tokenType, Position position, const std::wstring & message);
 
     FuncDeclaration * parseFuncDecl();
     FigureDeclaration * parseFigureDecl();
-    std::vector<Parameter *> parseParams();
+    std::vector<Parameter *> parseFunctionParams();
     Parameter * parseParam();
     CodeBlock * parseCodeBlock();
     Statement * parseStatement();
@@ -167,8 +186,12 @@ class Parser {
     Statement * parseIfStatement();
     Statement * parseForStatement();
     Statement * parseDeclarationStatement();
+    Statement * parseIdentifierOrAssignmentStatement();
     Statement * parseReturnStatement();
+    ConditionAndBlock * parseConditionAndBlock(const std::wstring & statement_type, token_type tokenType);
+    Expression * parseExpression();
     nullptr_t handleSyntaxError(const Position &position, const std::wstring &message);
+    void handleSemanticError(const Position &position, const std::wstring &message);
 
 };
 
