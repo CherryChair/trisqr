@@ -388,11 +388,12 @@ Statement * Parser::parseIdentifierFunctionCallStatement() {
 }
 
 Statement * Parser::parseIdentifierStatement() {
+    Position position = this->token->getPos();
     auto name = this->token->getValue();
     if(!this->consumeIf(IDENTIFIER_TYPE)){
         return nullptr;
     }
-    return new IdentifierStatement(std::get<std::wstring> (name);
+    return new IdentifierStatement(std::get<std::wstring>(name), position);
 }
 
 //return              :== "return ", [expression], ";"
@@ -401,7 +402,14 @@ Statement * Parser::parseReturnStatement() {
     if(!this->consumeIf(RETURN_TYPE)){
         return nullptr;
     }
-    return new ReturnStatement();
+
+    Expression * expression = this->parseExpression();
+
+    if(!this->consumeIf(SEMICOLON_TYPE)){
+        errorHandler->onSyntaxError(position, L"Missing semicolon after return statement");
+    }
+
+    return new ReturnStatement(expression, position);
 }
 
 //expression          :== bool_and, {"||",  bool_and};

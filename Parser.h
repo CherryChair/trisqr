@@ -93,7 +93,7 @@ class IdentifierStatement : public Statement {
 private:
     const std::wstring identifierName;
 public:
-    IdentifierStatement(const std::wstring & identifierName,const Position & position)
+    IdentifierStatement(const std::wstring & identifierName, const Position & position)
         : identifierName(identifierName) {this->position=position;};
 };
 
@@ -137,6 +137,8 @@ public:
 class ReturnStatement : public Statement {
 private:
     Expression * expression;
+public:
+    ReturnStatement(Expression * expression, const Position & position) : expression(expression) {this->position=position;};
 };
 
 
