@@ -276,11 +276,15 @@ Statement * Parser::parseDeclarationStatement() {
     return new DeclarationStatement(std::get<std::wstring>(name), expression, position);
 }
 
-//identifier_stmnt    :== part, {".", part};
-//part                :== part_call, {"[", expression, "]"};
-//part_call           :== identifier, ["(", argument_list, ")"];
+
+//identifier_stmnt, ["=", expression], ";"
 Statement * Parser::parseIdentifierOrAssignmentStatement() {
     Position position = this->token->getPos();
+
+    Statement * identifierStatement;
+    if (!(identifierStatement = this->parseIdentifierDotStatement())) {
+        return nullptr;
+    }
 
     Expression * expression = nullptr;
     if(this->consumeIf(ASSIGN_TYPE)){
@@ -291,26 +295,110 @@ Statement * Parser::parseIdentifierOrAssignmentStatement() {
         this->handleSyntaxError(position, L"Missing semicolon on end of declaration.");
     }
 
-    return nullptr;
-}
-
-//identifier_stmnt, ["=", expression], ";"
-Statement * Parser::parseIdentifierStatement() {
-    Position position = this->token->getPos();
-
-    Statement *
-
-    if(!this->consumeIf(SEMICOLON_TYPE)){
-        this->handleSyntaxError(position, L"Missing semicolon on end of declaration.");
+    if (!expression) {
+        return identifierStatement;
     }
 
-    return nullptr;
+    return new IdentifierStatementAssign(identifierStatement, expression, position);
+}
+
+//identifier_stmnt    :== part, {".", part};
+Statement * Parser::parseIdentifierDotStatement() {
+    Position position = this->token->getPos();
+    Statement * leftIdentifierListCallStatement;
+    if (!(leftIdentifierListCallStatement = this->parseIdentifierListCallStatement())) {
+        return nullptr;
+    }
+    while (this->consumeIf(DOT_TYPE)) {
+        Position identifierPos = this->token->getPos();
+        Statement * rightIdentifierListCallStatement;
+        if (!(rightIdentifierListCallStatement = this->parseIdentifierListCallStatement())) {
+            errorHandler->onSyntaxError(identifierPos, L"No identifier after dot.");
+            break;
+        }
+        leftIdentifierListCallStatement = new IdentifierDotStatement(leftIdentifierListCallStatement, rightIdentifierListCallStatement, identifierPos);
+    }
+
+    return leftIdentifierListCallStatement;
+}
+
+//part                :== part_call, {"[", expression, "]"};
+Statement * Parser::parseIdentifierListCallStatement() {
+    Position position = this->token->getPos();
+    Statement * identifierFunctionCallStatement;
+    if (!(identifierFunctionCallStatement = this->parseIdentifierFunctionCallStatement())) {
+        return nullptr;
+    }
+    std::vector<Expression *> expressions;
+    while(this->consumeIf(L_SQR_BRACKET_TYPE)) {
+        Position expressionPosition = this->token->getPos();
+        if(Expression * expression = this->parseExpression()) {
+            expressions.push_back(expression);
+        } else {
+            errorHandler->onSyntaxError(expressionPosition, L"Missing expression in list element call.");
+        }
+        if (!this->consumeIf(R_SQR_BRACKET_TYPE)) {
+            errorHandler->onSyntaxError(expressionPosition, L"Missing right square bracket in list element call.");
+            break;
+        }
+    }
+    if (expressions.empty()) {
+        return  identifierFunctionCallStatement;
+    }
+    return new IdentifierStatementListCall(identifierFunctionCallStatement, expressions, position);
+}
+
+//part_call           :== identifier, ["(", argument_list, ")"];
+Statement * Parser::parseIdentifierFunctionCallStatement() {
+    Position position = this->token->getPos();
+    bool isFunctionCall = false;
+
+    Statement * identifierStatement = this->parseIdentifierStatement();
+    if(!identifierStatement) {
+        return nullptr;
+    }
+
+    std::vector<Expression *> expressions;
+
+    //- argument_list       :== [expression, {",", expression}];
+    if(!this->consumeIf(L_BRACKET_TYPE)){
+        Position expressionPos = this->token->getPos();
+        if (Expression * expression = parseExpression()) {
+            expressions.push_back(expression);
+            while(consumeIf(COMMA_TYPE)) {
+                expressionPos = this->token->getPos();
+                if(expression = parseExpression()) {
+                    expressions.push_back(expression);
+                } else {
+                    errorHandler->onSyntaxError(expressionPos, L"Missing expression after comma in function call");
+                }
+            }
+        }
+        if(!this->consumeIf(R_BRACKET_TYPE)){
+            errorHandler->onSyntaxError(expressionPos, L"Missing right bracket closing function call");
+        }
+        isFunctionCall = true;
+    }
+
+    if (!isFunctionCall) {
+        return identifierStatement;
+    }
+
+    return new IdentifierStatementFunctionCall(identifierStatement, expressions, position);
+}
+
+Statement * Parser::parseIdentifierStatement() {
+    auto name = this->token->getValue();
+    if(!this->consumeIf(IDENTIFIER_TYPE)){
+        return nullptr;
+    }
+    return new IdentifierStatement(std::get<std::wstring> (name);
 }
 
 //return              :== "return ", [expression], ";"
 Statement * Parser::parseReturnStatement() {
     Position position = this->token->getPos();
-    if(!this->consumeIf(IF_TYPE)){
+    if(!this->consumeIf(RETURN_TYPE)){
         return nullptr;
     }
     return new ReturnStatement();

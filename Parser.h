@@ -21,8 +21,8 @@ class Expression;
 class ReturnStatement;
 class Statement;
 struct ConditionAndBlock;
-
-typedef std::variant<WhileStatement, IfStatement, ForiStatement, ForaStatement, DeclarationStatement, ExpressionStatement, ReturnStatement> statementType;
+class IdentifierDotStatement;
+class IdentifierStatementAssign;
 
 class CodeBlock;
 class Parameter;
@@ -73,20 +73,65 @@ public:
 
 class ForStatement : public Statement {
 private:
-    std::wstring identifier;
+    const std::wstring identifier;
     Expression * expression;
     CodeBlock * block;
 public:
-    ForStatement(const std::wstring & identifier, Expression * expression, CodeBlock * block, Position position) :
+    ForStatement(const std::wstring & identifier, Expression * expression, CodeBlock * block, const Position & position) :
         identifier(identifier), expression(expression), block(block) {this->position = position;};
 };
 
 class DeclarationStatement : public Statement {
 private:
-    std::wstring identifierName;
+    const std::wstring identifierName;
     Expression * expression;
 public:
-    DeclarationStatement(const std::wstring & identifierName, Expression * expression, Position position) : identifierName(identifierName), expression(expression) {this->position=position;};
+    DeclarationStatement(const std::wstring & identifierName, Expression * expression, const Position & position) : identifierName(identifierName), expression(expression) {this->position=position;};
+};
+
+class IdentifierStatement : public Statement {
+private:
+    const std::wstring identifierName;
+public:
+    IdentifierStatement(const std::wstring & identifierName,const Position & position)
+        : identifierName(identifierName) {this->position=position;};
+};
+
+class IdentifierStatementFunctionCall : public Statement {
+private:
+    Statement * identifier;
+    std::vector<Expression *> expressions;
+public:
+    IdentifierStatementFunctionCall(Statement * identifier, std::vector<Expression *> expressions,
+                                    const Position & position)
+        : identifier(identifier), expressions(expressions) {this->position=position;};
+};
+
+class IdentifierStatementListCall : public Statement {
+private:
+    Statement * leftStatement;
+    std::vector<Expression *> expressions;
+public:
+    IdentifierStatementListCall(Statement * leftStatement, std::vector<Expression *> expressions, const Position & position)
+        : leftStatement(leftStatement), expressions(expressions) {this->position=position;};
+};
+
+class IdentifierDotStatement : public Statement {
+private:
+    Statement * leftStatement;
+    Statement * rightStatement;
+public:
+    IdentifierDotStatement(Statement * leftStatement, Statement * rightStatement, const Position & position)
+        : leftStatement(leftStatement), rightStatement(rightStatement) {this->position=position;};
+};
+
+class IdentifierStatementAssign : public Statement {
+private:
+    Statement * identifierStatement;
+    Expression * expression;
+public:
+    IdentifierStatementAssign(Statement * identifierStatement, Expression * expression, const Position & position)
+        : identifierStatement(identifierStatement), expression(expression) {this->position=position;};
 };
 
 class ReturnStatement : public Statement {
@@ -97,7 +142,7 @@ private:
 
 class CodeBlock {
 public:
-    CodeBlock(const std::vector<Statement*> &statements) : statements(statements) {}
+    CodeBlock(const std::vector<Statement*> statements) : statements(statements) {}
 
     CodeBlock() {}
 
@@ -113,13 +158,13 @@ public:
         return name;
     }
 private:
-    std::wstring name;
+    const std::wstring name;
 };
 
 class FuncDeclaration {
 public:
 
-    FuncDeclaration(const std::wstring &name, const std::vector<Parameter *> &params, CodeBlock * statements, const Position & position) : name(
+    FuncDeclaration(const std::wstring &name, std::vector<Parameter *> params, CodeBlock * statements, const Position & position) : name(
             name), params(params), statements(statements), position(position) {}
 
     FuncDeclaration() {}
@@ -138,7 +183,7 @@ private:
 class FigureDeclaration {
 public:
 
-    FigureDeclaration(const std::wstring &name, const std::vector<Parameter> &params, CodeBlock * statements, const Position & position) : name(
+    FigureDeclaration(const std::wstring &name, std::vector<Parameter> & params, CodeBlock * statements, const Position & position) : name(
             name), params(params), statements(statements), position(position) {}
 
     FigureDeclaration() {}
@@ -190,6 +235,9 @@ private:
     Statement * parseForStatement();
     Statement * parseDeclarationStatement();
     Statement * parseIdentifierOrAssignmentStatement();
+    Statement * parseIdentifierDotStatement();
+    Statement * parseIdentifierListCallStatement();
+    Statement * parseIdentifierFunctionCallStatement();
     Statement * parseIdentifierStatement();
     Statement * parseReturnStatement();
     ConditionAndBlock * parseConditionAndBlock(const std::wstring & statement_type, token_type tokenType);
