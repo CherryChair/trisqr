@@ -78,57 +78,57 @@ public:
 class ExpressionComp : public Expression{
 private:
     Expression * leftExpression;
-    token_type compOperatorType;
+    unsigned short compOperatorType;
     Expression * rightExpression;
 public:
-    ExpressionComp(Expression * leftExpression, Expression * rightExpression, token_type compOperatorType, const Position & position)
+    ExpressionComp(Expression * leftExpression, Expression * rightExpression, unsigned short compOperatorType, const Position & position)
             : leftExpression(leftExpression), compOperatorType(compOperatorType), rightExpression(rightExpression) {this->position = position;}
 };
 
 class ExpressionAdd : public Expression{
 private:
     Expression * leftExpression;
-    token_type addOperatorType;
+    unsigned short addOperatorType;
     Expression * rightExpression;
 public:
-    ExpressionAdd(Expression * leftExpression, Expression * rightExpression, token_type addOperatorType, const Position & position)
+    ExpressionAdd(Expression * leftExpression, Expression * rightExpression, unsigned short addOperatorType, const Position & position)
             : leftExpression(leftExpression), addOperatorType(addOperatorType), rightExpression(rightExpression) {this->position = position;}
 };
 
 class ExpressionMul : public Expression{
 private:
     Expression * leftExpression;
-    token_type mulOperatorType;
+    unsigned short mulOperatorType;
     Expression * rightExpression;
 public:
-    ExpressionMul(Expression * leftExpression, Expression * rightExpression, token_type mulOperatorType, const Position & position)
+    ExpressionMul(Expression * leftExpression, Expression * rightExpression, unsigned short mulOperatorType, const Position & position)
             : leftExpression(leftExpression), mulOperatorType(mulOperatorType), rightExpression(rightExpression) {this->position = position;}
 };
 
 class ExpressionIs : public Expression{
 private:
     Expression * expression;
-    token_type checkedType;
+    unsigned short checkedType;
 public:
-    ExpressionIs(Expression * expression, token_type checkedType, const Position & position)
+    ExpressionIs(Expression * expression, unsigned short checkedType, const Position & position)
             : expression(expression), checkedType(checkedType) {this->position = position;}
 };
 
 class ExpressionTo : public Expression{
 private:
     Expression * expression;
-    token_type conversionType;
+    unsigned short conversionType;
 public:
-    ExpressionTo(Expression * expression, token_type conversionType, const Position & position)
+    ExpressionTo(Expression * expression, unsigned short conversionType, const Position & position)
             : expression(expression), conversionType(conversionType) {this->position = position;}
 };
 
 class ExpressionNeg : public Expression{
 private:
     Expression * expression;
-    token_type negationType;
+    unsigned short negationType;
 public:
-    ExpressionNeg(Expression * expression, token_type negationType, const Position & position)
+    ExpressionNeg(Expression * expression, unsigned short negationType, const Position & position)
             : expression(expression), negationType(negationType) {this->position = position;}
 };
 

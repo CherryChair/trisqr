@@ -46,6 +46,17 @@ private:
     Statement * parseReturnStatement();
     ConditionAndBlock * parseConditionAndBlock(const std::wstring & statement_type, token_type tokenType);
     Expression * parseExpression();
+    Expression * parseExpressionAnd();
+    Expression * parseExpressionComp();
+    Expression * parseExpressionAdd();
+    Expression * parseExpressionMul();
+    Expression * parseExpressionIs();
+    Expression * parseExpressionTo();
+    Expression * parseExpressionNeg();
+    Expression * parseAccessedValue();
+    Expression * parseExpressionValueList();
+    Expression * parseExpressionValueLiteral();
+
     nullptr_t handleSyntaxError(const Position &position, const std::wstring &message);
     void handleSemanticError(const Position &position, const std::wstring &message);
 
