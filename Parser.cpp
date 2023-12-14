@@ -19,7 +19,7 @@ Program * Parser::parse() {
         foundFigure = false;
         if (funcDecl = this->parseFuncDecl()){
             auto fName = funcDecl->getName();
-            if(functions.find(fName) != functions.end()){
+            if(functions.find(fName) == functions.end()){
                 functions[fName] = funcDecl;
             } else {
                 this->handleSemanticError(pos, L"Redeclaration of function " + fName);
@@ -27,7 +27,7 @@ Program * Parser::parse() {
             foundFunc = true;
         } else if (figureDecl = this->parseFigureDecl()){
             std::wstring fName = figureDecl->getName();
-            if(figures.find(fName) != figures.end()){
+            if(figures.find(fName) == figures.end()){
                 figures[fName] = figureDecl;
             } else {
                 errorHandler->onSemanticError(pos, L"Redeclaration of figure " + fName);
@@ -53,6 +53,7 @@ bool Parser::consumeIf(unsigned int token_type) {
 nullptr_t Parser::handleSyntaxError(const Position & position, const std::wstring & message) {
     errorHandler->onSyntaxError(position, message);
     this->blocking_syntax_error = true;
+    throw;
     return nullptr;
 }
 
@@ -342,10 +343,13 @@ Statement * Parser::parseIdentifierOrAssignmentStatement() {
     Expression * expression = nullptr;
     if(this->consumeIf(ASSIGN_TYPE)){
         expression = this->parseExpression();
+        if (!expression) {
+            this->handleSyntaxError(position, L"Missing expression after assignement.");
+        }
     }
 
     if(!this->consumeIf(SEMICOLON_TYPE)){
-        this->handleSyntaxError(position, L"Missing semicolon on end of declaration.");
+        this->handleSyntaxError(position, L"Missing semicolon on end of assignment.");
     }
 
     if (!expression) {
@@ -414,7 +418,7 @@ Statement * Parser::parseIdentifierFunctionCallStatement() {
     std::vector<Expression *> expressions;
 
     //- argument_list       :== [expression, {",", expression}];
-    if(!this->consumeIf(L_BRACKET_TYPE)){
+    if(this->consumeIf(L_BRACKET_TYPE)){
         Position expressionPos = this->token->getPos();
         if (Expression * expression = parseExpression()) {
             expressions.push_back(expression);
@@ -639,7 +643,7 @@ Expression *Parser::parseExpressionTo() {
         return nullptr;
     }
 
-    if (this->consumeIf(IS_TYPE)) {
+    if (this->consumeIf(TO_TYPE)) {
         Position factorPos = this->token->getPos();
         Expression *rightConditionExpression;
         if(this->consumeIf(STRING_KEYWORD_TYPE)){

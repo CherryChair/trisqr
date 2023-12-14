@@ -7,10 +7,10 @@
 
 #include "Program.h"
 
-
 class Visitor {
-    virtual void visit(Expression *) = 0;
-    virtual void visit(ExpressionOr *) = 0;
+public:
+    virtual void visit(Expression * e) = 0;
+    virtual void visit(ExpressionOr * eor) = 0;
     virtual void visit(ExpressionAnd *) = 0;
     virtual void visit(ExpressionCompEq *) = 0;
     virtual void visit(ExpressionCompNeq *) = 0;
@@ -33,6 +33,8 @@ class Visitor {
 
     virtual void visit(WhileStatement *) = 0;
     virtual void visit(IfStatement *) = 0;
+    virtual void visit(ForStatement *) = 0;
+    virtual void visit(ForRangeStatement *) = 0;
     virtual void visit(DeclarationStatement *) = 0;
     virtual void visit(ReturnStatement *) = 0;
     virtual void visit(Statement *) = 0;
@@ -47,6 +49,7 @@ class Visitor {
 
     virtual void visit(CodeBlock*) = 0;
     virtual void visit(Parameter*) = 0;
+    virtual void visit(FigureParameter*) = 0;
     virtual void visit(FigureDeclaration*) = 0;
     virtual void visit(FuncDeclaration*) = 0;
     virtual void visit(Program*) = 0;
