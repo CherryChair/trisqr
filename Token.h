@@ -62,6 +62,9 @@ enum token_type {
     DOUBLE_KEYWORD_TYPE,
     INT_KEYWORD_TYPE,
     STRING_KEYWORD_TYPE,
+    NONE_KEYWORD_TYPE,
+    BOOL_KEYWORD_TYPE,
+    POINT_KEYWORD_TYPE,
 };
 
 static const std::unordered_map<unsigned short int, std::wstring> type_map= {
@@ -105,16 +108,19 @@ static const std::unordered_map<unsigned short int, std::wstring> type_map= {
         {MULTIPLY_TYPE, L"MULTIPLY_TYPE"},
         {DIVIDE_TYPE, L"DIVIDE_TYPE"},
         {ASSIGN_TYPE, L"ASSIGN_TYPE"},
-        {COMMA_TYPE, L"COMMA_TYPE"},
-        {SEMICOLON_TYPE, L"SEMICOLON_TYPE"},
-        {COLON_TYPE, L"COLON_TYPE"},
-        {COMMENT_TYPE, L"COMMENT_TYPE"},
-        {EOF_TYPE, L"EOF_TYPE"},
-        {ERR_TYPE, L"ERR_TYPE"},
-        {CRITICAL_ERR_TYPE, L"CRITICAL_ERR_TYPE"},
+        {COMMA_TYPE,          L"COMMA_TYPE"},
+        {SEMICOLON_TYPE,      L"SEMICOLON_TYPE"},
+        {COLON_TYPE,          L"COLON_TYPE"},
+        {COMMENT_TYPE,        L"COMMENT_TYPE"},
+        {EOF_TYPE,            L"EOF_TYPE"},
+        {ERR_TYPE,            L"ERR_TYPE"},
+        {CRITICAL_ERR_TYPE,   L"CRITICAL_ERR_TYPE"},
         {DOUBLE_KEYWORD_TYPE, L"DOUBLE_KEYWORD_TYPE"},
-        {INT_KEYWORD_TYPE, L"INT_KEYWORD_TYPE"},
+        {INT_KEYWORD_TYPE,    L"INT_KEYWORD_TYPE"},
         {STRING_KEYWORD_TYPE, L"STRING_KEYWORD_TYPE"},
+        {NONE_KEYWORD_TYPE,   L"NONE_KEYWORD_TYPE"},
+        {BOOL_KEYWORD_TYPE,   L"BOOL_KEYWORD_TYPE"},
+        {POINT_KEYWORD_TYPE,  L"POINT_KEYWORD_TYPE"},
 };
 
 struct Token

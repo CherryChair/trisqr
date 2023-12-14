@@ -215,6 +215,21 @@ TEST(BasicTests, stringKwrdTest) {
     basic_test(a, STRING_KEYWORD_TYPE);
 }
 
+TEST(BasicTests, boolKwrdTest) {
+    std::wstring a = L"bool";
+    basic_test(a, BOOL_KEYWORD_TYPE);
+}
+
+TEST(BasicTests, noneKwrdTest) {
+    std::wstring a = L"none";
+    basic_test(a, NONE_KEYWORD_TYPE);
+}
+
+TEST(BasicTests, pointKwrdTest) {
+    std::wstring a = L"point";
+    basic_test(a, POINT_KEYWORD_TYPE);
+}
+
 TEST(BasicTests, nonASCIITest) {
     basic_test(L"'ąćęłóśźż'", STRING_TYPE);
 }
@@ -383,10 +398,10 @@ TEST(errorTests, errorNewlineTest) {
             EOF_TYPE
     };
     std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_WRONG_ENDLINE_CHAR) +L"\n" + L"Line 2, character 1: \\n << error\n" +
-                                   L"LEX_ERR: " + error_mesages.at(ERR_WRONG_ENDLINE_CHAR) +L"\n" + L"Line 3, character 4: \\r << error\n" +
-                                   L"LEX_ERR: " + error_mesages.at(ERR_WRONG_ENDLINE_CHAR) +L"\n" + L"Line 4, character 2: \\r\\n << error\n" +
-                                   L"LEX_ERR: " + error_mesages.at(ERR_WRONG_ENDLINE_CHAR) +L"\n" + L"Line 5, character 11: \\r\\n << error\n" +
-                                   L"LEX_ERR: " + error_mesages.at(ERR_WRONG_ENDLINE_CHAR) +L"\n" + L"Line 7, character 1: \\r\\n << error\n";
+        L"LEX_ERR: " + error_mesages.at(ERR_WRONG_ENDLINE_CHAR) +L"\n" + L"Line 3, character 4: \\r << error\n" +
+        L"LEX_ERR: " + error_mesages.at(ERR_WRONG_ENDLINE_CHAR) +L"\n" + L"Line 4, character 2: \\r\\n << error\n" +
+        L"LEX_ERR: " + error_mesages.at(ERR_WRONG_ENDLINE_CHAR) +L"\n" + L"Line 5, character 11: \\r\\n << error\n" +
+        L"LEX_ERR: " + error_mesages.at(ERR_WRONG_ENDLINE_CHAR) +L"\n" + L"Line 7, character 1: \\r\\n << error\n";
     ErrorTest(a, expected_values, expected_errors, 64, 1024);
 }
 
@@ -401,7 +416,7 @@ TEST(errorTests, notClosedStringTest) {
             EOF_TYPE
     };
     std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_NOT_CLOSED_STRING) +L"\n" + L"Line 1, character 4: '3 to int;  << error\n" +
-                                   L"LEX_ERR: " + error_mesages.at(ERR_WRONG_ENDLINE_CHAR) +L"\n" + L"Line 3, character 9: \\r\\n << error\n";
+            L"LEX_ERR: " + error_mesages.at(ERR_WRONG_ENDLINE_CHAR) +L"\n" + L"Line 3, character 9: \\r\\n << error\n";
     ErrorTest(a, expected_values, expected_errors, 64, 1024);
 }
 
@@ -428,14 +443,14 @@ TEST(errorTests, longIntTest) {
             EOF_TYPE
     };
     std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_INT_TOO_BIG) +L"\n" + L"Line 1, character 1: 2147483648 << error\n"+
-                                   L"LEX_ERR: " + error_mesages.at(ERR_INT_TOO_BIG) +L"\n" + L"Line 1, character 12: 3147483647 << error\n"+
-                                   L"LEX_ERR: " + error_mesages.at(ERR_INT_TOO_BIG) +L"\n" + L"Line 1, character 23: 9999999999 << error\n";
+            L"LEX_ERR: " + error_mesages.at(ERR_INT_TOO_BIG) +L"\n" + L"Line 1, character 12: 3147483647 << error\n"+
+            L"LEX_ERR: " + error_mesages.at(ERR_INT_TOO_BIG) +L"\n" + L"Line 1, character 23: 9999999999 << error\n";
     ErrorTest(a, expected_values, expected_errors, 64, 1024);
 }
 
 TEST(errorTests, longDoubleTest) {
     std::wstring a = L"2.2147483648 2147483648.2147483648 2.1111111111222222222233333333334444444444555555555566666666667777777777888888888999999999900000000000 "
-                     "1111111111222222222233333333334444444444555555555566666666667777777777888888888999999999900000000000.12938120930921389091283";
+                    "1111111111222222222233333333334444444444555555555566666666667777777777888888888999999999900000000000.12938120930921389091283";
     unsigned short int expected_values[1000] {
             ERR_TYPE,
             ERR_TYPE,
@@ -444,9 +459,9 @@ TEST(errorTests, longDoubleTest) {
             EOF_TYPE
     };
     std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_INT_TOO_BIG) +L"\n" + L"Line 1, character 1: 2.2147483648 << error\n"+
-                                   L"LEX_ERR: " + error_mesages.at(ERR_INT_TOO_BIG) +L"\n" + L"Line 1, character 14: 2147483648 << error\n"+
-                                   L"LEX_ERR: " + error_mesages.at(ERR_INT_TOO_BIG) +L"\n" + L"Line 1, character 36: 2.11111111112 << error\n" +
-                                   L"LEX_ERR: " + error_mesages.at(ERR_INT_TOO_BIG) +L"\n" + L"Line 1, character 139: 11111111112 << error\n";
+            L"LEX_ERR: " + error_mesages.at(ERR_INT_TOO_BIG) +L"\n" + L"Line 1, character 14: 2147483648 << error\n"+
+            L"LEX_ERR: " + error_mesages.at(ERR_INT_TOO_BIG) +L"\n" + L"Line 1, character 36: 2.11111111112 << error\n" +
+            L"LEX_ERR: " + error_mesages.at(ERR_INT_TOO_BIG) +L"\n" + L"Line 1, character 139: 11111111112 << error\n";
     ErrorTest(a, expected_values, expected_errors, 64, 1024);
 }
 
@@ -500,9 +515,9 @@ TEST(errorTests, wrongLogicalOperatorTest) {
             EOF_TYPE
     };
     std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_WRONG_LOGICAL_OPERATOR) +L"\n" + L"Line 1, character 22: &  << error\n" +
-                                   L"LEX_ERR: " + error_mesages.at(ERR_WRONG_LOGICAL_OPERATOR) +L"\n" + L"Line 1, character 29: |& << error\n" +
-                                   L"LEX_ERR: " + error_mesages.at(ERR_WRONG_LOGICAL_OPERATOR) +L"\n" + L"Line 1, character 30: &  << error\n" +
-                                   L"LEX_ERR: " + error_mesages.at(ERR_WRONG_LOGICAL_OPERATOR) +L"\n" + L"Line 1, character 38: &= << error\n";
+            L"LEX_ERR: " + error_mesages.at(ERR_WRONG_LOGICAL_OPERATOR) +L"\n" + L"Line 1, character 29: |& << error\n" +
+            L"LEX_ERR: " + error_mesages.at(ERR_WRONG_LOGICAL_OPERATOR) +L"\n" + L"Line 1, character 30: &  << error\n" +
+            L"LEX_ERR: " + error_mesages.at(ERR_WRONG_LOGICAL_OPERATOR) +L"\n" + L"Line 1, character 38: &= << error\n";
     ErrorTest(a, expected_values, expected_errors, 64, 1024);
 }
 
@@ -529,9 +544,9 @@ TEST(errorTests, unrecognizedErrorAndEscaping) {
             EOF_TYPE
     };
     std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +L"\n" + L"Line 1, character 1: \\? << error\n" +
-                                   L"LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +L"\n" + L"Line 1, character 3: \" << error\n" +
-                                   L"LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +L"\n" + L"Line 1, character 5: \\a << error\n" +
-                                   L"LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +L"\n" + L"Line 1, character 7: \\b << error\n";
+            L"LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +L"\n" + L"Line 1, character 3: \" << error\n" +
+            L"LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +L"\n" + L"Line 1, character 5: \\a << error\n" +
+            L"LEX_ERR: " + error_mesages.at(ERR_UNRECOGNIZED_CHARACTER) +L"\n" + L"Line 1, character 7: \\b << error\n";
     ErrorTest(a, expected_values, expected_errors, 64, 1024);
 }
 
@@ -552,7 +567,7 @@ TEST(errorTests, commentLenExceeded) {
             EOF_TYPE
     };
     std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_MAX_COMMENT_LENGTH_EXCEEDED) +L"\n" + L"Line 1, character 1: #" +
-                                   std::wstring(63, 'a') + L"... << error\n";
+            std::wstring(63, 'a') + L"... << error\n";
     ErrorTest(a, expected_values, expected_errors, 64, 1024);
 }
 
