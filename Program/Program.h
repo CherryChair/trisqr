@@ -98,6 +98,14 @@ public:
     ExpressionOr(Expression * leftExpression, Expression * rightExpression, const Position & position)
         : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
     void accept(Visitor& visitor);
+
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
 };
 
 class ExpressionAnd : public Expression{
@@ -108,6 +116,14 @@ public:
     ExpressionAnd(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
     void accept(Visitor& visitor);
+
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
 };
 
 class ExpressionCompEq : public Expression{
@@ -118,6 +134,13 @@ public:
     ExpressionCompEq(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
     void accept(Visitor& visitor);
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
 };
 
 class ExpressionCompNeq : public Expression{
@@ -128,6 +151,13 @@ public:
     ExpressionCompNeq(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
     void accept(Visitor& visitor);
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
 };
 
 class ExpressionCompGeq : public Expression{
@@ -138,6 +168,13 @@ public:
     ExpressionCompGeq(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
     void accept(Visitor& visitor);
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
 };
 
 class ExpressionCompLeq : public Expression{
@@ -148,6 +185,13 @@ public:
     ExpressionCompLeq(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
     void accept(Visitor& visitor);
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
 };
 
 class ExpressionCompGreater : public Expression{
@@ -158,6 +202,13 @@ public:
     ExpressionCompGreater(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
     void accept(Visitor& visitor);
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
 };
 
 class ExpressionCompLess : public Expression{
@@ -168,6 +219,13 @@ public:
     ExpressionCompLess(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
     void accept(Visitor& visitor);
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
 };
 
 class ExpressionAdd : public Expression{
@@ -178,6 +236,13 @@ public:
     ExpressionAdd(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
     void accept(Visitor& visitor);
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
 };
 
 class ExpressionSub : public Expression{
@@ -188,6 +253,13 @@ public:
     ExpressionSub(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
     void accept(Visitor& visitor);
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
 };
 
 class ExpressionMul : public Expression{
@@ -198,6 +270,13 @@ public:
     ExpressionMul(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
     void accept(Visitor& visitor);
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
 };
 
 class ExpressionDiv : public Expression{
@@ -208,6 +287,13 @@ public:
     ExpressionDiv(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
     void accept(Visitor& visitor);
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
 };
 
 class ExpressionIs : public Expression{
@@ -218,6 +304,14 @@ public:
     ExpressionIs(Expression * expression, variable_type checkedType, const Position & position)
             : expression(expression), checkedType(checkedType) {this->position = position;}
     void accept(Visitor& visitor);
+
+    Expression *getExpression() const {
+        return expression;
+    }
+
+    variable_type getCheckedType() const {
+        return checkedType;
+    }
 };
 
 class ExpressionTo : public Expression {
@@ -228,6 +322,14 @@ public:
     ExpressionTo(Expression * expression, variable_type conversionType, const Position & position)
             : expression(expression), conversionType(conversionType) {this->position = position;}
     void accept(Visitor& visitor);
+
+    Expression *getExpression() const {
+        return expression;
+    }
+
+    variable_type getConversionType() const {
+        return conversionType;
+    }
 };
 
 class ExpressionNeg : public Expression {
@@ -237,6 +339,9 @@ public:
     ExpressionNeg(Expression * expression, const Position & position)
             : expression(expression) {this->position = position;}
     void accept(Visitor& visitor);
+    Expression *getExpression() const {
+        return expression;
+    }
 };
 
 class ExpressionNegMinus : public Expression {
@@ -246,6 +351,9 @@ public:
     ExpressionNegMinus(Expression * expression, const Position & position)
             : expression(expression) {this->position = position;}
     void accept(Visitor& visitor);
+    Expression *getExpression() const {
+        return expression;
+    }
 };
 
 class ExpressionValueList : public Expression {
@@ -255,6 +363,10 @@ public:
     ExpressionValueList(std::vector<Expression *> expressions, const Position & position)
         : expressions(expressions) {this->position = position;};
     void accept(Visitor& visitor);
+
+    std::vector<Expression *> &getExpressions() {
+        return expressions;
+    }
 };
 
 class ExpressionValuePoint : public Expression {
@@ -265,6 +377,14 @@ public:
     ExpressionValuePoint(Expression * xCoord, Expression * yCoord, const Position & position)
     : xCoord(xCoord), yCoord(yCoord) {this->position = position;};
     void accept(Visitor& visitor);
+
+    Expression *getXCoord() const {
+        return xCoord;
+    }
+
+    Expression *getYCoord() const {
+        return yCoord;
+    }
 };
 
 class ExpressionValueLiteral : public Expression {
@@ -274,6 +394,10 @@ public:
     template<typename T>
     ExpressionValueLiteral(T value, const Position & position) : value(value) {this->position = position;};
     void accept(Visitor& visitor);
+
+    const std::variant<int, double, std::wstring, bool, std::monostate> &getValue() const {
+        return value;
+    }
 };
 
 class ExpressionValueBrackets : public Expression {
@@ -283,6 +407,10 @@ public:
     ExpressionValueBrackets(Expression * expression, const Position & position)
     : expression(expression) {this->position = position;};
     void accept(Visitor& visitor);
+
+    Expression *getExpression() const {
+        return expression;
+    }
 };
 
 class ConditionAndBlock : public Visitable{
@@ -292,6 +420,15 @@ private:
 public:
     ConditionAndBlock(Expression * condition, CodeBlock * block) : condition(condition), block(block) {};
     void accept(Visitor& visitor);
+
+    Expression *getCondition() const {
+        return condition;
+    }
+
+    CodeBlock *getBlock() const {
+        return block;
+    }
+
 };
 
 class WhileStatement : public Statement {
@@ -300,6 +437,10 @@ private:
 public:
     WhileStatement(ConditionAndBlock * conditionAndBlock, const Position & position) : conditionAndBlock(conditionAndBlock) {this->position = position;};
     void accept(Visitor& visitor);
+
+    ConditionAndBlock *getConditionAndBlock() const {
+        return conditionAndBlock;
+    }
 };
 
 class IfStatement : public Statement {
@@ -311,6 +452,18 @@ public:
     IfStatement(ConditionAndBlock * ifConditionAndBlock, std::vector<ConditionAndBlock*> elsifConditionsAndBlocks, ConditionAndBlock * elseConditionAndBlock, const Position & position)
             : ifConditionAndBlock(ifConditionAndBlock), elsifConditionsAndBlocks(elsifConditionsAndBlocks), elseConditionAndBlock(elseConditionAndBlock){this->position = position;};
     void accept(Visitor& visitor);
+
+    ConditionAndBlock *getIfConditionAndBlock() const {
+        return ifConditionAndBlock;
+    }
+
+    std::vector<ConditionAndBlock *> &getElsifConditionsAndBlocks() {
+        return elsifConditionsAndBlocks;
+    }
+
+    ConditionAndBlock *getElseConditionAndBlock() const {
+        return elseConditionAndBlock;
+    }
 };
 
 class ForStatement : public Statement {
@@ -322,6 +475,18 @@ public:
     ForStatement(const std::wstring & identifier, Expression * expression, CodeBlock * block, const Position & position) :
             identifier(identifier), expression(expression), block(block) {this->position = position;};
     void accept(Visitor& visitor);
+
+    const std::wstring &getIdentifier() const {
+        return identifier;
+    }
+
+    Expression *getExpression() const {
+        return expression;
+    }
+
+    CodeBlock *getBlock() const {
+        return block;
+    }
 };
 
 class ForRangeStatement : public Statement {
@@ -334,6 +499,22 @@ public:
     ForRangeStatement(const std::wstring & identifier, Expression * leftExpression, Expression * rightExpression, CodeBlock * block, const Position & position) :
             identifier(identifier), leftExpression(leftExpression), rightExpression(rightExpression), block(block) {this->position = position;};
     void accept(Visitor& visitor);
+
+    const std::wstring &getIdentifier() const {
+        return identifier;
+    }
+
+    Expression *getLeftExpression() const {
+        return leftExpression;
+    }
+
+    Expression *getRightExpression() const {
+        return rightExpression;
+    }
+
+    CodeBlock *getBlock() const {
+        return block;
+    }
 };
 
 class DeclarationStatement : public Statement {
@@ -343,6 +524,14 @@ private:
 public:
     DeclarationStatement(const std::wstring & identifierName, Expression * expression, const Position & position) : identifierName(identifierName), expression(expression) {this->position=position;};
     void accept(Visitor& visitor);
+
+    const std::wstring &getIdentifierName() const {
+        return identifierName;
+    }
+
+    Expression *getExpression() const {
+        return expression;
+    }
 };
 
 class IdentifierStatement : public Statement {
@@ -352,6 +541,10 @@ public:
     IdentifierStatement(const std::wstring & identifierName, const Position & position)
             : identifierName(identifierName) {this->position=position;};
     void accept(Visitor& visitor);
+
+    const std::wstring &getIdentifierName() const {
+        return identifierName;
+    }
 };
 
 class IdentifierStatementFunctionCall : public Statement {
@@ -363,6 +556,14 @@ public:
                                     const Position & position)
             : identifier(identifier), expressions(expressions) {this->position=position;};
     void accept(Visitor& visitor);
+
+    Statement *getIdentifier() const {
+        return identifier;
+    }
+
+    std::vector<Expression *> &getExpressions() {
+        return expressions;
+    }
 };
 
 class IdentifierStatementListCall : public Statement {
@@ -373,6 +574,14 @@ public:
     IdentifierStatementListCall(Statement * leftStatement, std::vector<Expression *> expressions, const Position & position)
             : leftStatement(leftStatement), expressions(expressions) {this->position=position;};
     void accept(Visitor& visitor);
+
+    Statement *getLeftStatement() const {
+        return leftStatement;
+    }
+
+    std::vector<Expression *> &getExpressions() {
+        return expressions;
+    }
 };
 
 class IdentifierDotStatement : public Statement, public Expression {
@@ -383,6 +592,14 @@ public:
     IdentifierDotStatement(Statement * leftStatement, Statement * rightStatement, const Position & position)
             : leftStatement(leftStatement), rightStatement(rightStatement) {Expression::position=position; Statement::position=position;};
     void accept(Visitor& visitor);
+
+    Statement *getLeftStatement() const {
+        return leftStatement;
+    }
+
+    Statement *getRightStatement() const {
+        return rightStatement;
+    }
 };
 
 class IdentifierStatementAssign : public Statement {
@@ -393,6 +610,14 @@ public:
     IdentifierStatementAssign(Statement * identifierStatement, Expression * expression, const Position & position)
             : identifierStatement(identifierStatement), expression(expression) {this->position=position;};
     void accept(Visitor& visitor);
+
+    Statement *getIdentifierStatement() const {
+        return identifierStatement;
+    }
+
+    Expression *getExpression() const {
+        return expression;
+    }
 };
 
 class ReturnStatement : public Statement {
@@ -401,6 +626,10 @@ private:
 public:
     ReturnStatement(Expression * expression, const Position & position) : expression(expression) {this->position=position;};
     void accept(Visitor& visitor);
+
+    Expression *getExpression() const {
+        return expression;
+    }
 };
 
 
@@ -409,6 +638,10 @@ public:
     CodeBlock(const std::vector<Statement*> statements) : statements(statements) {}
 
     CodeBlock() {}
+
+    std::vector<Statement *> &getStatements() {
+        return statements;
+    }
 
 private:
     std::vector<Statement*> statements;
@@ -435,9 +668,17 @@ private:
 public:
     FigureParameter(const std::wstring & name, Expression * value) : value(value) {this->name = name;};
     void accept(Visitor& visitor);
+
+    Expression *getValue() const {
+        return value;
+    }
 };
 
 class FuncDeclaration : public Visitable{
+private:
+    std::wstring name;
+    std::vector<Parameter *> params;
+    CodeBlock * statements;
 public:
 
     FuncDeclaration(const std::wstring &name, std::vector<Parameter *> params, CodeBlock * statements, const Position & position) : name(
@@ -450,15 +691,20 @@ public:
     }
     void accept(Visitor& visitor);
 
-private:
-    std::wstring name;
-    std::vector<Parameter *> params;
-    CodeBlock * statements;
+    const std::vector<Parameter *> &getParams() const {
+        return params;
+    }
+
+    CodeBlock *getStatements() const {
+        return statements;
+    }
 };
 
 class FigureDeclaration : public Visitable {
+private:
+    std::wstring name;
+    std::vector<Parameter *> params;
 public:
-
     FigureDeclaration(const std::wstring &name, std::vector<Parameter *> params, const Position & position) : name(
             name), params(params)  {this->position = position;}
 
@@ -469,21 +715,29 @@ public:
     }
     void accept(Visitor& visitor);
 
-private:
-    std::wstring name;
-    std::vector<Parameter *> params;
+    std::vector<Parameter *> &getParams() {
+        return params;
+    }
+
 };
 
 class Program {
+private:
+    std::unordered_map<std::wstring, FuncDeclaration *> functions;
+    std::unordered_map<std::wstring, FigureDeclaration *> figures;
 public:
     Program(std::unordered_map<std::wstring, FuncDeclaration*> functions, std::unordered_map<std::wstring, FigureDeclaration *> figures) : functions(functions), figures(figures) {}
 
     Program() {}
     void accept(Visitor& visitor);
 
-private:
-    std::unordered_map<std::wstring, FuncDeclaration *> functions;
-    std::unordered_map<std::wstring, FigureDeclaration *> figures;
+    std::unordered_map<std::wstring, FuncDeclaration *> &getFunctions() {
+        return functions;
+    }
+
+    std::unordered_map<std::wstring, FigureDeclaration *> &getFigures() {
+        return figures;
+    }
 };
 
 

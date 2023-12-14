@@ -9,50 +9,50 @@
 
 class Visitor {
 public:
-    virtual void visit(Expression * e) = 0;
-    virtual void visit(ExpressionOr * eor) = 0;
-    virtual void visit(ExpressionAnd *) = 0;
-    virtual void visit(ExpressionCompEq *) = 0;
-    virtual void visit(ExpressionCompNeq *) = 0;
-    virtual void visit(ExpressionCompLeq *) = 0;
-    virtual void visit(ExpressionCompGeq *) = 0;
-    virtual void visit(ExpressionCompGreater *) = 0;
-    virtual void visit(ExpressionCompLess *) = 0;
-    virtual void visit(ExpressionAdd *) = 0;
-    virtual void visit(ExpressionSub *) = 0;
-    virtual void visit(ExpressionMul *) = 0;
-    virtual void visit(ExpressionDiv *) = 0;
-    virtual void visit(ExpressionIs *) = 0;
-    virtual void visit(ExpressionTo *) = 0;
-    virtual void visit(ExpressionNeg *) = 0;
-    virtual void visit(ExpressionNegMinus *) = 0;
-    virtual void visit(ExpressionValueList *) = 0;
-    virtual void visit(ExpressionValuePoint *) = 0;
-    virtual void visit(ExpressionValueLiteral *) = 0;
-    virtual void visit(ExpressionValueBrackets *) = 0;
+    virtual void visit(Expression * e ) = 0;
+    virtual void visit(ExpressionOr * e) = 0;
+    virtual void visit(ExpressionAnd * e) = 0;
+    virtual void visit(ExpressionCompEq * e) = 0;
+    virtual void visit(ExpressionCompNeq * e) = 0;
+    virtual void visit(ExpressionCompLeq * e) = 0;
+    virtual void visit(ExpressionCompGeq * e) = 0;
+    virtual void visit(ExpressionCompGreater * e) = 0;
+    virtual void visit(ExpressionCompLess * e) = 0;
+    virtual void visit(ExpressionAdd * e) = 0;
+    virtual void visit(ExpressionSub * e) = 0;
+    virtual void visit(ExpressionMul * e) = 0;
+    virtual void visit(ExpressionDiv * e) = 0;
+    virtual void visit(ExpressionIs * e) = 0;
+    virtual void visit(ExpressionTo * e) = 0;
+    virtual void visit(ExpressionNeg * e) = 0;
+    virtual void visit(ExpressionNegMinus * e) = 0;
+    virtual void visit(ExpressionValueList * e) = 0;
+    virtual void visit(ExpressionValuePoint * e) = 0;
+    virtual void visit(ExpressionValueLiteral * e) = 0;
+    virtual void visit(ExpressionValueBrackets * e) = 0;
 
-    virtual void visit(WhileStatement *) = 0;
-    virtual void visit(IfStatement *) = 0;
-    virtual void visit(ForStatement *) = 0;
-    virtual void visit(ForRangeStatement *) = 0;
-    virtual void visit(DeclarationStatement *) = 0;
-    virtual void visit(ReturnStatement *) = 0;
-    virtual void visit(Statement *) = 0;
+    virtual void visit(WhileStatement * s) = 0;
+    virtual void visit(IfStatement * s) = 0;
+    virtual void visit(ForStatement * s) = 0;
+    virtual void visit(ForRangeStatement * s) = 0;
+    virtual void visit(DeclarationStatement * s) = 0;
+    virtual void visit(ReturnStatement * s) = 0;
+    virtual void visit(Statement * s) = 0;
 
-    virtual void visit(ConditionAndBlock *)= 0 ;
+    virtual void visit(ConditionAndBlock * cb)= 0 ;
 
-    virtual void visit(IdentifierDotStatement *) = 0;
-    virtual void visit(IdentifierStatementAssign *) = 0;
-    virtual void visit(IdentifierStatementListCall *) = 0;
-    virtual void visit(IdentifierStatementFunctionCall *) = 0;
-    virtual void visit(IdentifierStatement *) = 0;
+    virtual void visit(IdentifierDotStatement * s) = 0;
+    virtual void visit(IdentifierStatementAssign * s) = 0;
+    virtual void visit(IdentifierStatementListCall * s) = 0;
+    virtual void visit(IdentifierStatementFunctionCall * s) = 0;
+    virtual void visit(IdentifierStatement * s) = 0;
 
-    virtual void visit(CodeBlock*) = 0;
-    virtual void visit(Parameter*) = 0;
-    virtual void visit(FigureParameter*) = 0;
-    virtual void visit(FigureDeclaration*) = 0;
-    virtual void visit(FuncDeclaration*) = 0;
-    virtual void visit(Program*) = 0;
+    virtual void visit(CodeBlock* cb) = 0;
+    virtual void visit(Parameter* p) = 0;
+    virtual void visit(FigureParameter* p) = 0;
+    virtual void visit(FigureDeclaration* fd) = 0;
+    virtual void visit(FuncDeclaration* fd) = 0;
+    virtual void visit(Program* p) = 0;
 };
 
 
