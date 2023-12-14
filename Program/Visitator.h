@@ -5,7 +5,6 @@
 #ifndef LEXER_VISITATOR_H
 #define LEXER_VISITATOR_H
 
-#include "Visitable.h"
 
 class Visitator {
 //    void visit(Visitable visitable){

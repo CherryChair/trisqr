@@ -431,7 +431,7 @@ Im większa liczba, tym wyższy priorytet.
 - func_declaration    :== "func ", identifier, "(", decl_argument_list, ")", code_block;
 - decl_argument_list  :== [identifier, {", ", identifier}];
 - figure_declaration  :== "figure ", identifier, "{", point_list, "}";
-- point_list          :== point_declaration, {",", point_declaration}, "," "color", ":", expression;
+- point_list          :== point_declaration, {",", point_declaration};
 - point_declaration   :== identifier, ":", expression;
 - code_block          :== "{", {statement}, "}";
 - statement           :== while_stmnt

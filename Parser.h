@@ -16,6 +16,8 @@
 
 class Parser {
 public:
+    Parser(Lexer *pLexer, ErrorHandler *pHandler) : lexer(pLexer), errorHandler(pHandler) {};
+
     Program * parse();
     bool getSemanticError() {return this->semantic_error;};
     bool getSyntaxError() {return this->blocking_syntax_error;};
@@ -30,6 +32,8 @@ private:
 
     FuncDeclaration * parseFuncDecl();
     FigureDeclaration * parseFigureDecl();
+    std::vector<Parameter *> parseFigureParams();
+    Parameter * parseFigureParam();
     std::vector<Parameter *> parseFunctionParams();
     Parameter * parseParam();
     CodeBlock * parseCodeBlock();
