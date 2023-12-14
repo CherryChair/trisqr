@@ -297,6 +297,27 @@ Statement * Parser::parseForStatement() {
         if(!this->consumeIf(L_BRACKET_TYPE)){
             this->handleSyntaxError(expressionPosition, L"Missing left bracket in range expression.");
         }
+        expressionPosition = this->token->getPos();
+        Expression * leftExpression;
+        if (!(leftExpression = this->parseExpression())) {
+            this->handleSyntaxError(expressionPosition, L"Missing expression in range.");
+        }
+        if(!this->consumeIf(COMMA_TYPE)){
+            this->handleSyntaxError(expressionPosition, L"Missing comma in range.");
+        }
+        expressionPosition = this->token->getPos();
+        Expression * rightExpression;
+        if (!(rightExpression = this->parseExpression())) {
+            this->handleSyntaxError(expressionPosition, L"Missing expression in range.");
+        }
+        if(!this->consumeIf(R_BRACKET_TYPE)){
+            this->handleSyntaxError(expressionPosition, L"Missing right bracket in range expression.");
+        }
+        CodeBlock * block = this->parseCodeBlock();
+        if(!block) {
+            return this->handleSyntaxError(expressionPosition, L"Missing code block after for statement.");
+        }
+        return new ForRangeStatement(std::get<std::wstring>(name), leftExpression, rightExpression, block, position);
     } else if (!(expression = this->parseExpression())) {
         this->handleSyntaxError(expressionPosition, L"Missing expression or range in for statement.");
     }
