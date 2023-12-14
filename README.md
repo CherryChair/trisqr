@@ -461,13 +461,11 @@ Im większa liczba, tym wyższy priorytet.
 - negated_value       :== [negation_operator], accessed_value;
 - accessed_value      :== value
                         | list
-                        | figure
                         | point
                         | identifier_stmnt
                         | "(", expression, ")";
 - return              :== "return ", [expression], ";"
 - list                :== "[", expression, {", ", expression} "]";
-- figure              :== identifier, argument_list;  
 - point               :== "(", expression, ",", expression, ")";  
 - value               :== int_val
                         | bool_val
@@ -481,8 +479,7 @@ Im większa liczba, tym wyższy priorytet.
                         | "str" 
                         | "double" 
                         | "figure" 
-                        | "point" 
-                        | identifer;
+                        | "point";
 - comp_operator       :== "<"
                         | "=="
                         | ">"
