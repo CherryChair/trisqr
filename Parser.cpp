@@ -494,7 +494,7 @@ Statement * Parser::parseReturnStatement() {
 Expression * Parser::parseExpression() {
     Position position = this->token->getPos();
     Expression * leftConditionExpression;
-    if (!(leftConditionExpression = this->parseExpressionAdd())) {
+    if (!(leftConditionExpression = this->parseExpressionAnd())) {
         return nullptr;
     }
     while (this->consumeIf(OR_TYPE)) {
