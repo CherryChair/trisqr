@@ -701,6 +701,7 @@ Expression *Parser::parseAccessedValue() {
     Expression * expression;
     if (expression = this->parseExpressionValueList()) {
     } else if (expression = this->parseExpressionValueLiteral()) {
+    } else if (expression = static_cast<IdentifierDotStatement *>(this->parseIdentifierDotStatement())){
     } else {
         //"(", expression, ")";
         if(!consumeIf(L_BRACKET_TYPE)) {

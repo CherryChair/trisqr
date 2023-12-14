@@ -1,26 +1,35 @@
 //
 // Created by mpkow on 16.05.2023.
 //
+
+#ifndef LEXER_PROGRAM_H
+#define LEXER_PROGRAM_H
+
+#include "Visitor.h"
 #include <vector>
 #include <variant>
 #include <unordered_map>
 #include <string>
 #include <optional>
-#include "Visitator.h"
 #include "../lexer.h"
-
-#ifndef LEXER_PROGRAM_H
-#define LEXER_PROGRAM_H
 
 class Expression;
 class ExpressionOr;
 class ExpressionAnd;
-class ExpressionComp;
+class ExpressionCompEq;
+class ExpressionCompNeq;
+class ExpressionCompLeq;
+class ExpressionCompGeq;
+class ExpressionCompGreater;
+class ExpressionCompLess;
 class ExpressionAdd;
+class ExpressionSub;
 class ExpressionMul;
+class ExpressionDiv;
 class ExpressionIs;
 class ExpressionTo;
 class ExpressionNeg;
+class ExpressionNegMinus;
 class ExpressionValueList;
 class ExpressionValuePoint;
 class ExpressionValueLiteral;
@@ -32,7 +41,7 @@ class DeclarationStatement;
 class ReturnStatement;
 class Statement;
 
-struct ConditionAndBlock;
+class ConditionAndBlock;
 
 class IdentifierDotStatement;
 class IdentifierStatementAssign;
@@ -59,7 +68,7 @@ enum variable_type {
 
 class Visitable {
 public:
-    virtual void accept(Visitator& visitator) = 0;
+    virtual void accept(Visitor& visitor) = 0;
     virtual ~Visitable() = default;
     Position getPosition() {return this->position;}
 protected:
@@ -84,7 +93,7 @@ private:
 public:
     ExpressionOr(Expression * leftExpression, Expression * rightExpression, const Position & position)
         : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionAnd : public Expression{
@@ -94,7 +103,7 @@ private:
 public:
     ExpressionAnd(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionCompEq : public Expression{
@@ -104,7 +113,7 @@ private:
 public:
     ExpressionCompEq(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionCompNeq : public Expression{
@@ -114,7 +123,7 @@ private:
 public:
     ExpressionCompNeq(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionCompGeq : public Expression{
@@ -124,7 +133,7 @@ private:
 public:
     ExpressionCompGeq(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionCompLeq : public Expression{
@@ -134,7 +143,7 @@ private:
 public:
     ExpressionCompLeq(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionCompGreater : public Expression{
@@ -144,7 +153,7 @@ private:
 public:
     ExpressionCompGreater(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionCompLess : public Expression{
@@ -154,7 +163,7 @@ private:
 public:
     ExpressionCompLess(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionAdd : public Expression{
@@ -164,7 +173,7 @@ private:
 public:
     ExpressionAdd(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionSub : public Expression{
@@ -174,7 +183,7 @@ private:
 public:
     ExpressionSub(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionMul : public Expression{
@@ -184,7 +193,7 @@ private:
 public:
     ExpressionMul(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionDiv : public Expression{
@@ -194,7 +203,7 @@ private:
 public:
     ExpressionDiv(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionIs : public Expression{
@@ -204,7 +213,7 @@ private:
 public:
     ExpressionIs(Expression * expression, variable_type checkedType, const Position & position)
             : expression(expression), checkedType(checkedType) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionTo : public Expression {
@@ -214,7 +223,7 @@ private:
 public:
     ExpressionTo(Expression * expression, variable_type conversionType, const Position & position)
             : expression(expression), conversionType(conversionType) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionNeg : public Expression {
@@ -223,7 +232,7 @@ private:
 public:
     ExpressionNeg(Expression * expression, const Position & position)
             : expression(expression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionNegMinus : public Expression {
@@ -232,7 +241,7 @@ private:
 public:
     ExpressionNegMinus(Expression * expression, const Position & position)
             : expression(expression) {this->position = position;}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionValueList : public Expression {
@@ -241,7 +250,7 @@ private:
 public:
     ExpressionValueList(std::vector<Expression *> expressions, const Position & position)
         : expressions(expressions) {this->position = position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionValuePoint : public Expression {
@@ -251,7 +260,7 @@ private:
 public:
     ExpressionValuePoint(Expression * xCoord, Expression * yCoord, const Position & position)
     : xCoord(xCoord), yCoord(yCoord) {this->position = position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionValueLiteral : public Expression {
@@ -260,7 +269,7 @@ private:
 public:
     template<typename T>
     ExpressionValueLiteral(T value, const Position & position) : value(value) {this->position = position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ExpressionValueBrackets : public Expression {
@@ -269,16 +278,16 @@ private:
 public:
     ExpressionValueBrackets(Expression * expression, const Position & position)
     : expression(expression) {this->position = position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
-struct ConditionAndBlock : public Visitable{
+class ConditionAndBlock : public Visitable{
 private:
     Expression * condition;
     CodeBlock * block;
 public:
     ConditionAndBlock(Expression * condition, CodeBlock * block) : condition(condition), block(block) {};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class WhileStatement : public Statement {
@@ -286,7 +295,7 @@ private:
     ConditionAndBlock * conditionAndBlock;
 public:
     WhileStatement(ConditionAndBlock * conditionAndBlock, const Position & position) : conditionAndBlock(conditionAndBlock) {this->position = position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class IfStatement : public Statement {
@@ -297,7 +306,7 @@ private:
 public:
     IfStatement(ConditionAndBlock * ifConditionAndBlock, std::vector<ConditionAndBlock*> elsifConditionsAndBlocks, ConditionAndBlock * elseConditionAndBlock, const Position & position)
             : ifConditionAndBlock(ifConditionAndBlock), elsifConditionsAndBlocks(elsifConditionsAndBlocks), elseConditionAndBlock(elseConditionAndBlock){this->position = position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ForStatement : public Statement {
@@ -308,7 +317,7 @@ private:
 public:
     ForStatement(const std::wstring & identifier, Expression * expression, CodeBlock * block, const Position & position) :
             identifier(identifier), expression(expression), block(block) {this->position = position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class DeclarationStatement : public Statement {
@@ -317,7 +326,7 @@ private:
     Expression * expression;
 public:
     DeclarationStatement(const std::wstring & identifierName, Expression * expression, const Position & position) : identifierName(identifierName), expression(expression) {this->position=position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class IdentifierStatement : public Statement {
@@ -326,7 +335,7 @@ private:
 public:
     IdentifierStatement(const std::wstring & identifierName, const Position & position)
             : identifierName(identifierName) {this->position=position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class IdentifierStatementFunctionCall : public Statement {
@@ -337,7 +346,7 @@ public:
     IdentifierStatementFunctionCall(Statement * identifier, std::vector<Expression *> expressions,
                                     const Position & position)
             : identifier(identifier), expressions(expressions) {this->position=position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class IdentifierStatementListCall : public Statement {
@@ -347,7 +356,7 @@ private:
 public:
     IdentifierStatementListCall(Statement * leftStatement, std::vector<Expression *> expressions, const Position & position)
             : leftStatement(leftStatement), expressions(expressions) {this->position=position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class IdentifierDotStatement : public Statement, public Expression {
@@ -357,7 +366,7 @@ private:
 public:
     IdentifierDotStatement(Statement * leftStatement, Statement * rightStatement, const Position & position)
             : leftStatement(leftStatement), rightStatement(rightStatement) {Expression::position=position; Statement::position=position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class IdentifierStatementAssign : public Statement {
@@ -367,7 +376,7 @@ private:
 public:
     IdentifierStatementAssign(Statement * identifierStatement, Expression * expression, const Position & position)
             : identifierStatement(identifierStatement), expression(expression) {this->position=position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class ReturnStatement : public Statement {
@@ -375,7 +384,7 @@ private:
     Expression * expression;
 public:
     ReturnStatement(Expression * expression, const Position & position) : expression(expression) {this->position=position;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 
@@ -387,7 +396,7 @@ public:
 
 private:
     std::vector<Statement*> statements;
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class Parameter : public Visitable {
@@ -401,7 +410,7 @@ public:
     const std::wstring &getName() const {
         return name;
     }
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class FigureParameter : public Parameter {
@@ -409,7 +418,7 @@ private:
     Expression* value;
 public:
     FigureParameter(const std::wstring & name, Expression * value) : value(value) {this->name = name;};
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 };
 
 class FuncDeclaration : public Visitable{
@@ -423,7 +432,7 @@ public:
     std::wstring getName(){
         return name;
     }
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 
 private:
     std::wstring name;
@@ -442,7 +451,7 @@ public:
     const std::wstring &getName() const {
         return name;
     }
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 
 private:
     std::wstring name;
@@ -454,7 +463,7 @@ public:
     Program(std::unordered_map<std::wstring, FuncDeclaration*> functions, std::unordered_map<std::wstring, FigureDeclaration *> figures) : functions(functions), figures(figures) {}
 
     Program() {}
-    virtual void accept(Visitator& visitator);
+    virtual void accept(Visitor& visitor);
 
 private:
     std::unordered_map<std::wstring, FuncDeclaration *> functions;
