@@ -487,7 +487,7 @@ Expression * Parser::parseExpression() {
     while (this->consumeIf(OR_TYPE)) {
         Position factorPos = this->token->getPos();
         Expression * rightConditionExpression;
-        if (!(rightConditionExpression = this->parseExpressionAdd())) {
+        if (!(rightConditionExpression = this->parseExpressionAnd())) {
             this->handleSyntaxError(factorPos, L"No expression after ||.");
             break;
         }
