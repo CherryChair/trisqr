@@ -49,6 +49,20 @@ bool Parser::consumeIf(unsigned int token_type) {
     return false;
 }
 
+std::variant<int, double, std::wstring> Parser::mustBe(unsigned int token_type, std::wstring message) {
+    auto value = this->token->getValue();
+    auto position = this->token->getPos();
+    while(token->getTokenType() != token_type) {
+        this->handleSyntaxError(position, message);
+    }
+    while(token->getTokenType() == COMMENT_TYPE) {
+        token = lexer->nextToken();
+    }
+    token = lexer->nextToken();
+
+    return value;
+}
+
 
 nullptr_t Parser::handleSyntaxError(const Position & position, const std::wstring & message) {
     errorHandler->onSyntaxError(position, message);
@@ -69,17 +83,11 @@ FigureDeclaration * Parser::parseFigureDecl() {
     if (!this->consumeIf(FUNC_TYPE)){
         return nullptr;
     }
-    auto name = (token->getValue());
-    if(!this->consumeIf(IDENTIFIER_TYPE)){
-        this->handleSyntaxError(position, L"Missing identifer in function declaration.");
-    }
-    if (!this->consumeIf(L_CURL_BRACKET_TYPE)){
-        this->handleSyntaxError(position, L"Missing left bracket in function declaration.");
-    }
+    auto name = this->mustBe(IDENTIFIER_TYPE, L"Missing identifer in figure declaration.");
+    this->mustBe(L_CURL_BRACKET_TYPE, L"Missing left bracket in figure declaration.");
     std::vector<Parameter *> params = parseFigureParams();
-    if (!this->consumeIf(R_CURL_BRACKET_TYPE)){
-        this->handleSyntaxError(position, L"Missing right bracket in function declaration.");
-    }
+    this->mustBe(R_CURL_BRACKET_TYPE, L"Missing right bracket in figure declaration.");
+
     return new FigureDeclaration(std::get<std::wstring>(name), params, position);
 }
 
@@ -96,7 +104,7 @@ std::vector<Parameter *> Parser::parseFigureParams() {
             Position position = this->token->getPos();
             param = parseFigureParam();
             if(!param){
-                this->handleSyntaxError(position, L"Missing param after comma.");
+                this->errorHandler->onSyntaxError(position, L"Missing param after comma.");
                 return params;
             } else if (paramsMap.find(param->getName()) != paramsMap.end()) {
                 this->handleSemanticError(position, L"Duplicate param " + param->getName());
@@ -122,9 +130,8 @@ Parameter * Parser::parseFigureParam() {
         return nullptr;
     }
 
-    if(!this->consumeIf(COLON_TYPE)){
-        this->handleSemanticError(position, L"Missing identifierExpression in figure param");
-    }
+    this->mustBe(COLON_TYPE, L"Missing colon in figure param.");
+
 
     Expression * expression;
     if (!(expression = this->parseExpression())) {
@@ -139,17 +146,11 @@ FuncDeclaration * Parser::parseFuncDecl() {
     if (!this->consumeIf(FUNC_TYPE)){
         return nullptr;
     }
-    auto name = (token->getValue());
-    if(!this->consumeIf(IDENTIFIER_TYPE)){
-        this->handleSyntaxError(position, L"Missing identifer in function declaration.");
-    }
-    if (!this->consumeIf(L_BRACKET_TYPE)){
-        this->handleSyntaxError(position, L"Missing left bracket in function declaration.");
-    }
+    auto name =  this->mustBe(IDENTIFIER_TYPE, L"Missing identifier in function declaration.");
+
+    this->mustBe(L_BRACKET_TYPE, L"Missing left bracket in function declaration.");
     std::vector<Parameter *> params = parseFunctionParams();
-    if (!this->consumeIf(R_BRACKET_TYPE)){
-        this->handleSyntaxError(position, L"Missing right bracket in function declaration.");
-    }
+    this->mustBe(R_BRACKET_TYPE, L"Missing right bracket in function declaration.");
     CodeBlock * block = parseCodeBlock();
     if (!block) {
         this->handleSyntaxError(position, L"Missing block after function declaration.");
@@ -202,9 +203,7 @@ CodeBlock * Parser::parseCodeBlock() {
     while (statement = parseStatement()){
         statements.push_back(statement);
     }
-    if (!this->consumeIf(R_CURL_BRACKET_TYPE)){
-        this->handleSyntaxError(position, L"Missing right bracket in code block.");
-    }
+    this->mustBe(R_CURL_BRACKET_TYPE, L"Missing right bracket in code block.");
 
     return new CodeBlock(statements);
 }
@@ -233,17 +232,15 @@ ConditionAndBlock * Parser::parseConditionAndBlock(const std::wstring & statemen
     if(!this->consumeIf(tokenType)){
         return nullptr;
     }
-    if(!this->consumeIf(L_BRACKET_TYPE)){
-        this->handleSyntaxError(position, L"Missing left bracket in " + statement_type + L" statement.");
-    }
+    this->mustBe(L_BRACKET_TYPE, L"Missing left bracket in " + statement_type + L" statement.");
+
     Expression * expression = this->parseExpression();
 
     if(!expression) {
         this->handleSyntaxError(position, L"Missing expression in " + statement_type + L" statement.");
     }
-    if(!this->consumeIf(R_BRACKET_TYPE)){
-        this->handleSyntaxError(position, L"Missing right bracket in " + statement_type + L" statement.");
-    }
+    this->mustBe(R_BRACKET_TYPE, L"Missing right bracket in " + statement_type + L" statement.");
+
 
     CodeBlock * block = parseCodeBlock();
     if (!block) {
@@ -290,36 +287,30 @@ Statement * Parser::parseForStatement() {
     if(!this->consumeIf(FOR_TYPE)){
         return nullptr;
     }
-    auto name = token->getValue();
-    if(!this->consumeIf(IDENTIFIER_TYPE)){
-        this->handleSyntaxError(position, L"Missing identifierExpression in for statement.");
-    }
-    if(!this->consumeIf(IN_TYPE)){
-        this->handleSyntaxError(position, L"Missing 'in' keyword in for statement");
-    }
+    auto name = this->mustBe(IDENTIFIER_TYPE, L"Missing identifier in for statement");
+
+    this->mustBe(IN_TYPE, L"Missing 'in' keyword in for statement");
+
 
     Position expressionPosition = this->token->getPos();
     Expression * expression;
     if(this->consumeIf(RANGE_TYPE)){
-        if(!this->consumeIf(L_BRACKET_TYPE)){
-            this->handleSyntaxError(expressionPosition, L"Missing left bracket in range expression.");
-        }
+        this->mustBe(L_BRACKET_TYPE, L"Missing left bracket in range expression.");
+
         expressionPosition = this->token->getPos();
         Expression * leftExpression;
         if (!(leftExpression = this->parseExpression())) {
             this->handleSyntaxError(expressionPosition, L"Missing expression in range.");
         }
-        if(!this->consumeIf(COMMA_TYPE)){
-            this->handleSyntaxError(expressionPosition, L"Missing comma in range.");
-        }
+        this->mustBe(COMMA_TYPE, L"Missing comma in range.");
+
         expressionPosition = this->token->getPos();
         Expression * rightExpression;
         if (!(rightExpression = this->parseExpression())) {
             this->handleSyntaxError(expressionPosition, L"Missing expression in range.");
         }
-        if(!this->consumeIf(R_BRACKET_TYPE)){
-            this->handleSyntaxError(expressionPosition, L"Missing right bracket in range expression.");
-        }
+        this->mustBe(R_BRACKET_TYPE, L"Missing right bracket in range expression.");
+
         CodeBlock * block = this->parseCodeBlock();
         if(!block) {
             return this->handleSyntaxError(expressionPosition, L"Missing code block after for statement.");
@@ -341,10 +332,7 @@ Statement * Parser::parseDeclarationStatement() {
     if(!this->consumeIf(VV_TYPE)){
         return nullptr;
     }
-    auto name = token->getValue();
-    if(!this->consumeIf(IDENTIFIER_TYPE)){
-        this->handleSyntaxError(position, L"Missing identifierExpression in declaration statement.");
-    }
+    auto name = this->mustBe(IDENTIFIER_TYPE, L"Missing identifierExpression in declaration statement.");
 
     Expression * expression = nullptr;
     if(this->consumeIf(ASSIGN_TYPE)){
@@ -353,9 +341,7 @@ Statement * Parser::parseDeclarationStatement() {
         }
     }
 
-    if(!this->consumeIf(SEMICOLON_TYPE)){
-        this->handleSyntaxError(position, L"Missing semicolon on end of declaration.");
-    }
+    this->mustBe(SEMICOLON_TYPE, L"Missing semicolon on end of declaration.");
 
     return new DeclarationStatement(std::get<std::wstring>(name), expression, position);
 }
@@ -379,9 +365,8 @@ Statement * Parser::parseIdentifierOrAssignmentStatement() {
     }
 
     position = this->token->getPos();
-    if(!this->consumeIf(SEMICOLON_TYPE)){
-        this->handleSyntaxError(position, L"Missing semicolon.");
-    }
+
+    this->mustBe(SEMICOLON_TYPE, L"Missing semicolon.");
 
     return new IdentifierStatementAssign(identifierExpression, expression, position);
 }
@@ -458,9 +443,7 @@ Expression * Parser::parseIdentifierFunctionCallExpression() {
                 }
             }
         }
-        if(!this->consumeIf(R_BRACKET_TYPE)){
-            this->handleSyntaxError(expressionPos, L"Missing right bracket closing function call");
-        }
+        this->mustBe(R_BRACKET_TYPE, L"Missing right bracket closing function call");
         isFunctionCall = true;
     }
 
@@ -489,9 +472,7 @@ Statement * Parser::parseReturnStatement() {
 
     Expression * expression = this->parseExpression();
 
-    if(!this->consumeIf(SEMICOLON_TYPE)){
-        this->handleSyntaxError(position, L"Missing semicolon after return statement");
-    }
+    this->mustBe(SEMICOLON_TYPE, L"Missing semicolon after return statement");
 
     return new ReturnStatement(expression, position);
 }
@@ -752,14 +733,11 @@ Expression *Parser::parseAccessedValue() {
             } else {
                 this->handleSyntaxError(yCoordExprPos, L"Missing expression after comma in point value.");
             }
-            if(!consumeIf(R_BRACKET_TYPE)) {
-                this->handleSyntaxError(insideExpressionPosition, L"No right bracket");
-            }
+            this->mustBe(R_BRACKET_TYPE, L"No right bracket in point");
+
             expression = new ExpressionValuePoint(xCoordExpression, yCoordExpression, insideExpressionPosition);
         } else {
-            if(!consumeIf(R_BRACKET_TYPE)) {
-                this->handleSyntaxError(insideExpressionPosition, L"No right bracket");
-            }
+            this->mustBe(R_BRACKET_TYPE, L"No right bracket.");
             expression = new ExpressionValueBrackets(insideExpression, insideExpressionPosition);
         }
 
@@ -786,9 +764,7 @@ Expression *Parser::parseExpressionValueList() {
             }
         }
     }
-    if(!this->consumeIf(R_SQR_BRACKET_TYPE)){
-        this->handleSyntaxError(expressionPos, L"Missing right bracket closing list");
-    }
+    this->mustBe(R_SQR_BRACKET_TYPE, L"Missing right bracket closing list");
     return new ExpressionValueList(expressions, position);
 }
 

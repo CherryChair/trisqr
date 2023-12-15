@@ -29,6 +29,7 @@ private:
     std::optional<Token> token;
 
     bool consumeIf(unsigned int token_type);
+    std::variant<int, double, std::wstring> mustBe(unsigned int token_type, std::wstring message);
 
     FuncDeclaration * parseFuncDecl();
     FigureDeclaration * parseFigureDecl();
