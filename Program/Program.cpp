@@ -36,11 +36,11 @@ void ReturnStatement::accept(Visitor & visitor) {visitor.visit(this);}
 
 void ConditionAndBlock::accept(Visitor & visitor) {visitor.visit(this);}
 
-void IdentifierDotStatement::accept(Visitor & visitor) {visitor.visit(this);}
+void IdentifierDotExpression::accept(Visitor & visitor) {visitor.visit(this);}
 void IdentifierStatementAssign::accept(Visitor & visitor) {visitor.visit(this);}
-void IdentifierStatementListCall::accept(Visitor & visitor) {visitor.visit(this);}
-void IdentifierStatementFunctionCall::accept(Visitor & visitor) {visitor.visit(this);}
-void IdentifierStatement::accept(Visitor & visitor) {visitor.visit(this);}
+void IdentifierListCallExpression::accept(Visitor & visitor) {visitor.visit(this);}
+void IdentifierFunctionCallExpression::accept(Visitor & visitor) {visitor.visit(this);}
+void IdentifierExpression::accept(Visitor & visitor) {visitor.visit(this);}
 
 void CodeBlock::accept(Visitor & visitor) {visitor.visit(this);}
 void Parameter::accept(Visitor & visitor) {visitor.visit(this);}

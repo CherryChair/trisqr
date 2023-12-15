@@ -13,7 +13,7 @@
 //Type constants
 
 static const std::unordered_map<short int, std::wstring> error_mesages= {
-    {ERR_MAX_IDENTIFIER_LEN_EXCEEDED,     L"Maximal length of identifier exceeded"},
+    {ERR_MAX_IDENTIFIER_LEN_EXCEEDED,     L"Maximal length of identifierExpression exceeded"},
         {ERR_NOT_CLOSED_STRING,           L"String is not closed."},
         {ERR_WRONG_ENDLINE_CHAR,          L"Inconsistent newline characters."},
         {ERR_WRONG_LOGICAL_OPERATOR,      L"Unfinished logical operator."},

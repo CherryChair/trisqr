@@ -43,10 +43,10 @@ private:
     Statement * parseForStatement();
     Statement * parseDeclarationStatement();
     Statement * parseIdentifierOrAssignmentStatement();
-    Statement * parseIdentifierDotStatement();
-    Statement * parseIdentifierListCallStatement();
-    Statement * parseIdentifierFunctionCallStatement();
-    Statement * parseIdentifierStatement();
+    Expression * parseIdentifierDotExpression();
+    Expression * parseIdentifierListCallExpression();
+    Expression * parseIdentifierFunctionCallExpression();
+    Expression * parseIdentifierExpression();
     Statement * parseReturnStatement();
     ConditionAndBlock * parseConditionAndBlock(const std::wstring & statement_type, token_type tokenType);
     Expression * parseExpression();

@@ -46,11 +46,11 @@ class Statement;
 
 class ConditionAndBlock;
 
-class IdentifierDotStatement;
+class IdentifierDotExpression;
 class IdentifierStatementAssign;
-class IdentifierStatementListCall;
-class IdentifierStatementFunctionCall;
-class IdentifierStatement;
+class IdentifierListCallExpression;
+class IdentifierFunctionCallExpression;
+class IdentifierExpression;
 
 class CodeBlock;
 class Parameter;
@@ -448,10 +448,10 @@ class IfStatement : public Statement {
 private:
     ConditionAndBlock * ifConditionAndBlock;
     std::vector<ConditionAndBlock*> elsifConditionsAndBlocks;
-    ConditionAndBlock * elseConditionAndBlock;
+    CodeBlock * elseCodeBlock;
 public:
-    IfStatement(ConditionAndBlock * ifConditionAndBlock, std::vector<ConditionAndBlock*> elsifConditionsAndBlocks, ConditionAndBlock * elseConditionAndBlock, const Position & position)
-            : ifConditionAndBlock(ifConditionAndBlock), elsifConditionsAndBlocks(elsifConditionsAndBlocks), elseConditionAndBlock(elseConditionAndBlock){this->position = position;};
+    IfStatement(ConditionAndBlock * ifConditionAndBlock, std::vector<ConditionAndBlock*> elsifConditionsAndBlocks, CodeBlock * elseCodeBlock, const Position & position)
+            : ifConditionAndBlock(ifConditionAndBlock), elsifConditionsAndBlocks(elsifConditionsAndBlocks), elseCodeBlock(elseCodeBlock){ this->position = position;};
     void accept(Visitor& visitor);
 
     ConditionAndBlock *getIfConditionAndBlock() const {
@@ -462,8 +462,8 @@ public:
         return elsifConditionsAndBlocks;
     }
 
-    ConditionAndBlock *getElseConditionAndBlock() const {
-        return elseConditionAndBlock;
+    CodeBlock *getElseCodeBlock() const {
+        return elseCodeBlock;
     }
 };
 
@@ -535,11 +535,11 @@ public:
     }
 };
 
-class IdentifierStatement : public Statement {
+class IdentifierExpression : public Expression {
 private:
     const std::wstring identifierName;
 public:
-    IdentifierStatement(const std::wstring & identifierName, const Position & position)
+    IdentifierExpression(const std::wstring & identifierName, const Position & position)
             : identifierName(identifierName) {this->position=position;};
     void accept(Visitor& visitor);
 
@@ -548,18 +548,18 @@ public:
     }
 };
 
-class IdentifierStatementFunctionCall : public Statement {
+class IdentifierFunctionCallExpression : public Expression {
 private:
-    Statement * identifier;
+    Expression * identifierExpression;
     std::vector<Expression *> expressions;
 public:
-    IdentifierStatementFunctionCall(Statement * identifier, std::vector<Expression *> expressions,
-                                    const Position & position)
-            : identifier(identifier), expressions(expressions) {this->position=position;};
+    IdentifierFunctionCallExpression(Expression * identifierExpression, std::vector<Expression *> expressions,
+                                     const Position & position)
+            : identifierExpression(identifierExpression), expressions(expressions) { this->position=position;};
     void accept(Visitor& visitor);
 
-    Statement *getIdentifier() const {
-        return identifier;
+    Expression *getIdentifierExpression() const {
+        return identifierExpression;
     }
 
     std::vector<Expression *> &getExpressions() {
@@ -567,17 +567,17 @@ public:
     }
 };
 
-class IdentifierStatementListCall : public Statement {
+class IdentifierListCallExpression : public Expression {
 private:
-    Statement * identifier;
+    Expression * identifierExpression;
     std::vector<Expression *> expressions;
 public:
-    IdentifierStatementListCall(Statement * identifier, std::vector<Expression *> expressions, const Position & position)
-            : identifier(identifier), expressions(expressions) {this->position=position;};
+    IdentifierListCallExpression(Expression * identifierExpression, std::vector<Expression *> expressions, const Position & position)
+            : identifierExpression(identifierExpression), expressions(expressions) { this->position=position;};
     void accept(Visitor& visitor);
 
-    Statement *getIdentifier() const {
-        return identifier;
+    Expression *getIdentifierExpression() const {
+        return identifierExpression;
     }
 
     std::vector<Expression *> &getExpressions(){
@@ -585,35 +585,35 @@ public:
     }
 };
 
-class IdentifierDotStatement : public Statement, public Expression {
+class IdentifierDotExpression : public Expression {
 private:
-    Statement * leftStatement;
-    Statement * rightStatement;
+    Expression * leftExpression;
+    Expression * rightExpression;
 public:
-    IdentifierDotStatement(Statement * leftStatement, Statement * rightStatement, const Position & position)
-            : leftStatement(leftStatement), rightStatement(rightStatement) {Expression::position=position; Statement::position=position;};
+    IdentifierDotExpression(Expression * leftExpression, Expression * rightExpression, const Position & position)
+            : leftExpression(leftExpression), rightExpression(rightExpression) { this->position=position;};
     void accept(Visitor& visitor);
 
-    Statement *getLeftStatement() const {
-        return leftStatement;
+    Expression *getLeftExpression() const {
+        return leftExpression;
     }
 
-    Statement *getRightStatement() const {
-        return rightStatement;
+    Expression *getRightExpression() const {
+        return rightExpression;
     }
 };
 
 class IdentifierStatementAssign : public Statement {
 private:
-    Statement * identifierStatement;
+    Expression * identifierExpression;
     Expression * expression;
 public:
-    IdentifierStatementAssign(Statement * identifierStatement, Expression * expression, const Position & position)
-            : identifierStatement(identifierStatement), expression(expression) {this->position=position;};
+    IdentifierStatementAssign(Expression * identifierExpression, Expression * expression, const Position & position)
+            : identifierExpression(identifierExpression), expression(expression) { this->position=position;};
     void accept(Visitor& visitor);
 
-    Statement *getIdentifierStatement() const {
-        return identifierStatement;
+    Expression *getIdentifierExpression() const {
+        return identifierExpression;
     }
 
     Expression *getExpression() const {

@@ -62,7 +62,7 @@ void Parser::handleSemanticError(const Position &position, const std::wstring &m
     this->semantic_error = true;
 }
 
-// figure_declaration  :== "figure ", identifier, "{", point_list, "}";
+// figure_declaration  :== "figure ", identifierExpression, "{", point_list, "}";
 // point_list          :== point_declaration, {",", point_declaration}, "," "color", ":",
 FigureDeclaration * Parser::parseFigureDecl() {
     Position position = token->getPos();
@@ -114,7 +114,7 @@ std::vector<Parameter *> Parser::parseFigureParams() {
     return params;
 }
 
-//point_declaration   :== identifier, ":", expression;
+//point_declaration   :== identifierExpression, ":", expression;
 Parameter * Parser::parseFigureParam() {
     Position position = this->token->getPos();
     auto name = token->getValue();
@@ -123,7 +123,7 @@ Parameter * Parser::parseFigureParam() {
     }
 
     if(!this->consumeIf(COLON_TYPE)){
-        this->handleSemanticError(position, L"Missing identifier in figure param");
+        this->handleSemanticError(position, L"Missing identifierExpression in figure param");
     }
 
     Expression * expression;
@@ -133,7 +133,7 @@ Parameter * Parser::parseFigureParam() {
     return new FigureParameter(std::get<std::wstring>(name), expression);
 }
 
-//func_declaration    :== "func ", identifier, "(", decl_argument_list, ")", code_block;
+//func_declaration    :== "func ", identifierExpression, "(", decl_argument_list, ")", code_block;
 FuncDeclaration * Parser::parseFuncDecl() {
     Position position = token->getPos();
     if (!this->consumeIf(FUNC_TYPE)){
@@ -157,7 +157,7 @@ FuncDeclaration * Parser::parseFuncDecl() {
     return new FuncDeclaration(std::get<std::wstring>(name), params, block, position);
 }
 
-//decl_argument_list  :== [identifier, {", ", identifier}];
+//decl_argument_list  :== [identifierExpression, {", ", identifierExpression}];
 std::vector<Parameter *> Parser::parseFunctionParams() {
     std::vector<Parameter *> params;
     std::unordered_map<std::wstring, bool> paramsMap;
@@ -273,11 +273,18 @@ Statement * Parser::parseIfStatement() {
     while(ConditionAndBlock * elsifConditionAndBlock = this->parseConditionAndBlock(L"elsif", ELSIF_TYPE)){
         elsifConditionsAndBlocks.push_back(elsifConditionAndBlock);
     }
-    ConditionAndBlock * elseConditionAndBlock = this->parseConditionAndBlock(L"else", ELSE_TYPE);
-    return new IfStatement(ifConditionAndBlock, elsifConditionsAndBlocks, elseConditionAndBlock, position);
+    CodeBlock * elseCodeBlock = nullptr;
+    Position elsePosition = this->token->getPos();
+    if (this->consumeIf(ELSE_TYPE)) {
+        elseCodeBlock = parseCodeBlock();
+        if (!elseCodeBlock) {
+            this->handleSyntaxError(elsePosition, L"Missing block after else statement.");
+        }
+    }
+    return new IfStatement(ifConditionAndBlock, elsifConditionsAndBlocks, elseCodeBlock, position);
 }
 
-//for_stmnt           :== "for", identifier, "in", expression_or_range, code_block;
+//for_stmnt           :== "for", identifierExpression, "in", expression_or_range, code_block;
 Statement * Parser::parseForStatement() {
     Position position = this->token->getPos();
     if(!this->consumeIf(FOR_TYPE)){
@@ -285,7 +292,7 @@ Statement * Parser::parseForStatement() {
     }
     auto name = token->getValue();
     if(!this->consumeIf(IDENTIFIER_TYPE)){
-        this->handleSyntaxError(position, L"Missing identifier in for statement.");
+        this->handleSyntaxError(position, L"Missing identifierExpression in for statement.");
     }
     if(!this->consumeIf(IN_TYPE)){
         this->handleSyntaxError(position, L"Missing 'in' keyword in for statement");
@@ -328,7 +335,7 @@ Statement * Parser::parseForStatement() {
     return new ForStatement(std::get<std::wstring>(name), expression, block, position);
 }
 
-// declaration         :== "vv ", identifier, ["=", expression], ";";
+// declaration         :== "vv ", identifierExpression, ["=", expression], ";";
 Statement * Parser::parseDeclarationStatement() {
     Position position = this->token->getPos();
     if(!this->consumeIf(VV_TYPE)){
@@ -336,7 +343,7 @@ Statement * Parser::parseDeclarationStatement() {
     }
     auto name = token->getValue();
     if(!this->consumeIf(IDENTIFIER_TYPE)){
-        this->handleSyntaxError(position, L"Missing identifier in declaration statement.");
+        this->handleSyntaxError(position, L"Missing identifierExpression in declaration statement.");
     }
 
     Expression * expression = nullptr;
@@ -358,8 +365,8 @@ Statement * Parser::parseDeclarationStatement() {
 Statement * Parser::parseIdentifierOrAssignmentStatement() {
     Position position = this->token->getPos();
 
-    Statement * identifierStatement;
-    if (!(identifierStatement = this->parseIdentifierDotStatement())) {
+    Expression * identifierExpression;
+    if (!(identifierExpression = this->parseIdentifierDotExpression())) {
         return nullptr;
     }
 
@@ -376,38 +383,34 @@ Statement * Parser::parseIdentifierOrAssignmentStatement() {
         this->handleSyntaxError(position, L"Missing semicolon.");
     }
 
-    if (!expression) {
-        return identifierStatement;
-    }
-
-    return new IdentifierStatementAssign(identifierStatement, expression, position);
+    return new IdentifierStatementAssign(identifierExpression, expression, position);
 }
 
 //identifier_stmnt    :== part, {".", part};
-Statement * Parser::parseIdentifierDotStatement() {
+Expression * Parser::parseIdentifierDotExpression() {
     Position position = this->token->getPos();
-    Statement * leftIdentifierListCallStatement;
-    if (!(leftIdentifierListCallStatement = this->parseIdentifierListCallStatement())) {
+    Expression * leftIdentifierListCallExpression;
+    if (!(leftIdentifierListCallExpression = this->parseIdentifierListCallExpression())) {
         return nullptr;
     }
     while (this->consumeIf(DOT_TYPE)) {
         Position identifierPos = this->token->getPos();
-        Statement * rightIdentifierListCallStatement;
-        if (!(rightIdentifierListCallStatement = this->parseIdentifierListCallStatement())) {
+        Expression * rightIdentifierListCallExpression;
+        if (!(rightIdentifierListCallExpression = this->parseIdentifierListCallExpression())) {
             this->handleSyntaxError(identifierPos, L"No identifier after dot.");
             break;
         }
-        leftIdentifierListCallStatement = new IdentifierDotStatement(leftIdentifierListCallStatement, rightIdentifierListCallStatement, identifierPos);
+        leftIdentifierListCallExpression = new IdentifierDotExpression(leftIdentifierListCallExpression, rightIdentifierListCallExpression, identifierPos);
     }
 
-    return leftIdentifierListCallStatement;
+    return leftIdentifierListCallExpression;
 }
 
 //part                :== part_call, {"[", expression, "]"};
-Statement * Parser::parseIdentifierListCallStatement() {
+Expression * Parser::parseIdentifierListCallExpression() {
     Position position = this->token->getPos();
-    Statement * identifierFunctionCallStatement;
-    if (!(identifierFunctionCallStatement = this->parseIdentifierFunctionCallStatement())) {
+    Expression * identifierFunctionCallExpression;
+    if (!(identifierFunctionCallExpression = this->parseIdentifierFunctionCallExpression())) {
         return nullptr;
     }
     std::vector<Expression *> expressions;
@@ -424,18 +427,18 @@ Statement * Parser::parseIdentifierListCallStatement() {
         }
     }
     if (expressions.empty()) {
-        return  identifierFunctionCallStatement;
+        return  identifierFunctionCallExpression;
     }
-    return new IdentifierStatementListCall(identifierFunctionCallStatement, expressions, position);
+    return new IdentifierListCallExpression(identifierFunctionCallExpression, expressions, position);
 }
 
-//part_call           :== identifier, ["(", argument_list, ")"];
-Statement * Parser::parseIdentifierFunctionCallStatement() {
+//part_call           :== identifierExpression, ["(", argument_list, ")"];
+Expression * Parser::parseIdentifierFunctionCallExpression() {
     Position position = this->token->getPos();
     bool isFunctionCall = false;
 
-    Statement * identifierStatement = this->parseIdentifierStatement();
-    if(!identifierStatement) {
+    Expression * identifierExpression = this->parseIdentifierExpression();
+    if(!identifierExpression) {
         return nullptr;
     }
 
@@ -462,19 +465,19 @@ Statement * Parser::parseIdentifierFunctionCallStatement() {
     }
 
     if (!isFunctionCall) {
-        return identifierStatement;
+        return identifierExpression;
     }
 
-    return new IdentifierStatementFunctionCall(identifierStatement, expressions, position);
+    return new IdentifierFunctionCallExpression(identifierExpression, expressions, position);
 }
 
-Statement * Parser::parseIdentifierStatement() {
+Expression * Parser::parseIdentifierExpression() {
     Position position = this->token->getPos();
     auto name = this->token->getValue();
     if(!this->consumeIf(IDENTIFIER_TYPE)){
         return nullptr;
     }
-    return new IdentifierStatement(std::get<std::wstring>(name), position);
+    return new IdentifierExpression(std::get<std::wstring>(name), position);
 }
 
 //return              :== "return ", [expression], ";"
@@ -729,7 +732,7 @@ Expression *Parser::parseAccessedValue() {
     Expression * expression;
     if (expression = this->parseExpressionValueList()) {
     } else if (expression = this->parseExpressionValueLiteral()) {
-    } else if (expression = static_cast<IdentifierDotStatement *>(this->parseIdentifierDotStatement())){
+    } else if (expression = static_cast<IdentifierDotExpression *>(this->parseIdentifierDotExpression())){
     } else {
         //"(", expression, ")";
         if(!consumeIf(L_BRACKET_TYPE)) {

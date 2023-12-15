@@ -39,11 +39,11 @@ public:
 
     virtual void visit(ConditionAndBlock * cb)= 0 ;
 
-    virtual void visit(IdentifierDotStatement * s) = 0;
+    virtual void visit(IdentifierDotExpression * s) = 0;
     virtual void visit(IdentifierStatementAssign * s) = 0;
-    virtual void visit(IdentifierStatementListCall * s) = 0;
-    virtual void visit(IdentifierStatementFunctionCall * s) = 0;
-    virtual void visit(IdentifierStatement * s) = 0;
+    virtual void visit(IdentifierListCallExpression * s) = 0;
+    virtual void visit(IdentifierFunctionCallExpression * s) = 0;
+    virtual void visit(IdentifierExpression * s) = 0;
 
     virtual void visit(CodeBlock* cb) = 0;
     virtual void visit(Parameter* p) = 0;

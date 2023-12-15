@@ -4,6 +4,16 @@
 
 #include "VisitorTree.h"
 
+static const std::unordered_map<short int, std::wstring> variable_type_representation= {
+        {STRING_VARIABLE,   L"string"},
+        {INT_VARIABLE,      L"int"},
+        {DOUBLE_VARIABLE,   L"double"},
+        {BOOL_VARIABLE,     L"bool"},
+        {NONE_VARIABLE,     L"none"},
+        {FIGURE_VARIABLE,   L"figure"},
+        {POINT_VARIABLE,    L"point"},
+};
+
 
 void VisitorTree::visit(ExpressionOr * e) {
     tree.push_back(L"ExpressionOr:");
@@ -130,7 +140,7 @@ void VisitorTree::visit(ExpressionIs * e) {
     tree.push_back(L"BEGIN ExpressionIs.Expression");
     e->getExpression()->accept(*this);
     tree.push_back(L"END ExpressionIs.Expression");
-    tree.push_back(L"to type: " + std::to_wstring(e->getCheckedType()) + L" TO IMPLEMENT TYPE MAP");
+    tree.push_back(L"is type: " + variable_type_representation.at(e->getCheckedType()));
     tree.push_back(L"END ExpressionIs");
 }
 void VisitorTree::visit(ExpressionTo * e) {
@@ -138,7 +148,7 @@ void VisitorTree::visit(ExpressionTo * e) {
     tree.push_back(L"BEGIN ExpressionTo.Expression");
     e->getExpression()->accept(*this);
     tree.push_back(L"END ExpressionTo.Expression");
-    tree.push_back(L"to type: " + std::to_wstring(e->getConversionType()) + L" TO IMPLEMENT TYPE MAP");
+    tree.push_back(L"to type: " + variable_type_representation.at(e->getConversionType()));
     tree.push_back(L"END ExpressionTo");
 }
 void VisitorTree::visit(ExpressionNeg * e) {
@@ -240,14 +250,14 @@ void VisitorTree::visit(IfStatement * s) {
         tree.push_back(L"null");
     }
     tree.push_back(L"END IfStatement.ElsifConditionsAndBlocks");
-    tree.push_back(L"BEGIN IfStatement.ElseConditionAndBlock");
+    tree.push_back(L"BEGIN IfStatement.ElseCodeBlock");
 
-    if (auto elseCondAndBlock = s->getElseConditionAndBlock()) {
-        elseCondAndBlock->accept(*this);
+    if (auto elseCodeBlock = s->getElseCodeBlock()) {
+        elseCodeBlock->accept(*this);
     } else {
         tree.push_back(L"null");
     }
-    tree.push_back(L"END IfStatement.ElseConditionAndBlock");
+    tree.push_back(L"END IfStatement.ElseCodeBlock");
     tree.push_back(L"END IfStatement");
 }
 void VisitorTree::visit(ForStatement * s) {
@@ -312,68 +322,68 @@ void VisitorTree::visit(ConditionAndBlock * cb) {
 }
 
 
-
-
-
-
 void VisitorTree::visit(IdentifierStatementAssign * s) {
     tree.push_back(L"IdentifierStatementAssign:");
-    tree.push_back(L"BEGIN IdentifierStatementAssign.IdentifierStatement");
-    s->getIdentifierStatement()->accept(*this);
-    tree.push_back(L"END IdentifierStatementAssign.IdentifierStatement");
+    tree.push_back(L"BEGIN IdentifierStatementAssign.IdentifierExpression");
+    s->getIdentifierExpression()->accept(*this);
+    tree.push_back(L"END IdentifierStatementAssign.IdentifierExpression");
 
     tree.push_back(L"BEGIN IdentifierStatementAssign.Expression");
-    s->getExpression()->accept(*this);
+    if (auto expression = s->getExpression()) {
+        expression->accept(*this);
+    } else {
+        tree.push_back(L"null");
+    }
     tree.push_back(L"END IdentifierStatementAssign.Expression");
     tree.push_back(L"END IdentifierStatementAssign");
 }
-void VisitorTree::visit(IdentifierDotStatement * s) {
-    tree.push_back(L"IdentifierDotStatement:");
-    tree.push_back(L"BEGIN IdentifierDotStatement.LeftStatement");
-    s->getLeftStatement()->accept(*this);
-    tree.push_back(L"END IdentifierDotStatement.LeftStatement");
+void VisitorTree::visit(IdentifierDotExpression * s) {
+    tree.push_back(L"IdentifierDotExpression:");
+    tree.push_back(L"BEGIN IdentifierDotExpression.LeftStatement");
+    s->getLeftExpression()->accept(*this);
+    tree.push_back(L"END IdentifierDotExpression.LeftStatement");
 
-    tree.push_back(L"BEGIN IdentifierDotStatement.RightStatement");
-    if (auto rightStatement = s->getRightStatement()) {
+    tree.push_back(L"BEGIN IdentifierDotExpression.RightStatement");
+    if (auto rightStatement = s->getRightExpression()) {
         rightStatement->accept(*this);
     } else {
         tree.push_back(L"null");
     }
-    tree.push_back(L"END IdentifierDotStatement.RightStatement");
-    tree.push_back(L"END IdentifierDotStatement");
+    tree.push_back(L"END IdentifierDotExpression.RightStatement");
+    tree.push_back(L"END IdentifierDotExpression");
 }
-void VisitorTree::visit(IdentifierStatementListCall * s) {
-    tree.push_back(L"IdentifierStatementListCall:");
-    tree.push_back(L"BEGIN IdentifierStatementListCall.Identifier");
-    s->getIdentifier()->accept(*this);
-    tree.push_back(L"END IdentifierStatementListCall.Identifier");
+void VisitorTree::visit(IdentifierListCallExpression * s) {
+    tree.push_back(L"IdentifierListCallExpression:");
+    tree.push_back(L"BEGIN IdentifierListCallExpression.Identifier");
+    s->getIdentifierExpression()->accept(*this);
+    tree.push_back(L"END IdentifierListCallExpression.Identifier");
 
     auto expressions = s->getExpressions();
-    tree.push_back(L"BEGIN IdentifierStatementListCall.Expressions");
+    tree.push_back(L"BEGIN IdentifierListCallExpression.Expressions");
     for (auto expression : expressions) {
         expression->accept(*this);
     }
-    tree.push_back(L"END IdentifierStatementListCall.Expressions");
-    tree.push_back(L"END IdentifierStatementListCall");
+    tree.push_back(L"END IdentifierListCallExpression.Expressions");
+    tree.push_back(L"END IdentifierListCallExpression");
 }
-void VisitorTree::visit(IdentifierStatementFunctionCall * s) {
-    tree.push_back(L"IdentifierStatementFunctionCall:");
-    tree.push_back(L"BEGIN IdentifierStatementFunctionCall.Identifier");
-    s->getIdentifier()->accept(*this);
-    tree.push_back(L"END IdentifierStatementFunctionCall.Identifier");
+void VisitorTree::visit(IdentifierFunctionCallExpression * s) {
+    tree.push_back(L"IdentifierFunctionCallExpression:");
+    tree.push_back(L"BEGIN IdentifierFunctionCallExpression.Identifier");
+    s->getIdentifierExpression()->accept(*this);
+    tree.push_back(L"END IdentifierFunctionCallExpression.Identifier");
 
     auto expressions = s->getExpressions();
-    tree.push_back(L"BEGIN IdentifierStatementFunctionCall.Expressions");
+    tree.push_back(L"BEGIN IdentifierFunctionCallExpression.Expressions");
     for (auto expression : expressions) {
         expression->accept(*this);
     }
-    tree.push_back(L"END IdentifierStatementFunctionCall.Expressions");
-    tree.push_back(L"END IdentifierStatementFunctionCall");
+    tree.push_back(L"END IdentifierFunctionCallExpression.Expressions");
+    tree.push_back(L"END IdentifierFunctionCallExpression");
 }
-void VisitorTree::visit(IdentifierStatement * s) {
-    tree.push_back(L"IdentifierStatement:");
+void VisitorTree::visit(IdentifierExpression * s) {
+    tree.push_back(L"IdentifierExpression:");
     tree.push_back(L"Name: " + s->getIdentifierName());
-    tree.push_back(L"END IdentifierStatement");
+    tree.push_back(L"END IdentifierExpression");
 }
 
 

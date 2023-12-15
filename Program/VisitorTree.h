@@ -42,11 +42,11 @@ public:
 
     void visit(ConditionAndBlock * cb);
 
-    void visit(IdentifierDotStatement * s);
+    void visit(IdentifierDotExpression * s);
     void visit(IdentifierStatementAssign * s);
-    void visit(IdentifierStatementListCall * s);
-    void visit(IdentifierStatementFunctionCall * s);
-    void visit(IdentifierStatement * s);
+    void visit(IdentifierListCallExpression * s);
+    void visit(IdentifierFunctionCallExpression * s);
+    void visit(IdentifierExpression * s);
 
     void visit(CodeBlock* cb);
     void visit(Parameter* p);
