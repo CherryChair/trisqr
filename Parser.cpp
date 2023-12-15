@@ -80,7 +80,7 @@ void Parser::handleSemanticError(const Position &position, const std::wstring &m
 // point_list          :== point_declaration, {",", point_declaration}, "," "color", ":",
 FigureDeclaration * Parser::parseFigureDecl() {
     Position position = token->getPos();
-    if (!this->consumeIf(FUNC_TYPE)){
+    if (!this->consumeIf(FIGURE_TYPE)){
         return nullptr;
     }
     auto name = this->mustBe(IDENTIFIER_TYPE, L"Missing identifer in figure declaration.");
