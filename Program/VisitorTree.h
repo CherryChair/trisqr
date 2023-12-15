@@ -7,9 +7,11 @@
 
 #include "Visitor.h"
 
+
 class VisitorTree : public Visitor {
+private:
+    std::vector<std::wstring> tree;
 public:
-    void visit(Expression * e);
     void visit(ExpressionOr * e);
     void visit(ExpressionAnd * e);
     void visit(ExpressionCompEq * e);
@@ -37,7 +39,6 @@ public:
     void visit(ForRangeStatement * s);
     void visit(DeclarationStatement * s);
     void visit(ReturnStatement * s);
-    void visit(Statement * s);
 
     void visit(ConditionAndBlock * cb);
 
@@ -53,6 +54,7 @@ public:
     void visit(FigureDeclaration* fd);
     void visit(FuncDeclaration* fd);
     void visit(Program* p);
+    void printTree();
 };
 
 

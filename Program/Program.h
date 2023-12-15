@@ -87,6 +87,7 @@ public:
 
 class Expression : public Visitable {
 public:
+    Expression(){}
     virtual ~Expression() = default;
 };
 
@@ -568,18 +569,18 @@ public:
 
 class IdentifierStatementListCall : public Statement {
 private:
-    Statement * leftStatement;
+    Statement * identifier;
     std::vector<Expression *> expressions;
 public:
-    IdentifierStatementListCall(Statement * leftStatement, std::vector<Expression *> expressions, const Position & position)
-            : leftStatement(leftStatement), expressions(expressions) {this->position=position;};
+    IdentifierStatementListCall(Statement * identifier, std::vector<Expression *> expressions, const Position & position)
+            : identifier(identifier), expressions(expressions) {this->position=position;};
     void accept(Visitor& visitor);
 
-    Statement *getLeftStatement() const {
-        return leftStatement;
+    Statement *getIdentifier() const {
+        return identifier;
     }
 
-    std::vector<Expression *> &getExpressions() {
+    std::vector<Expression *> &getExpressions(){
         return expressions;
     }
 };
@@ -634,6 +635,8 @@ public:
 
 
 class CodeBlock : public Visitable {
+private:
+    std::vector<Statement*> statements;
 public:
     CodeBlock(const std::vector<Statement*> statements) : statements(statements) {}
 
@@ -643,8 +646,6 @@ public:
         return statements;
     }
 
-private:
-    std::vector<Statement*> statements;
     void accept(Visitor& visitor);
 };
 
@@ -678,11 +679,11 @@ class FuncDeclaration : public Visitable{
 private:
     std::wstring name;
     std::vector<Parameter *> params;
-    CodeBlock * statements;
+    CodeBlock * codeBlock;
 public:
 
-    FuncDeclaration(const std::wstring &name, std::vector<Parameter *> params, CodeBlock * statements, const Position & position) : name(
-            name), params(params), statements(statements) {this->position = position;}
+    FuncDeclaration(const std::wstring &name, std::vector<Parameter *> params, CodeBlock * codeBlock, const Position & position) : name(
+            name), params(params), codeBlock(codeBlock) {this->position = position;}
 
     FuncDeclaration() {}
 
@@ -695,8 +696,8 @@ public:
         return params;
     }
 
-    CodeBlock *getStatements() const {
-        return statements;
+    CodeBlock *getCodeBlock() const {
+        return codeBlock;
     }
 };
 

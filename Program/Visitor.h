@@ -9,7 +9,6 @@
 
 class Visitor {
 public:
-    virtual void visit(Expression * e ) = 0;
     virtual void visit(ExpressionOr * e) = 0;
     virtual void visit(ExpressionAnd * e) = 0;
     virtual void visit(ExpressionCompEq * e) = 0;
@@ -37,7 +36,6 @@ public:
     virtual void visit(ForRangeStatement * s) = 0;
     virtual void visit(DeclarationStatement * s) = 0;
     virtual void visit(ReturnStatement * s) = 0;
-    virtual void visit(Statement * s) = 0;
 
     virtual void visit(ConditionAndBlock * cb)= 0 ;
 

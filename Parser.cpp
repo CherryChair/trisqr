@@ -341,7 +341,9 @@ Statement * Parser::parseDeclarationStatement() {
 
     Expression * expression = nullptr;
     if(this->consumeIf(ASSIGN_TYPE)){
-        expression = this->parseExpression();
+        if(!(expression = this->parseExpression())) {
+            this->handleSyntaxError(position, L"Missing expression after assignment.");
+        }
     }
 
     if(!this->consumeIf(SEMICOLON_TYPE)){
@@ -369,8 +371,9 @@ Statement * Parser::parseIdentifierOrAssignmentStatement() {
         }
     }
 
+    position = this->token->getPos();
     if(!this->consumeIf(SEMICOLON_TYPE)){
-        this->handleSyntaxError(position, L"Missing semicolon on end of assignment.");
+        this->handleSyntaxError(position, L"Missing semicolon.");
     }
 
     if (!expression) {
