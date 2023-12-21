@@ -5,27 +5,26 @@
 #include "Parser.h"
 
 //program             :== {func_declaration | figure_declaration};
-Program * Parser::parse() {
+Program * Parser::parse() {//unique_ptr optionale i varianty
+    //statement to variant typów statementów
     std::unordered_map<std::wstring, FuncDeclaration *> functions = {};
     std::unordered_map<std::wstring, FigureDeclaration *> figures = {};
     token = lexer->nextToken();
     Position pos = token->getPos();
-    FuncDeclaration * funcDecl;
-    FigureDeclaration * figureDecl;
     bool foundFunc = true;
     bool foundFigure = true;
     while((foundFunc || foundFigure) && !this->blocking_syntax_error){
         foundFunc = false;
         foundFigure = false;
-        if (funcDecl = this->parseFuncDecl()){
+        if (auto funcDecl = this->parseFuncDecl()){
             auto fName = funcDecl->getName();
             if(functions.find(fName) == functions.end()){
-                functions[fName] = funcDecl;
+                functions[fName] = funcDecl;//* przy opt
             } else {
                 this->handleSemanticError(pos, L"Redeclaration of function " + fName);
             }
             foundFunc = true;
-        } else if (figureDecl = this->parseFigureDecl()){
+        } else if (auto figureDecl = this->parseFigureDecl()){
             std::wstring fName = figureDecl->getName();
             if(figures.find(fName) == figures.end()){
                 figures[fName] = figureDecl;
@@ -161,8 +160,8 @@ FuncDeclaration * Parser::parseFuncDecl() {
 //decl_argument_list  :== [identifierExpression, {", ", identifierExpression}];
 std::vector<Parameter *> Parser::parseFunctionParams() {
     std::vector<Parameter *> params;
-    std::unordered_map<std::wstring, bool> paramsMap;
-    Parameter * param = parseParam();
+    std::unordered_map<std::wstring, bool> paramsMap;//można po wektorze wyszukać
+    Parameter * param = parseParam();//przekazywać pozycję parametrów w parseParam
     if (param) {
         params.push_back(param);
         paramsMap[param->getName()] = true;
@@ -198,7 +197,7 @@ CodeBlock * Parser::parseCodeBlock() {
     if (!this->consumeIf(L_CURL_BRACKET_TYPE)){
         return nullptr;
     }
-    std::vector<Statement*> statements;
+    std::vector<Statement*> statements;//tu zrobić variant
     Statement * statement;
     while (statement = parseStatement()){
         statements.push_back(statement);
@@ -294,7 +293,7 @@ Statement * Parser::parseForStatement() {
 
     Position expressionPosition = this->token->getPos();
     Expression * expression;
-    if(this->consumeIf(RANGE_TYPE)){
+    if(this->consumeIf(RANGE_TYPE)){ // przenieść do osobnej funkcji
         this->mustBe(L_BRACKET_TYPE, L"Missing left bracket in range expression.");
 
         expressionPosition = this->token->getPos();
@@ -343,7 +342,7 @@ Statement * Parser::parseDeclarationStatement() {
 
     this->mustBe(SEMICOLON_TYPE, L"Missing semicolon on end of declaration.");
 
-    return new DeclarationStatement(std::get<std::wstring>(name), expression, position);
+    return new DeclarationStatement(std::get<std::wstring>(name), expression, position); // osobny byt assign tak jak niżej
 }
 
 
@@ -368,11 +367,11 @@ Statement * Parser::parseIdentifierOrAssignmentStatement() {
 
     this->mustBe(SEMICOLON_TYPE, L"Missing semicolon.");
 
-    return new IdentifierStatementAssign(identifierExpression, expression, position);
+    return new IdentifierStatementAssign(identifierExpression, expression, position);//osobny obiekt assign, który opakowuje assign
 }
 
 //identifier_stmnt    :== part, {".", part};
-Expression * Parser::parseIdentifierDotExpression() {
+Expression * Parser::parseIdentifierDotExpression() {//ObjectAccess albo inna nazwa
     Position position = this->token->getPos();
     Expression * leftIdentifierListCallExpression;
     if (!(leftIdentifierListCallExpression = this->parseIdentifierListCallExpression())) {
@@ -392,7 +391,7 @@ Expression * Parser::parseIdentifierDotExpression() {
 }
 
 //part                :== part_call, {"[", expression, "]"};
-Expression * Parser::parseIdentifierListCallExpression() {
+Expression * Parser::parseIdentifierListCallExpression() {//IndexExpression, przerobić na drzewo
     Position position = this->token->getPos();
     Expression * identifierFunctionCallExpression;
     if (!(identifierFunctionCallExpression = this->parseIdentifierFunctionCallExpression())) {
@@ -545,7 +544,7 @@ Expression *Parser::parseExpressionComp() {
             leftConditionExpression = new ExpressionCompEq(leftConditionExpression, rightConditionExpression, factorPos);
         } else {
             leftConditionExpression = new ExpressionCompNeq(leftConditionExpression, rightConditionExpression, factorPos);
-        }
+        }//mapa z konstruktorami, lambda
 
     }
 
@@ -576,7 +575,7 @@ Expression *Parser::parseExpressionAdd() {
         } else {
             leftConditionExpression = new ExpressionSub(leftConditionExpression, rightConditionExpression, factorPos);
         }
-    }
+    }// przenieść z comp while
 
     return leftConditionExpression;
 }
@@ -605,7 +604,7 @@ Expression *Parser::parseExpressionMul() {
         } else {
             leftConditionExpression = new ExpressionDiv(leftConditionExpression, rightConditionExpression, factorPos);
         }
-    }
+    }// przenieść z comp while
 
     return leftConditionExpression;
 }
@@ -636,9 +635,9 @@ Expression *Parser::parseExpressionIs() {
         } else if(this->consumeIf(FIGURE_TYPE)) {
             leftConditionExpression = new ExpressionIs(leftConditionExpression, FIGURE_VARIABLE, factorPos);
         } else {
-            this->handleSyntaxError(factorPos, L"No expression after is keyword.");
+            this->handleSyntaxError(factorPos, L"No type after is keyword.");
         }
-    }
+    }//wyżej po dodaniach i mnożeniach, przed przyrównaniem
 
     return leftConditionExpression;
 }
@@ -713,8 +712,8 @@ Expression *Parser::parseAccessedValue() {
     Expression * expression;
     if (expression = this->parseExpressionValueList()) {
     } else if (expression = this->parseExpressionValueLiteral()) {
-    } else if (expression = static_cast<IdentifierDotExpression *>(this->parseIdentifierDotExpression())){
-    } else {
+    } else if (expression = this->parseIdentifierDotExpression()){
+    } else {//osobna metoda
         //"(", expression, ")";
         if(!consumeIf(L_BRACKET_TYPE)) {
             return nullptr;

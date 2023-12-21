@@ -10,7 +10,7 @@
 
 class VisitorTree : public Visitor {
 private:
-    std::vector<std::wstring> tree;
+    std::vector<std::wstring> tree;//liczba wcięć i printować, dostać streama
 public:
     void visit(ExpressionOr * e);
     void visit(ExpressionAnd * e);

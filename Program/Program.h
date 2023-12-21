@@ -603,7 +603,7 @@ public:
     }
 };
 
-class IdentifierStatementAssign : public Statement {
+class IdentifierStatementAssign : public Statement {//osobne identifierstatemewnt z expression
 private:
     Expression * identifierExpression;
     Expression * expression;
@@ -722,7 +722,7 @@ public:
 
 };
 
-class Program {
+class Program : public Visitable {
 private:
     std::unordered_map<std::wstring, FuncDeclaration *> functions;
     std::unordered_map<std::wstring, FigureDeclaration *> figures;
