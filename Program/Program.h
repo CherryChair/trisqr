@@ -581,7 +581,7 @@ public:
     }
 
     Expression *getIndexExpression() const {
-        return leftExpression;
+        return indexExpression;
     }
 };
 
