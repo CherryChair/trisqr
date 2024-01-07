@@ -10,7 +10,7 @@
 
 class VisitorTree : public Visitor {
 private:
-    std::vector<std::wstring> tree;//TODO liczba wcięć i printować, dostać streama
+    std::vector<std::wstring> tree;
     unsigned int tabs = 0;
 public:
     void visit(ExpressionOr * e);
@@ -56,7 +56,7 @@ public:
     void visit(FigureDeclaration* fd);
     void visit(FuncDeclaration* fd);
     void visit(Program* p);
-    void printTree();
+    void printTree(std::wostream& output);
 };
 
 

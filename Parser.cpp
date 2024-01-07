@@ -598,7 +598,7 @@ Expression *Parser::parseExpressionAdd() {
     while (this->consumeIf(PLUS_TYPE) || this->consumeIf(MINUS_TYPE)) {
         Position factorPos = this->token->getPos();
         Expression * rightConditionExpression;
-        if (!(rightConditionExpression = this->parseExpressionAnd())) {
+        if (!(rightConditionExpression = this->parseExpressionMul())) {
             this->handleSyntaxError(factorPos, L"No expression after addition operator.");
             break;
         }
@@ -621,7 +621,7 @@ Expression *Parser::parseExpressionMul() {
     while (this->consumeIf(MULTIPLY_TYPE) || this->consumeIf(DIVIDE_TYPE)) {
         Position factorPos = this->token->getPos();
         Expression * rightConditionExpression;
-        if (!(rightConditionExpression = this->parseExpressionAnd())) {
+        if (!(rightConditionExpression = this->parseExpressionTo())) {
             this->handleSyntaxError(factorPos, L"No expression after multiplication operator.");
             break;
         }

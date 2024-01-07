@@ -35,7 +35,7 @@ int main() {
     Program * program = parser->parse();
     VisitorTree * vt = new VisitorTree();
     program->accept(*vt);
-    vt->printTree();
+    vt->printTree(std::wcout);
 //    while(tkn = l->nextToken()){
 //        printToken(*tkn);
 //        if(tkn->getTokenType() == EOF_TYPE) {
