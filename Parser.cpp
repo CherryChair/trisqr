@@ -6,7 +6,7 @@
 
 //program             :== {func_declaration | figure_declaration};
 Program * Parser::parse() {//unique_ptr optionale i varianty
-    //statement to variant typów statementów
+    //TODO statement to variant typów statementów
     std::unordered_map<std::wstring, FuncDeclaration *> functions = {};
     std::unordered_map<std::wstring, FigureDeclaration *> figures = {};
     token = lexer->nextToken();
@@ -75,7 +75,7 @@ void Parser::handleSemanticError(const Position &position, const std::wstring &m
     this->semantic_error = true;
 }
 
-// figure_declaration  :== "figure ", identifierExpression, "{", point_list, "}";
+// figure_declaration  :== "figure ", leftExpression, "{", point_list, "}";
 // point_list          :== point_declaration, {",", point_declaration}, "," "color", ":",
 FigureDeclaration * Parser::parseFigureDecl() {
     Position position = token->getPos();
@@ -121,7 +121,7 @@ std::vector<Parameter *> Parser::parseFigureParams() {
     return params;
 }
 
-//point_declaration   :== identifierExpression, ":", expression;
+//point_declaration   :== leftExpression, ":", expression;
 Parameter * Parser::parseFigureParam() {
     Position position = this->token->getPos();
     auto name = token->getValue();
@@ -136,10 +136,10 @@ Parameter * Parser::parseFigureParam() {
     if (!(expression = this->parseExpression())) {
         this->handleSemanticError(position, L"Missing expression in figure param");
     }
-    return new FigureParameter(std::get<std::wstring>(name), expression);
+    return new FigureParameter(std::get<std::wstring>(name), expression, position);
 }
 
-//func_declaration    :== "func ", identifierExpression, "(", decl_argument_list, ")", code_block;
+//func_declaration    :== "func ", leftExpression, "(", decl_argument_list, ")", code_block;
 FuncDeclaration * Parser::parseFuncDecl() {
     Position position = token->getPos();
     if (!this->consumeIf(FUNC_TYPE)){
@@ -157,11 +157,11 @@ FuncDeclaration * Parser::parseFuncDecl() {
     return new FuncDeclaration(std::get<std::wstring>(name), params, block, position);
 }
 
-//decl_argument_list  :== [identifierExpression, {", ", identifierExpression}];
+//decl_argument_list  :== [leftExpression, {", ", leftExpression}];
 std::vector<Parameter *> Parser::parseFunctionParams() {
     std::vector<Parameter *> params;
-    std::unordered_map<std::wstring, bool> paramsMap;//można po wektorze wyszukać
-    Parameter * param = parseParam();//przekazywać pozycję parametrów w parseParam
+    std::unordered_map<std::wstring, bool> paramsMap;//TODO można po wektorze wyszukać
+    Parameter * param = parseParam();
     if (param) {
         params.push_back(param);
         paramsMap[param->getName()] = true;
@@ -184,9 +184,10 @@ std::vector<Parameter *> Parser::parseFunctionParams() {
 }
 
 Parameter * Parser::parseParam() {
+    Position position = token->getPos();
     auto name = token->getValue();
     if(this->consumeIf(IDENTIFIER_TYPE)){
-        return new Parameter(std::get<std::wstring>(name));
+        return new Parameter(std::get<std::wstring>(name), position);
     }
     return nullptr;
 }
@@ -197,7 +198,7 @@ CodeBlock * Parser::parseCodeBlock() {
     if (!this->consumeIf(L_CURL_BRACKET_TYPE)){
         return nullptr;
     }
-    std::vector<Statement*> statements;//tu zrobić variant
+    std::vector<Statement*> statements;//TODO tu zrobić variant
     Statement * statement;
     while (statement = parseStatement()){
         statements.push_back(statement);
@@ -219,7 +220,7 @@ Statement * Parser::parseStatement() {
         (statement = parseIfStatement()) ||
         (statement = parseForStatement()) ||
         (statement = parseDeclarationStatement()) ||
-        (statement = parseIdentifierOrAssignmentStatement()) ||
+        (statement = parseIdentifierAssignmentStatement()) ||
         (statement = parseReturnStatement()))
         return statement;
     return nullptr;
@@ -280,7 +281,7 @@ Statement * Parser::parseIfStatement() {
     return new IfStatement(ifConditionAndBlock, elsifConditionsAndBlocks, elseCodeBlock, position);
 }
 
-//for_stmnt           :== "for", identifierExpression, "in", expression_or_range, code_block;
+//for_stmnt           :== "for", leftExpression, "in", expression_or_range, code_block;
 Statement * Parser::parseForStatement() {
     Position position = this->token->getPos();
     if(!this->consumeIf(FOR_TYPE)){
@@ -325,13 +326,13 @@ Statement * Parser::parseForStatement() {
     return new ForStatement(std::get<std::wstring>(name), expression, block, position);
 }
 
-// declaration         :== "vv ", identifierExpression, ["=", expression], ";";
+// declaration         :== "vv ", leftExpression, ["=", expression], ";";
 Statement * Parser::parseDeclarationStatement() {
     Position position = this->token->getPos();
     if(!this->consumeIf(VV_TYPE)){
         return nullptr;
     }
-    auto name = this->mustBe(IDENTIFIER_TYPE, L"Missing identifierExpression in declaration statement.");
+    auto name = this->mustBe(IDENTIFIER_TYPE, L"Missing leftExpression in declaration statement.");
 
     Expression * expression = nullptr;
     if(this->consumeIf(ASSIGN_TYPE)){
@@ -347,11 +348,11 @@ Statement * Parser::parseDeclarationStatement() {
 
 
 //identifier_stmnt, ["=", expression], ";"
-Statement * Parser::parseIdentifierOrAssignmentStatement() {
+Statement * Parser::parseIdentifierAssignmentStatement() {
     Position position = this->token->getPos();
 
-    Expression * identifierExpression;
-    if (!(identifierExpression = this->parseIdentifierDotExpression())) {
+    Statement * identifierStatement;
+    if (!(identifierStatement = this->parseIdentifierExpressionStatement())) {
         return nullptr;
     }
 
@@ -367,41 +368,55 @@ Statement * Parser::parseIdentifierOrAssignmentStatement() {
 
     this->mustBe(SEMICOLON_TYPE, L"Missing semicolon.");
 
-    return new IdentifierStatementAssign(identifierExpression, expression, position);//osobny obiekt assign, który opakowuje assign
+    if(expression == nullptr) {
+        return identifierStatement;
+    }
+
+    return new IdentifierStatementAssign(identifierStatement, expression, position);
+}
+
+Statement * Parser::parseIdentifierExpressionStatement() {
+    Position position = this->token->getPos();
+
+    Expression * identifierExpression;
+    if (!(identifierExpression = this->parseObjectAccessExpression())) {
+        return nullptr;
+    }
+
+    return new IdentifierExpressionStatement(identifierExpression, position);
 }
 
 //identifier_stmnt    :== part, {".", part};
-Expression * Parser::parseIdentifierDotExpression() {//ObjectAccess albo inna nazwa
+Expression * Parser::parseObjectAccessExpression() {
     Position position = this->token->getPos();
     Expression * leftIdentifierListCallExpression;
-    if (!(leftIdentifierListCallExpression = this->parseIdentifierListCallExpression())) {
+    if (!(leftIdentifierListCallExpression = this->parseIdentifierListIndexExpression())) {
         return nullptr;
     }
     while (this->consumeIf(DOT_TYPE)) {
         Position identifierPos = this->token->getPos();
         Expression * rightIdentifierListCallExpression;
-        if (!(rightIdentifierListCallExpression = this->parseIdentifierListCallExpression())) {
+        if (!(rightIdentifierListCallExpression = this->parseIdentifierListIndexExpression())) {
             this->handleSyntaxError(identifierPos, L"No identifier after dot.");
             break;
         }
-        leftIdentifierListCallExpression = new IdentifierDotExpression(leftIdentifierListCallExpression, rightIdentifierListCallExpression, identifierPos);
+        leftIdentifierListCallExpression = new ObjectAccessExpression(leftIdentifierListCallExpression, rightIdentifierListCallExpression, identifierPos);
     }
 
     return leftIdentifierListCallExpression;
 }
 
 //part                :== part_call, {"[", expression, "]"};
-Expression * Parser::parseIdentifierListCallExpression() {//IndexExpression, przerobić na drzewo
+Expression * Parser::parseIdentifierListIndexExpression() {
     Position position = this->token->getPos();
-    Expression * identifierFunctionCallExpression;
-    if (!(identifierFunctionCallExpression = this->parseIdentifierFunctionCallExpression())) {
+    Expression * leftExpression;
+    if (!(leftExpression = this->parseIdentifierFunctionCallExpression())) {
         return nullptr;
     }
-    std::vector<Expression *> expressions;
     while(this->consumeIf(L_SQR_BRACKET_TYPE)) {
         Position expressionPosition = this->token->getPos();
         if(Expression * expression = this->parseExpression()) {
-            expressions.push_back(expression);
+            leftExpression = new IdentifierListIndexExpression(leftExpression, expression, position);
         } else {
             this->handleSyntaxError(expressionPosition, L"Missing expression in list element call.");
         }
@@ -410,13 +425,11 @@ Expression * Parser::parseIdentifierListCallExpression() {//IndexExpression, prz
             break;
         }
     }
-    if (expressions.empty()) {
-        return  identifierFunctionCallExpression;
-    }
-    return new IdentifierListCallExpression(identifierFunctionCallExpression, expressions, position);
+
+    return leftExpression;
 }
 
-//part_call           :== identifierExpression, ["(", argument_list, ")"];
+//part_call           :== leftExpression, ["(", argument_list, ")"];
 Expression * Parser::parseIdentifierFunctionCallExpression() {
     Position position = this->token->getPos();
     bool isFunctionCall = false;
@@ -516,11 +529,11 @@ Expression *Parser::parseExpressionAnd() {
     return leftConditionExpression;
 }
 
-//bool_comp           :== expression_add, [comp_operator, expression_add];
+//bool_comp           :== expression_is, [comp_operator, expression_is];
 Expression *Parser::parseExpressionComp() {
     Position position = this->token->getPos();
     Expression * leftConditionExpression;
-    if (!(leftConditionExpression = this->parseExpressionAdd())) {
+    if (!(leftConditionExpression = this->parseExpressionIs())) {
         return nullptr;
     }
 
@@ -529,91 +542,21 @@ Expression *Parser::parseExpressionComp() {
         this->consumeIf(GREATER_TYPE) || this->consumeIf(GEQ_TYPE) || this->consumeIf(NEQ_TYPE)) {
         Position factorPos = this->token->getPos();
         Expression *rightConditionExpression;
-        if (!(rightConditionExpression = this->parseExpressionAdd())) {
+        if (!(rightConditionExpression = this->parseExpressionIs())) {
             this->handleSyntaxError(factorPos, L"No expression after comparison operator.");
         }
-        if (tokenType == LESS_TYPE) {
-            leftConditionExpression = new ExpressionCompLess(leftConditionExpression, rightConditionExpression, factorPos);
-        } else if (tokenType == GREATER_TYPE) {
-            leftConditionExpression = new ExpressionCompGreater(leftConditionExpression, rightConditionExpression, factorPos);
-        } else if (tokenType == LEQ_TYPE) {
-            leftConditionExpression = new ExpressionCompLeq(leftConditionExpression, rightConditionExpression, factorPos);
-        } else if (tokenType == GEQ_TYPE) {
-            leftConditionExpression = new ExpressionCompGeq(leftConditionExpression, rightConditionExpression, factorPos);
-        } else if (tokenType == EQ_TYPE) {
-            leftConditionExpression = new ExpressionCompEq(leftConditionExpression, rightConditionExpression, factorPos);
-        } else {
-            leftConditionExpression = new ExpressionCompNeq(leftConditionExpression, rightConditionExpression, factorPos);
-        }//mapa z konstruktorami, lambda
-
+        leftConditionExpression = lhs_rhs_expression_constructor_map.at(tokenType)(leftConditionExpression, rightConditionExpression, factorPos);
     }
 
     return leftConditionExpression;
 }
 
-//expression_add      :== expression_mul, {add_operator, expression_mul};
-Expression *Parser::parseExpressionAdd() {
-    Position position = this->token->getPos();
-    Expression * leftConditionExpression;
-    if (!(leftConditionExpression = this->parseExpressionMul())) {
-        return nullptr;
-    }
 
-    while (true) {
-        unsigned short tokenType = this->token->getTokenType();
-        if (!this->consumeIf(PLUS_TYPE) && !this->consumeIf(MINUS_TYPE)) {
-            break;
-        }
-        Position factorPos = this->token->getPos();
-        Expression * rightConditionExpression;
-        if (!(rightConditionExpression = this->parseExpressionMul())) {
-            this->handleSyntaxError(factorPos, L"No expression after addition operator.");
-            break;
-        }
-        if (tokenType == PLUS_TYPE) {
-            leftConditionExpression = new ExpressionAdd(leftConditionExpression, rightConditionExpression, factorPos);
-        } else {
-            leftConditionExpression = new ExpressionSub(leftConditionExpression, rightConditionExpression, factorPos);
-        }
-    }// przenieść z comp while
-
-    return leftConditionExpression;
-}
-
-//expression_mul      :== expression_is, {mul_operator, expression_is};
-Expression *Parser::parseExpressionMul() {
-    Position position = this->token->getPos();
-    Expression * leftConditionExpression;
-    if (!(leftConditionExpression = this->parseExpressionIs())) {
-        return nullptr;
-    }
-
-    while (true) {
-        unsigned short tokenType = this->token->getTokenType();
-        if (!this->consumeIf(MULTIPLY_TYPE) && !this->consumeIf(DIVIDE_TYPE)) {
-            break;
-        }
-        Position factorPos = this->token->getPos();
-        Expression * rightConditionExpression;
-        if (!(rightConditionExpression = this->parseExpressionIs())) {
-            this->handleSyntaxError(factorPos, L"No expression after multiplication operator.");
-            break;
-        }
-        if (tokenType == MULTIPLY_TYPE) {
-            leftConditionExpression = new ExpressionMul(leftConditionExpression, rightConditionExpression, factorPos);
-        } else {
-            leftConditionExpression = new ExpressionDiv(leftConditionExpression, rightConditionExpression, factorPos);
-        }
-    }// przenieść z comp while
-
-    return leftConditionExpression;
-}
-
-//expression_is       :== expression_to, [" is ",  type];
+//expression_is       :== expression_add, [" is ",  type];
 Expression *Parser::parseExpressionIs() {
     Position position = this->token->getPos();
     Expression * leftConditionExpression;
-    if (!(leftConditionExpression = this->parseExpressionTo())) {
+    if (!(leftConditionExpression = this->parseExpressionAdd())) {
         return nullptr;
     }
 
@@ -637,7 +580,54 @@ Expression *Parser::parseExpressionIs() {
         } else {
             this->handleSyntaxError(factorPos, L"No type after is keyword.");
         }
-    }//wyżej po dodaniach i mnożeniach, przed przyrównaniem
+    }
+
+    return leftConditionExpression;
+}
+
+
+//expression_add      :== expression_mul, {add_operator, expression_mul};
+Expression *Parser::parseExpressionAdd() {
+    Position position = this->token->getPos();
+    Expression * leftConditionExpression;
+    if (!(leftConditionExpression = this->parseExpressionMul())) {
+        return nullptr;
+    }
+
+    unsigned short tokenType = this->token->getTokenType();
+    while (this->consumeIf(PLUS_TYPE) || this->consumeIf(MINUS_TYPE)) {
+        Position factorPos = this->token->getPos();
+        Expression * rightConditionExpression;
+        if (!(rightConditionExpression = this->parseExpressionAnd())) {
+            this->handleSyntaxError(factorPos, L"No expression after addition operator.");
+            break;
+        }
+        leftConditionExpression = lhs_rhs_expression_constructor_map.at(tokenType)(leftConditionExpression, rightConditionExpression, factorPos);
+        tokenType = this->token->getTokenType();
+    }
+
+    return leftConditionExpression;
+}
+
+//expression_mul      :== expression_to, {mul_operator, expression_to};
+Expression *Parser::parseExpressionMul() {
+    Position position = this->token->getPos();
+    Expression * leftConditionExpression;
+    if (!(leftConditionExpression = this->parseExpressionTo())) {
+        return nullptr;
+    }
+
+    unsigned short tokenType = this->token->getTokenType();
+    while (this->consumeIf(MULTIPLY_TYPE) || this->consumeIf(DIVIDE_TYPE)) {
+        Position factorPos = this->token->getPos();
+        Expression * rightConditionExpression;
+        if (!(rightConditionExpression = this->parseExpressionAnd())) {
+            this->handleSyntaxError(factorPos, L"No expression after multiplication operator.");
+            break;
+        }
+        leftConditionExpression = lhs_rhs_expression_constructor_map.at(tokenType)(leftConditionExpression, rightConditionExpression, factorPos);
+        tokenType = this->token->getTokenType();
+    }
 
     return leftConditionExpression;
 }
@@ -712,7 +702,7 @@ Expression *Parser::parseAccessedValue() {
     Expression * expression;
     if (expression = this->parseExpressionValueList()) {
     } else if (expression = this->parseExpressionValueLiteral()) {
-    } else if (expression = this->parseIdentifierDotExpression()){
+    } else if (expression = this->parseObjectAccessExpression()){
     } else {//osobna metoda
         //"(", expression, ")";
         if(!consumeIf(L_BRACKET_TYPE)) {

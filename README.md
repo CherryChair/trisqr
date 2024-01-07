@@ -448,15 +448,15 @@ Im większa liczba, tym wyższy priorytet.
 - range               :== "range" "(", expression, ",", expression, ")"
 - expression          :== bool_and, {"||",  bool_and};
 - bool_and            :== bool_comp , {"&&",  bool_comp};
-- bool_comp           :== expression_add, [comp_operator, expression_add];
+- bool_comp           :== expression_is, [comp_operator, expression_is];
 - declaration         :== "vv ", identifier, ["=", expression], ";";
 - identifier_stmnt    :== part, {".", part};
 - part                :== part_call, {"[", expression, "]"};
 - part_call           :== identifier, ["(", argument_list, ")"];
 - argument_list       :== [expression, {",", expression}];
+- expression_is       :== expression_add, [" is ",  type];
 - expression_add      :== expression_mul, {add_operator, expression_mul};
-- expression_mul      :== expression_is, {mul_operator, expression_is};
-- expression_is       :== expression_to, [" is ",  type];
+- expression_mul      :== expression_to, {mul_operator, expression_to};
 - expression_to       :== nagated_value, [" to ",  type];
 - negated_value       :== [negation_operator], accessed_value;
 - accessed_value      :== value

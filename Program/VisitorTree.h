@@ -10,7 +10,8 @@
 
 class VisitorTree : public Visitor {
 private:
-    std::vector<std::wstring> tree;//liczba wcięć i printować, dostać streama
+    std::vector<std::wstring> tree;//TODO liczba wcięć i printować, dostać streama
+    unsigned int tabs = 0;
 public:
     void visit(ExpressionOr * e);
     void visit(ExpressionAnd * e);
@@ -42,9 +43,10 @@ public:
 
     void visit(ConditionAndBlock * cb);
 
-    void visit(IdentifierDotExpression * s);
+    void visit(ObjectAccessExpression * s);
+    void visit(IdentifierExpressionStatement * s);
     void visit(IdentifierStatementAssign * s);
-    void visit(IdentifierListCallExpression * s);
+    void visit(IdentifierListIndexExpression * s);
     void visit(IdentifierFunctionCallExpression * s);
     void visit(IdentifierExpression * s);
 

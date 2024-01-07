@@ -46,9 +46,9 @@ class Statement;
 
 class ConditionAndBlock;
 
-class IdentifierDotExpression;
+class ObjectAccessExpression;
 class IdentifierStatementAssign;
-class IdentifierListCallExpression;
+class IdentifierListIndexExpression;
 class IdentifierFunctionCallExpression;
 class IdentifierExpression;
 
@@ -567,30 +567,30 @@ public:
     }
 };
 
-class IdentifierListCallExpression : public Expression {
+class IdentifierListIndexExpression : public Expression {
 private:
-    Expression * identifierExpression;
-    std::vector<Expression *> expressions;
+    Expression * leftExpression;
+    Expression * indexExpression;
 public:
-    IdentifierListCallExpression(Expression * identifierExpression, std::vector<Expression *> expressions, const Position & position)
-            : identifierExpression(identifierExpression), expressions(expressions) { this->position=position;};
+    IdentifierListIndexExpression(Expression * leftExpression, Expression * indexExpression, const Position & position)
+            : leftExpression(leftExpression), indexExpression(indexExpression) { this->position=position;};
     void accept(Visitor& visitor);
 
-    Expression *getIdentifierExpression() const {
-        return identifierExpression;
+    Expression *getLeftExpression() const {
+        return leftExpression;
     }
 
-    std::vector<Expression *> &getExpressions(){
-        return expressions;
+    Expression *getIndexExpression() const {
+        return leftExpression;
     }
 };
 
-class IdentifierDotExpression : public Expression {
+class ObjectAccessExpression : public Expression {
 private:
     Expression * leftExpression;
     Expression * rightExpression;
 public:
-    IdentifierDotExpression(Expression * leftExpression, Expression * rightExpression, const Position & position)
+    ObjectAccessExpression(Expression * leftExpression, Expression * rightExpression, const Position & position)
             : leftExpression(leftExpression), rightExpression(rightExpression) { this->position=position;};
     void accept(Visitor& visitor);
 
@@ -603,21 +603,34 @@ public:
     }
 };
 
-class IdentifierStatementAssign : public Statement {//osobne identifierstatemewnt z expression
+class IdentifierStatementAssign : public Statement {
 private:
-    Expression * identifierExpression;
+    Statement * identifierStatement;
     Expression * expression;
 public:
-    IdentifierStatementAssign(Expression * identifierExpression, Expression * expression, const Position & position)
-            : identifierExpression(identifierExpression), expression(expression) { this->position=position;};
+    IdentifierStatementAssign(Statement * identifierStatement, Expression * expression, const Position & position)
+            : identifierStatement(identifierStatement), expression(expression) { this->position=position;};
     void accept(Visitor& visitor);
 
-    Expression *getIdentifierExpression() const {
-        return identifierExpression;
+    Statement *getIdentifierStatement() const {
+        return identifierStatement;
     }
 
     Expression *getExpression() const {
         return expression;
+    }
+};
+
+class IdentifierExpressionStatement : public Statement {
+private:
+    Expression * identifierExpression;
+public:
+    IdentifierExpressionStatement(Expression * identifierExpression, const Position & position)
+            : identifierExpression(identifierExpression) { this->position=position;};
+    void accept(Visitor& visitor);
+
+    Expression *getIdentifierExpression() const {
+        return identifierExpression;
     }
 };
 
@@ -653,7 +666,7 @@ class Parameter : public Visitable {
 protected:
     std::wstring name;
 public:
-    Parameter(const std::wstring &name) : name(name) {}
+    Parameter(const std::wstring &name, const Position & position) : name(name) {this->position = position;}
     Parameter() {}
     virtual ~Parameter() =default;
 
@@ -667,7 +680,7 @@ class FigureParameter : public Parameter {
 private:
     Expression* value;
 public:
-    FigureParameter(const std::wstring & name, Expression * value) : value(value) {this->name = name;};
+    FigureParameter(const std::wstring & name, Expression * value, const Position & position) : value(value) {this->name = name; this->position=position;};
     void accept(Visitor& visitor);
 
     Expression *getValue() const {

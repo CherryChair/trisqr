@@ -321,12 +321,18 @@ void VisitorTree::visit(ConditionAndBlock * cb) {
     tree.push_back(L"END ConditionAndBlock");
 }
 
-
+void VisitorTree::visit(IdentifierExpressionStatement * s) {
+    tree.push_back(L"IdentifierExpressionStatement:");
+    tree.push_back(L"BEGIN IdentifierExpressionStatement.IdentifierExpressionStatement");
+    s->getIdentifierExpression()->accept(*this);
+    tree.push_back(L"END IdentifierExpressionStatement.IdentifierExpressionStatement");
+    tree.push_back(L"END IdentifierExpressionStatement");
+}
 void VisitorTree::visit(IdentifierStatementAssign * s) {
     tree.push_back(L"IdentifierStatementAssign:");
-    tree.push_back(L"BEGIN IdentifierStatementAssign.IdentifierExpression");
-    s->getIdentifierExpression()->accept(*this);
-    tree.push_back(L"END IdentifierStatementAssign.IdentifierExpression");
+    tree.push_back(L"BEGIN IdentifierStatementAssign.IdentifierExpressionStatement");
+    s->getIdentifierStatement()->accept(*this);
+    tree.push_back(L"END IdentifierStatementAssign.IdentifierExpressionStatement");
 
     tree.push_back(L"BEGIN IdentifierStatementAssign.Expression");
     if (auto expression = s->getExpression()) {
@@ -337,34 +343,32 @@ void VisitorTree::visit(IdentifierStatementAssign * s) {
     tree.push_back(L"END IdentifierStatementAssign.Expression");
     tree.push_back(L"END IdentifierStatementAssign");
 }
-void VisitorTree::visit(IdentifierDotExpression * s) {
-    tree.push_back(L"IdentifierDotExpression:");
-    tree.push_back(L"BEGIN IdentifierDotExpression.LeftStatement");
+void VisitorTree::visit(ObjectAccessExpression * s) {
+    tree.push_back(L"ObjectAccessExpression:");
+    tree.push_back(L"BEGIN ObjectAccessExpression.LeftStatement");
     s->getLeftExpression()->accept(*this);
-    tree.push_back(L"END IdentifierDotExpression.LeftStatement");
+    tree.push_back(L"END ObjectAccessExpression.LeftStatement");
 
-    tree.push_back(L"BEGIN IdentifierDotExpression.RightStatement");
+    tree.push_back(L"BEGIN ObjectAccessExpression.RightStatement");
     if (auto rightStatement = s->getRightExpression()) {
         rightStatement->accept(*this);
     } else {
         tree.push_back(L"null");
     }
-    tree.push_back(L"END IdentifierDotExpression.RightStatement");
-    tree.push_back(L"END IdentifierDotExpression");
+    tree.push_back(L"END ObjectAccessExpression.RightStatement");
+    tree.push_back(L"END ObjectAccessExpression");
 }
-void VisitorTree::visit(IdentifierListCallExpression * s) {
-    tree.push_back(L"IdentifierListCallExpression:");
-    tree.push_back(L"BEGIN IdentifierListCallExpression.Identifier");
-    s->getIdentifierExpression()->accept(*this);
-    tree.push_back(L"END IdentifierListCallExpression.Identifier");
+void VisitorTree::visit(IdentifierListIndexExpression * s) {
+    tree.push_back(L"IdentifierListIndexExpression:");
+    tree.push_back(L"BEGIN IdentifierListIndexExpression.Identifier");
+    s->getLeftExpression()->accept(*this);
+    tree.push_back(L"END IdentifierListIndexExpression.Identifier");
 
-    auto expressions = s->getExpressions();
-    tree.push_back(L"BEGIN IdentifierListCallExpression.Expressions");
-    for (auto expression : expressions) {
-        expression->accept(*this);
-    }
-    tree.push_back(L"END IdentifierListCallExpression.Expressions");
-    tree.push_back(L"END IdentifierListCallExpression");
+    auto expression = s->getIndexExpression();
+    tree.push_back(L"BEGIN IdentifierListIndexExpression.Expressions");
+    expression->accept(*this);
+    tree.push_back(L"END IdentifierListIndexExpression.Expressions");
+    tree.push_back(L"END IdentifierListIndexExpression");
 }
 void VisitorTree::visit(IdentifierFunctionCallExpression * s) {
     tree.push_back(L"IdentifierFunctionCallExpression:");
@@ -445,10 +449,10 @@ void VisitorTree::visit(FuncDeclaration* fd) {
     tree.push_back(L"END Func");
 }
 void VisitorTree::visit(Program* p) {
+    this->tabs++;
     tree.push_back(L"Program:");
     auto figures = p->getFigures();
     auto functions = p->getFunctions();
-    tree.push_back(L"BEGIN Program.Figures");
     for(auto figure: figures) {
         figure.second->accept(*this);
     }
@@ -459,6 +463,7 @@ void VisitorTree::visit(Program* p) {
     }
     tree.push_back(L"END Program.Functions");
     tree.push_back(L"END Program");
+    this->tabs--;
 }
 
 void VisitorTree::printTree() {

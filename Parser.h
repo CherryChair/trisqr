@@ -7,12 +7,65 @@
 #include <unordered_map>
 #include <string>
 #include <optional>
+#include <functional>
 #include "lexer.h"
 #include "Program/Program.h"
 
 #ifndef LEXER_PARSER_H
 #define LEXER_PARSER_H
 
+static const std::unordered_map<unsigned short, std::function<Expression*(Expression *, Expression *, const Position &)>> lhs_rhs_expression_constructor_map= {
+        {LESS_TYPE, [](Expression * leftConditionExpression, Expression * rightConditionExpression, const Position & factorPos)
+                    {
+                        return new ExpressionCompLess(leftConditionExpression, rightConditionExpression, factorPos);
+                    }
+        },
+        {GREATER_TYPE, [](Expression * leftConditionExpression, Expression * rightConditionExpression, const Position & factorPos)
+                    {
+                        return new ExpressionCompGreater(leftConditionExpression, rightConditionExpression, factorPos);
+                    }
+        },
+        {LEQ_TYPE, [](Expression * leftConditionExpression, Expression * rightConditionExpression, const Position & factorPos)
+                    {
+                        return new ExpressionCompLeq(leftConditionExpression, rightConditionExpression, factorPos);
+                    }
+        },
+        {GEQ_TYPE, [](Expression * leftConditionExpression, Expression * rightConditionExpression, const Position & factorPos)
+                    {
+                        return new ExpressionCompGeq(leftConditionExpression, rightConditionExpression, factorPos);
+                    }
+        },
+        {EQ_TYPE, [](Expression * leftConditionExpression, Expression * rightConditionExpression, const Position & factorPos)
+                    {
+                        return new ExpressionCompEq(leftConditionExpression, rightConditionExpression, factorPos);
+                    }
+        },
+        {NEQ_TYPE, [](Expression * leftConditionExpression, Expression * rightConditionExpression, const Position & factorPos)
+                    {
+                        return new ExpressionCompNeq(leftConditionExpression, rightConditionExpression, factorPos);
+                    }
+        },
+        {MULTIPLY_TYPE, [](Expression * leftConditionExpression, Expression * rightConditionExpression, const Position & factorPos)
+                  {
+                      return new ExpressionMul(leftConditionExpression, rightConditionExpression, factorPos);
+                  }
+        },
+        {DIVIDE_TYPE, [](Expression * leftConditionExpression, Expression * rightConditionExpression, const Position & factorPos)
+                  {
+                      return new ExpressionDiv(leftConditionExpression, rightConditionExpression, factorPos);
+                  }
+        },
+        {PLUS_TYPE, [](Expression * leftConditionExpression, Expression * rightConditionExpression, const Position & factorPos)
+                        {
+                            return new ExpressionAdd(leftConditionExpression, rightConditionExpression, factorPos);
+                        }
+        },
+        {MINUS_TYPE, [](Expression * leftConditionExpression, Expression * rightConditionExpression, const Position & factorPos)
+                        {
+                            return new ExpressionSub(leftConditionExpression, rightConditionExpression, factorPos);
+                        }
+        },
+};
 
 class Parser {
 public:
@@ -43,9 +96,10 @@ private:
     Statement * parseIfStatement();
     Statement * parseForStatement();
     Statement * parseDeclarationStatement();
-    Statement * parseIdentifierOrAssignmentStatement();
-    Expression * parseIdentifierDotExpression();
-    Expression * parseIdentifierListCallExpression();
+    Statement * parseIdentifierAssignmentStatement();
+    Statement * parseIdentifierExpressionStatement();
+    Expression * parseObjectAccessExpression();
+    Expression * parseIdentifierListIndexExpression();
     Expression * parseIdentifierFunctionCallExpression();
     Expression * parseIdentifierExpression();
     Statement * parseReturnStatement();
@@ -53,9 +107,9 @@ private:
     Expression * parseExpression();
     Expression * parseExpressionAnd();
     Expression * parseExpressionComp();
+    Expression * parseExpressionIs();
     Expression * parseExpressionAdd();
     Expression * parseExpressionMul();
-    Expression * parseExpressionIs();
     Expression * parseExpressionTo();
     Expression * parseExpressionNeg();
     Expression * parseAccessedValue();

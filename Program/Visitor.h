@@ -39,9 +39,10 @@ public:
 
     virtual void visit(ConditionAndBlock * cb)= 0 ;
 
-    virtual void visit(IdentifierDotExpression * s) = 0;
+    virtual void visit(ObjectAccessExpression * s) = 0;
+    virtual void visit(IdentifierExpressionStatement * s) = 0;
     virtual void visit(IdentifierStatementAssign * s) = 0;
-    virtual void visit(IdentifierListCallExpression * s) = 0;
+    virtual void visit(IdentifierListIndexExpression * s) = 0;
     virtual void visit(IdentifierFunctionCallExpression * s) = 0;
     virtual void visit(IdentifierExpression * s) = 0;
 

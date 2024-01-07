@@ -36,9 +36,10 @@ void ReturnStatement::accept(Visitor & visitor) {visitor.visit(this);}
 
 void ConditionAndBlock::accept(Visitor & visitor) {visitor.visit(this);}
 
-void IdentifierDotExpression::accept(Visitor & visitor) {visitor.visit(this);}
+void ObjectAccessExpression::accept(Visitor & visitor) {visitor.visit(this);}
+void IdentifierExpressionStatement::accept(Visitor & visitor) {visitor.visit(this);}
 void IdentifierStatementAssign::accept(Visitor & visitor) {visitor.visit(this);}
-void IdentifierListCallExpression::accept(Visitor & visitor) {visitor.visit(this);}
+void IdentifierListIndexExpression::accept(Visitor & visitor) {visitor.visit(this);}
 void IdentifierFunctionCallExpression::accept(Visitor & visitor) {visitor.visit(this);}
 void IdentifierExpression::accept(Visitor & visitor) {visitor.visit(this);}
 
