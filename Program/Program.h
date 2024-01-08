@@ -74,598 +74,337 @@ class Visitable {
 public:
     virtual void accept(Visitor& visitor) = 0;
     virtual ~Visitable() = default;
-    Position getPosition() {return this->position;}
-protected:
     Position position;
 };
 
 class Statement : public Visitable {
 public:
-    Statement(){}
     virtual ~Statement() = default;
+    Statement() {}
+    Statement(const Statement&) =delete;
+    Statement& operator=(const Statement&) =delete;
+    Statement(Statement&&) =default;
+    Statement& operator=(Statement&&) =default;
 };
 
 class Expression : public Visitable {
 public:
-    Expression(){}
     virtual ~Expression() = default;
 };
 
 class ExpressionOr : public Expression{
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ExpressionOr(Expression * leftExpression, Expression * rightExpression, const Position & position)
-        : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionOr(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+        : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
     void accept(Visitor& visitor);
-
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class ExpressionAnd : public Expression{
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ExpressionAnd(Expression * leftExpression, Expression * rightExpression, const Position & position)
-            : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionAnd(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
     void accept(Visitor& visitor);
-
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class ExpressionCompEq : public Expression{
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ExpressionCompEq(Expression * leftExpression, Expression * rightExpression, const Position & position)
-            : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionCompEq(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
     void accept(Visitor& visitor);
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class ExpressionCompNeq : public Expression{
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ExpressionCompNeq(Expression * leftExpression, Expression * rightExpression, const Position & position)
-            : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionCompNeq(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
     void accept(Visitor& visitor);
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class ExpressionCompGeq : public Expression{
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ExpressionCompGeq(Expression * leftExpression, Expression * rightExpression, const Position & position)
-            : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionCompGeq(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
     void accept(Visitor& visitor);
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class ExpressionCompLeq : public Expression{
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ExpressionCompLeq(Expression * leftExpression, Expression * rightExpression, const Position & position)
-            : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionCompLeq(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
     void accept(Visitor& visitor);
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class ExpressionCompGreater : public Expression{
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ExpressionCompGreater(Expression * leftExpression, Expression * rightExpression, const Position & position)
-            : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionCompGreater(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
     void accept(Visitor& visitor);
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class ExpressionCompLess : public Expression{
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ExpressionCompLess(Expression * leftExpression, Expression * rightExpression, const Position & position)
-            : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionCompLess(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
     void accept(Visitor& visitor);
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class ExpressionAdd : public Expression{
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ExpressionAdd(Expression * leftExpression, Expression * rightExpression, const Position & position)
-            : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionAdd(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
     void accept(Visitor& visitor);
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class ExpressionSub : public Expression{
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ExpressionSub(Expression * leftExpression, Expression * rightExpression, const Position & position)
-            : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionSub(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
     void accept(Visitor& visitor);
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class ExpressionMul : public Expression{
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ExpressionMul(Expression * leftExpression, Expression * rightExpression, const Position & position)
-            : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionMul(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
     void accept(Visitor& visitor);
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class ExpressionDiv : public Expression{
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ExpressionDiv(Expression * leftExpression, Expression * rightExpression, const Position & position)
-            : leftExpression(leftExpression), rightExpression(rightExpression) {this->position = position;}
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionDiv(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
     void accept(Visitor& visitor);
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class ExpressionIs : public Expression{
-private:
-    Expression * expression;
-    variable_type checkedType;
 public:
-    ExpressionIs(Expression * expression, variable_type checkedType, const Position & position)
-            : expression(expression), checkedType(checkedType) {this->position = position;}
+    std::unique_ptr<Expression> expression;
+    variable_type checkedType;
+    ExpressionIs(std::unique_ptr<Expression> expression, variable_type checkedType, const Position & position)
+            : expression(std::move(expression)), checkedType(checkedType) {this->position = position;}
     void accept(Visitor& visitor);
-
-    Expression *getExpression() const {
-        return expression;
-    }
-
-    variable_type getCheckedType() const {
-        return checkedType;
-    }
 };
 
 class ExpressionTo : public Expression {
-private:
-    Expression * expression;
-    variable_type conversionType;
 public:
-    ExpressionTo(Expression * expression, variable_type conversionType, const Position & position)
-            : expression(expression), conversionType(conversionType) {this->position = position;}
+    std::unique_ptr<Expression> expression;
+    variable_type conversionType;
+    ExpressionTo(std::unique_ptr<Expression> expression, variable_type conversionType, const Position & position)
+            : expression(std::move(expression)), conversionType(conversionType) {this->position = position;}
     void accept(Visitor& visitor);
-
-    Expression *getExpression() const {
-        return expression;
-    }
-
-    variable_type getConversionType() const {
-        return conversionType;
-    }
 };
 
 class ExpressionNeg : public Expression {
-private:
-    Expression * expression;
 public:
-    ExpressionNeg(Expression * expression, const Position & position)
-            : expression(expression) {this->position = position;}
+    std::unique_ptr<Expression> expression;
+    ExpressionNeg(std::unique_ptr<Expression> expression, const Position & position)
+            : expression(std::move(expression)) {this->position = position;}
     void accept(Visitor& visitor);
-    Expression *getExpression() const {
-        return expression;
-    }
 };
 
 class ExpressionNegMinus : public Expression {
-private:
-    Expression * expression;
 public:
-    ExpressionNegMinus(Expression * expression, const Position & position)
-            : expression(expression) {this->position = position;}
+    std::unique_ptr<Expression> expression;
+    ExpressionNegMinus(std::unique_ptr<Expression> expression, const Position & position)
+            : expression(std::move(expression)) {this->position = position;}
     void accept(Visitor& visitor);
-    Expression *getExpression() const {
-        return expression;
-    }
 };
 
 class ExpressionValueList : public Expression {
-private:
-    std::vector<Expression *> expressions;
 public:
-    ExpressionValueList(std::vector<Expression *> expressions, const Position & position)
-        : expressions(expressions) {this->position = position;};
+    std::vector<std::unique_ptr<Expression>> expressions;
+    ExpressionValueList(std::vector<std::unique_ptr<Expression>> expressions, const Position & position)
+        : expressions(std::move(expressions)) {this->position = position;};
     void accept(Visitor& visitor);
-
-    std::vector<Expression *> &getExpressions() {
-        return expressions;
-    }
 };
 
 class ExpressionValuePoint : public Expression {
-private:
-    Expression * xCoord;
-    Expression * yCoord;
 public:
-    ExpressionValuePoint(Expression * xCoord, Expression * yCoord, const Position & position)
-    : xCoord(xCoord), yCoord(yCoord) {this->position = position;};
+    std::unique_ptr<Expression> xCoord;
+    std::unique_ptr<Expression> yCoord;
+    ExpressionValuePoint(std::unique_ptr<Expression> xCoord, std::unique_ptr<Expression> yCoord, const Position & position)
+    : xCoord(std::move(xCoord)), yCoord(std::move(yCoord)) {this->position = position;};
     void accept(Visitor& visitor);
-
-    Expression *getXCoord() const {
-        return xCoord;
-    }
-
-    Expression *getYCoord() const {
-        return yCoord;
-    }
 };
 
 class ExpressionValueLiteral : public Expression {
-private:
-    std::variant<int, double, std::wstring, bool, std::monostate> value;
 public:
+    std::variant<int, double, std::wstring, bool, std::monostate> value;
     template<typename T>
     ExpressionValueLiteral(T value, const Position & position) : value(value) {this->position = position;};
     void accept(Visitor& visitor);
-
-    const std::variant<int, double, std::wstring, bool, std::monostate> &getValue() const {
-        return value;
-    }
 };
 
 class ExpressionValueBrackets : public Expression {
-private:
-    Expression * expression;
 public:
-    ExpressionValueBrackets(Expression * expression, const Position & position)
-    : expression(expression) {this->position = position;};
+    std::unique_ptr<Expression> expression;
+    ExpressionValueBrackets(std::unique_ptr<Expression> expression, const Position & position)
+    : expression(std::move(expression)) {this->position = position;};
     void accept(Visitor& visitor);
-
-    Expression *getExpression() const {
-        return expression;
-    }
 };
 
 class ConditionAndBlock : public Visitable{
-private:
-    Expression * condition;
-    CodeBlock * block;
 public:
-    ConditionAndBlock(Expression * condition, CodeBlock * block) : condition(condition), block(block) {};
+    std::unique_ptr<Expression> condition;
+    std::unique_ptr<CodeBlock> block;
+    ConditionAndBlock(std::unique_ptr<Expression> condition, std::unique_ptr<CodeBlock> block) : condition(std::move(condition)), block(std::move(block)) {};
     void accept(Visitor& visitor);
-
-    Expression *getCondition() const {
-        return condition;
-    }
-
-    CodeBlock *getBlock() const {
-        return block;
-    }
-
 };
 
 class WhileStatement : public Statement {
-private:
-    ConditionAndBlock * conditionAndBlock;
 public:
-    WhileStatement(ConditionAndBlock * conditionAndBlock, const Position & position) : conditionAndBlock(conditionAndBlock) {this->position = position;};
+    std::unique_ptr<ConditionAndBlock> conditionAndBlock;
+    WhileStatement(std::unique_ptr<ConditionAndBlock> conditionAndBlock, const Position & position) : conditionAndBlock(std::move(conditionAndBlock)) {this->position = position;};
     void accept(Visitor& visitor);
-
-    ConditionAndBlock *getConditionAndBlock() const {
-        return conditionAndBlock;
-    }
 };
 
 class IfStatement : public Statement {
-private:
-    ConditionAndBlock * ifConditionAndBlock;
-    std::vector<ConditionAndBlock*> elsifConditionsAndBlocks;
-    CodeBlock * elseCodeBlock;
 public:
-    IfStatement(ConditionAndBlock * ifConditionAndBlock, std::vector<ConditionAndBlock*> elsifConditionsAndBlocks, CodeBlock * elseCodeBlock, const Position & position)
-            : ifConditionAndBlock(ifConditionAndBlock), elsifConditionsAndBlocks(elsifConditionsAndBlocks), elseCodeBlock(elseCodeBlock){ this->position = position;};
+    std::unique_ptr<ConditionAndBlock> ifConditionAndBlock;
+    std::vector<std::unique_ptr<ConditionAndBlock>> elsifConditionsAndBlocks;
+    std::unique_ptr<CodeBlock> elseCodeBlock;
+    IfStatement(std::unique_ptr<ConditionAndBlock> ifConditionAndBlock, std::vector<std::unique_ptr<ConditionAndBlock>> elsifConditionsAndBlocks, std::unique_ptr<CodeBlock> elseCodeBlock, const Position & position)
+            : ifConditionAndBlock(std::move(ifConditionAndBlock)), elsifConditionsAndBlocks(std::move(elsifConditionsAndBlocks)), elseCodeBlock(std::move(elseCodeBlock)){ this->position = position;};
     void accept(Visitor& visitor);
-
-    ConditionAndBlock *getIfConditionAndBlock() const {
-        return ifConditionAndBlock;
-    }
-
-    std::vector<ConditionAndBlock *> &getElsifConditionsAndBlocks() {
-        return elsifConditionsAndBlocks;
-    }
-
-    CodeBlock *getElseCodeBlock() const {
-        return elseCodeBlock;
-    }
 };
 
 class ForStatement : public Statement {
-private:
-    const std::wstring identifier;
-    Expression * expression;
-    CodeBlock * block;
 public:
-    ForStatement(const std::wstring & identifier, Expression * expression, CodeBlock * block, const Position & position) :
-            identifier(identifier), expression(expression), block(block) {this->position = position;};
+    const std::wstring identifier;
+    std::unique_ptr<Expression> expression;
+    std::unique_ptr<CodeBlock> block;
+    ForStatement(const std::wstring & identifier, std::unique_ptr<Expression> expression, std::unique_ptr<CodeBlock> block, const Position & position) :
+            identifier(identifier), expression(std::move(expression)), block(std::move(block)) {this->position = position;};
     void accept(Visitor& visitor);
-
-    const std::wstring &getIdentifier() const {
-        return identifier;
-    }
-
-    Expression *getExpression() const {
-        return expression;
-    }
-
-    CodeBlock *getBlock() const {
-        return block;
-    }
 };
 
 class ForRangeStatement : public Statement {
-private:
-    const std::wstring identifier;
-    Expression * leftExpression;
-    Expression * rightExpression;
-    CodeBlock * block;
 public:
-    ForRangeStatement(const std::wstring & identifier, Expression * leftExpression, Expression * rightExpression, CodeBlock * block, const Position & position) :
-            identifier(identifier), leftExpression(leftExpression), rightExpression(rightExpression), block(block) {this->position = position;};
+    const std::wstring identifier;
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    std::unique_ptr<CodeBlock> block;
+    ForRangeStatement(const std::wstring & identifier, std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, std::unique_ptr<CodeBlock> block, const Position & position) :
+            identifier(identifier), leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)), block(std::move(block)) {this->position = position;};
     void accept(Visitor& visitor);
 
-    const std::wstring &getIdentifier() const {
-        return identifier;
-    }
-
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
-
-    CodeBlock *getBlock() const {
-        return block;
-    }
 };
 
 class DeclarationStatement : public Statement {
-private:
-    const std::wstring identifierName;
-    Expression * expression;
 public:
-    DeclarationStatement(const std::wstring & identifierName, Expression * expression, const Position & position) : identifierName(identifierName), expression(expression) {this->position=position;};
+    const std::wstring identifierName;
+    std::unique_ptr<Expression> expression;
+    DeclarationStatement(const std::wstring & identifierName, std::unique_ptr<Expression> expression, const Position & position) : identifierName(identifierName), expression(std::move(expression)) {this->position=position;};
     void accept(Visitor& visitor);
-
-    const std::wstring &getIdentifierName() const {
-        return identifierName;
-    }
-
-    Expression *getExpression() const {
-        return expression;
-    }
 };
 
 class IdentifierExpression : public Expression {
-private:
-    const std::wstring identifierName;
 public:
+    const std::wstring identifierName;
     IdentifierExpression(const std::wstring & identifierName, const Position & position)
             : identifierName(identifierName) {this->position=position;};
     void accept(Visitor& visitor);
-
-    const std::wstring &getIdentifierName() const {
-        return identifierName;
-    }
 };
 
 class IdentifierFunctionCallExpression : public Expression {
-private:
-    Expression * identifierExpression;
-    std::vector<Expression *> expressions;
 public:
-    IdentifierFunctionCallExpression(Expression * identifierExpression, std::vector<Expression *> expressions,
+    std::unique_ptr<Expression> identifierExpression;
+    std::vector<std::unique_ptr<Expression>> expressions;
+    IdentifierFunctionCallExpression(std::unique_ptr<Expression> identifierExpression, std::vector<std::unique_ptr<Expression>> expressions,
                                      const Position & position)
-            : identifierExpression(identifierExpression), expressions(expressions) { this->position=position;};
+            : identifierExpression(std::move(identifierExpression)), expressions(std::move(expressions)) { this->position=position;};
     void accept(Visitor& visitor);
-
-    Expression *getIdentifierExpression() const {
-        return identifierExpression;
-    }
-
-    std::vector<Expression *> &getExpressions() {
-        return expressions;
-    }
 };
 
 class IdentifierListIndexExpression : public Expression {
-private:
-    Expression * leftExpression;
-    Expression * indexExpression;
 public:
-    IdentifierListIndexExpression(Expression * leftExpression, Expression * indexExpression, const Position & position)
-            : leftExpression(leftExpression), indexExpression(indexExpression) { this->position=position;};
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> indexExpression;
+    IdentifierListIndexExpression(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> indexExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), indexExpression(std::move(indexExpression)) { this->position=position;};
     void accept(Visitor& visitor);
-
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getIndexExpression() const {
-        return indexExpression;
-    }
 };
 
 class ObjectAccessExpression : public Expression {
-private:
-    Expression * leftExpression;
-    Expression * rightExpression;
 public:
-    ObjectAccessExpression(Expression * leftExpression, Expression * rightExpression, const Position & position)
-            : leftExpression(leftExpression), rightExpression(rightExpression) { this->position=position;};
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ObjectAccessExpression(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) { this->position=position;};
     void accept(Visitor& visitor);
-
-    Expression *getLeftExpression() const {
-        return leftExpression;
-    }
-
-    Expression *getRightExpression() const {
-        return rightExpression;
-    }
 };
 
 class IdentifierStatementAssign : public Statement {
-private:
-    Statement * identifierStatement;
-    Expression * expression;
 public:
-    IdentifierStatementAssign(Statement * identifierStatement, Expression * expression, const Position & position)
-            : identifierStatement(identifierStatement), expression(expression) { this->position=position;};
+    std::unique_ptr<Statement> identifierStatement;
+    std::unique_ptr<Expression> expression;
+    IdentifierStatementAssign(std::unique_ptr<Statement> identifierStatement, std::unique_ptr<Expression> expression, const Position & position)
+            : identifierStatement(std::move(identifierStatement)), expression(std::move(expression)) { this->position=position;};
     void accept(Visitor& visitor);
-
-    Statement *getIdentifierStatement() const {
-        return identifierStatement;
-    }
-
-    Expression *getExpression() const {
-        return expression;
-    }
 };
 
 class IdentifierExpressionStatement : public Statement {
-private:
-    Expression * identifierExpression;
 public:
-    IdentifierExpressionStatement(Expression * identifierExpression, const Position & position)
-            : identifierExpression(identifierExpression) { this->position=position;};
+    std::unique_ptr<Expression> identifierExpression;
+    IdentifierExpressionStatement(std::unique_ptr<Expression> identifierExpression, const Position & position) : identifierExpression(std::move(identifierExpression))
+    {
+        this->position=position;
+    };
     void accept(Visitor& visitor);
 
-    Expression *getIdentifierExpression() const {
-        return identifierExpression;
-    }
 };
 
 class ReturnStatement : public Statement {
-private:
-    Expression * expression;
 public:
-    ReturnStatement(Expression * expression, const Position & position) : expression(expression) {this->position=position;};
+    std::unique_ptr<Expression> expression;
+    ReturnStatement(std::unique_ptr<Expression> expression, const Position & position) : expression(std::move(expression)){this->position=position;};
     void accept(Visitor& visitor);
 
-    Expression *getExpression() const {
-        return expression;
-    }
 };
 
 
 class CodeBlock : public Visitable {
-private:
-    std::vector<Statement*> statements;
 public:
-    CodeBlock(const std::vector<Statement*> statements) : statements(statements) {}
+    std::vector<std::unique_ptr<Statement>> statements;
+    explicit CodeBlock(std::vector<std::unique_ptr<Statement>> statements, const Position & position) : statements(std::move(statements)) {this->position = position;}
 
     CodeBlock() {}
-
-    std::vector<Statement *> &getStatements() {
-        return statements;
-    }
+    CodeBlock(const CodeBlock&) =delete;
+    CodeBlock& operator=(const CodeBlock&) =delete;
+    CodeBlock(CodeBlock&&) =default;
+    CodeBlock& operator=(CodeBlock&&) =default;
+//    ~CodeBlock()=default;
 
     void accept(Visitor& visitor);
 };
 
 class Parameter : public Visitable {
-protected:
-    std::wstring name;
 public:
+    std::wstring name;
     Parameter(const std::wstring &name, const Position & position) : name(name) {this->position = position;}
     Parameter() {}
     virtual ~Parameter() =default;
@@ -677,81 +416,47 @@ public:
 };
 
 class FigureParameter : public Parameter {
-private:
-    Expression* value;
 public:
-    FigureParameter(const std::wstring & name, Expression * value, const Position & position) : value(value) {this->name = name; this->position=position;};
+    std::unique_ptr<Expression> valueExpression;
+    FigureParameter(const std::wstring & name, std::unique_ptr<Expression> valueExpression, const Position & position) : valueExpression(std::move(valueExpression)) {this->name = name; this->position=position;};
     void accept(Visitor& visitor);
-
-    Expression *getValue() const {
-        return value;
-    }
 };
 
 class FuncDeclaration : public Visitable{
-private:
-    std::wstring name;
-    std::vector<Parameter *> params;
-    CodeBlock * codeBlock;
 public:
+    std::wstring name;
+    std::vector<std::unique_ptr<Parameter>> params;
+    std::unique_ptr<CodeBlock> codeBlock;
 
-    FuncDeclaration(const std::wstring &name, std::vector<Parameter *> params, CodeBlock * codeBlock, const Position & position) : name(
-            name), params(params), codeBlock(codeBlock) {this->position = position;}
+    FuncDeclaration(const std::wstring &name, std::vector<std::unique_ptr<Parameter>> params, std::unique_ptr<CodeBlock> codeBlock, const Position & position) : name(
+            name), params(std::move(params)), codeBlock(std::move(codeBlock)) {this->position = position;}
 
     FuncDeclaration() {}
 
-    std::wstring getName(){
-        return name;
-    }
     void accept(Visitor& visitor);
-
-    const std::vector<Parameter *> &getParams() const {
-        return params;
-    }
-
-    CodeBlock *getCodeBlock() const {
-        return codeBlock;
-    }
 };
 
 class FigureDeclaration : public Visitable {
-private:
-    std::wstring name;
-    std::vector<Parameter *> params;
 public:
-    FigureDeclaration(const std::wstring &name, std::vector<Parameter *> params, const Position & position) : name(
-            name), params(params)  {this->position = position;}
+    std::wstring name;
+    std::vector<std::unique_ptr<Parameter>> params;
+    FigureDeclaration(const std::wstring &name, std::vector<std::unique_ptr<Parameter>> params, const Position & position) : name(
+            name), params(std::move(params))  {this->position = position;}
 
     FigureDeclaration() {}
 
-    const std::wstring &getName() const {
-        return name;
-    }
     void accept(Visitor& visitor);
-
-    std::vector<Parameter *> &getParams() {
-        return params;
-    }
-
 };
 
 class Program : public Visitable {
-private:
-    std::unordered_map<std::wstring, FuncDeclaration *> functions;
-    std::unordered_map<std::wstring, FigureDeclaration *> figures;
 public:
-    Program(std::unordered_map<std::wstring, FuncDeclaration*> functions, std::unordered_map<std::wstring, FigureDeclaration *> figures) : functions(functions), figures(figures) {}
+    std::unordered_map<std::wstring, std::unique_ptr<FuncDeclaration>> functions;
+    std::unordered_map<std::wstring, std::unique_ptr<FigureDeclaration>> figures;
+    Program(std::unordered_map<std::wstring, std::unique_ptr<FuncDeclaration>> functions, std::unordered_map<std::wstring, std::unique_ptr<FigureDeclaration>> figures):
+        functions(std::move(functions)), figures(std::move(figures)){}
 
     Program() {}
     void accept(Visitor& visitor);
-
-    std::unordered_map<std::wstring, FuncDeclaration *> &getFunctions() {
-        return functions;
-    }
-
-    std::unordered_map<std::wstring, FigureDeclaration *> &getFigures() {
-        return figures;
-    }
 };
 
 

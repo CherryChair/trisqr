@@ -32,7 +32,7 @@ int main() {
         std::wcout << L"nullptr";
     }
     Parser * parser = new Parser(l, eh);
-    Program * program = parser->parse();
+    auto program = parser->parse();
     VisitorTree * vt = new VisitorTree();
     program->accept(*vt);
     vt->printTree(std::wcout);
