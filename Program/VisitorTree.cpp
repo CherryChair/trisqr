@@ -15,7 +15,7 @@ static const std::unordered_map<short int, std::wstring> variable_type_represent
 };
 
 
-void VisitorTree::visit(std::unique_ptr<ExpressionOr> & e) {
+void VisitorTree::visit(ExpressionOr * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionOr:");
@@ -23,7 +23,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionOr> & e) {
     e->rightExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionAnd> & e) {
+void VisitorTree::visit(ExpressionAnd * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionAnd:");
@@ -31,7 +31,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionAnd> & e) {
     e->rightExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionCompEq> & e) {
+void VisitorTree::visit(ExpressionCompEq * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionCompEq:");
@@ -39,7 +39,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionCompEq> & e) {
     e->rightExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionCompNeq> & e) {
+void VisitorTree::visit(ExpressionCompNeq * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionCompNeq:");
@@ -47,7 +47,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionCompNeq> & e) {
     e->rightExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionCompLeq> & e) {
+void VisitorTree::visit(ExpressionCompLeq * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionCompLeq:");
@@ -55,7 +55,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionCompLeq> & e) {
     e->rightExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionCompGeq> & e) {
+void VisitorTree::visit(ExpressionCompGeq * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionCompGeq:");
@@ -63,7 +63,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionCompGeq> & e) {
     e->rightExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionCompGreater> & e) {
+void VisitorTree::visit(ExpressionCompGreater * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionCompGreater:");
@@ -71,7 +71,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionCompGreater> & e) {
     e->rightExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionCompLess> & e) {
+void VisitorTree::visit(ExpressionCompLess * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionCompLess:");
@@ -79,7 +79,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionCompLess> & e) {
     e->rightExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionAdd> & e) {
+void VisitorTree::visit(ExpressionAdd * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionAdd:");
@@ -87,7 +87,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionAdd> & e) {
     e->rightExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionSub> & e) {
+void VisitorTree::visit(ExpressionSub * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionSub:");
@@ -95,7 +95,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionSub> & e) {
     e->rightExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionMul> & e) {
+void VisitorTree::visit(ExpressionMul * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionMul:");
@@ -103,7 +103,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionMul> & e) {
     e->rightExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionDiv> & e) {
+void VisitorTree::visit(ExpressionDiv * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionDiv:");
@@ -111,7 +111,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionDiv> & e) {
     e->rightExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionIs> & e) {
+void VisitorTree::visit(ExpressionIs * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionIs:");
@@ -119,7 +119,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionIs> & e) {
     tree.push_back(tab_string + L"is type: " + variable_type_representation.at(e->checkedType));
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionTo> & e) {
+void VisitorTree::visit(ExpressionTo * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionTo:");
@@ -127,31 +127,30 @@ void VisitorTree::visit(std::unique_ptr<ExpressionTo> & e) {
     tree.push_back(tab_string + L"to type: " + variable_type_representation.at(e->conversionType));
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionNeg> & e) {
+void VisitorTree::visit(ExpressionNeg * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionNeg:");
     e->expression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionNegMinus> & e) {
+void VisitorTree::visit(ExpressionNegMinus * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionNegMinus:");
     e->expression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionValueList> & e) {
+void VisitorTree::visit(ExpressionValueList * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionValueList:");
-    auto expressions = e->expressions;
-    for (auto & expression : expressions) {//TODO źle
+    for (auto const & expression : e->expressions) {//TODO źle
         expression->accept(*this);
     }
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionValuePoint> & e) {
+void VisitorTree::visit(ExpressionValuePoint * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionValuePoint:");
@@ -160,7 +159,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionValuePoint> & e) {
     e->yCoord->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionValueLiteral> & e) {
+void VisitorTree::visit(ExpressionValueLiteral * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionValueLiteral:");
@@ -192,7 +191,7 @@ void VisitorTree::visit(std::unique_ptr<ExpressionValueLiteral> & e) {
 //    std::visit([](auto & x) -> void {std::wcout << x;}, e->value);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ExpressionValueBrackets> & e) {
+void VisitorTree::visit(ExpressionValueBrackets * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionValueBrackets:");
@@ -204,25 +203,20 @@ void VisitorTree::visit(std::unique_ptr<ExpressionValueBrackets> & e) {
 
 
 
-void VisitorTree::visit(std::unique_ptr<WhileStatement> & s) {
+void VisitorTree::visit(WhileStatement * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"WhileStatement:");
     s->conditionAndBlock->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<IfStatement> & s) {
+void VisitorTree::visit(IfStatement * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"IfStatement:");
     s->ifConditionAndBlock->accept(*this);
-    auto elsifCondAndBlock = s->elsifConditionsAndBlocks;
-    if (!elsifCondAndBlock.empty()) {
-        for (auto & condAndBlock : elsifCondAndBlock) {
-            condAndBlock->accept(*this);
-        }
-    } else {
-        tree.push_back(tab_string + L"null");
+    for (auto const & condAndBlock : s->elsifConditionsAndBlocks) {
+        condAndBlock->accept(*this);
     }
 
     if (auto & elseCodeBlock = s->elseCodeBlock) {
@@ -232,7 +226,7 @@ void VisitorTree::visit(std::unique_ptr<IfStatement> & s) {
     }
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ForStatement> & s) {
+void VisitorTree::visit(ForStatement * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ForStatement:");
@@ -241,7 +235,7 @@ void VisitorTree::visit(std::unique_ptr<ForStatement> & s) {
     s->block->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ForRangeStatement> & s) {
+void VisitorTree::visit(ForRangeStatement * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ForRangeStatement:");
@@ -251,7 +245,7 @@ void VisitorTree::visit(std::unique_ptr<ForRangeStatement> & s) {
     s->block->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<DeclarationStatement> & s) {
+void VisitorTree::visit(DeclarationStatement * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"DeclarationStatement:");
@@ -263,7 +257,7 @@ void VisitorTree::visit(std::unique_ptr<DeclarationStatement> & s) {
     }
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ReturnStatement> & s) {
+void VisitorTree::visit(ReturnStatement * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ReturnStatement:");
@@ -275,7 +269,7 @@ void VisitorTree::visit(std::unique_ptr<ReturnStatement> & s) {
     this->tabs--;
 }
 
-void VisitorTree::visit(std::unique_ptr<ConditionAndBlock> & cb) {
+void VisitorTree::visit(ConditionAndBlock * cb) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ConditionAndBlock:");
@@ -285,14 +279,14 @@ void VisitorTree::visit(std::unique_ptr<ConditionAndBlock> & cb) {
     this->tabs--;
 }
 
-void VisitorTree::visit(std::unique_ptr<IdentifierExpressionStatement> & s) {
+void VisitorTree::visit(IdentifierExpressionStatement * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"IdentifierExpressionStatement:");
     s->identifierExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<IdentifierStatementAssign> & s) {
+void VisitorTree::visit(IdentifierStatementAssign * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"IdentifierStatementAssign:");
@@ -305,7 +299,7 @@ void VisitorTree::visit(std::unique_ptr<IdentifierStatementAssign> & s) {
     }
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<ObjectAccessExpression> & s) {
+void VisitorTree::visit(ObjectAccessExpression * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ObjectAccessExpression:");
@@ -318,7 +312,7 @@ void VisitorTree::visit(std::unique_ptr<ObjectAccessExpression> & s) {
     }
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<IdentifierListIndexExpression> & s) {
+void VisitorTree::visit(IdentifierListIndexExpression * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"IdentifierListIndexExpression:");
@@ -328,19 +322,18 @@ void VisitorTree::visit(std::unique_ptr<IdentifierListIndexExpression> & s) {
     expression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<IdentifierFunctionCallExpression> & s) {
+void VisitorTree::visit(IdentifierFunctionCallExpression * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"IdentifierFunctionCallExpression:");
     s->identifierExpression->accept(*this);
 
-    auto expressions = s->expressions;
-    for (auto & expression : expressions) {
+    for (auto const & expression : s->expressions) {
         expression->accept(*this);
     }
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<IdentifierExpression> & s) {
+void VisitorTree::visit(IdentifierExpression * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"IdentifierExpression:");
@@ -353,12 +346,11 @@ void VisitorTree::visit(std::unique_ptr<IdentifierExpression> & s) {
 
 
 
-void VisitorTree::visit(std::unique_ptr<CodeBlock> & cb) {
+void VisitorTree::visit(CodeBlock * cb) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"CodeBlock:");
-    auto statements = cb->statements;
-    for (auto & statement : statements) {
+    for (auto const & statement : cb->statements) {
         statement->accept(*this);
     }
     this->tabs--;
@@ -366,14 +358,14 @@ void VisitorTree::visit(std::unique_ptr<CodeBlock> & cb) {
 
 
 
-void VisitorTree::visit(std::unique_ptr<Parameter> & p) {
+void VisitorTree::visit(Parameter * p) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"Param:");
     tree.push_back(tab_string + L"Name: " + p->name);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<FigureParameter> & p) {
+void VisitorTree::visit(FigureParameter * p) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"FigureParam:");
@@ -381,38 +373,34 @@ void VisitorTree::visit(std::unique_ptr<FigureParameter> & p) {
     p->valueExpression->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<FigureDeclaration> & fd) {
+void VisitorTree::visit(FigureDeclaration * fd) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"Figure:");
     tree.push_back(tab_string + L"Name: " + fd->name);
-    auto params = fd->params;
-    for (auto & param : params) {
+    for (auto const & param : fd->params) {
         param->accept(*this);
     }
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<FuncDeclaration> & fd) {
+void VisitorTree::visit(FuncDeclaration * fd) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"Func:");
     tree.push_back(tab_string + L"Name: " + fd->name);
-    auto params = fd->params;
-    for (auto & param : params) {
+    for (auto const & param : fd->params) {
         param->accept(*this);
     }
     fd->codeBlock->accept(*this);
     this->tabs--;
 }
-void VisitorTree::visit(std::unique_ptr<Program> & p) {
+void VisitorTree::visit(Program * p) {
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"Program:");
-    auto & figures = p->figures;
-    auto & functions = p->functions;
-    for(auto & figure: figures) {
+    for(auto const & figure: p->figures) {
         figure.second->accept(*this);
     }
-    for(auto & function: functions) {
+    for(auto const & function: p->functions) {
         function.second->accept(*this);
     }
 }

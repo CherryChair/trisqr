@@ -93,23 +93,20 @@ std::unique_ptr<FigureDeclaration> Parser::parseFigureDecl() {
 // point_list          :== point_declaration, {",", point_declaration}
 std::vector<std::unique_ptr<Parameter>> Parser::parseFigureParams() {
     std::vector<std::unique_ptr<Parameter>> params;
-    std::unordered_map<std::wstring, bool> paramsMap;
     Position position = this->token->getPos();
     std::unique_ptr<Parameter> param = std::move(parseFigureParam());
     if (param) {
         params.push_back(std::move(param));
-        paramsMap[param->getName()] = true;
         while (this->consumeIf(COMMA_TYPE)){
             Position position = this->token->getPos();
             param = std::move(parseFigureParam());
             if(!param){
                 this->errorHandler->onSyntaxError(position, L"Missing param after comma.");
                 return params;
-            } else if (paramsMap.find(param->getName()) != paramsMap.end()) {
+            } else if (std::find_if(params.begin(), params.end(), [&param](std::unique_ptr<Parameter> & p) {return p.get()->name == param->name;}) != params.end()) {
                 this->handleSemanticError(position, L"Duplicate param " + param->getName());
             } else {
                 params.push_back(std::move(param));
-                paramsMap[param->getName()] = true;
             }
         }
     }
@@ -160,22 +157,20 @@ std::unique_ptr<FuncDeclaration> Parser::parseFuncDecl() {
 //decl_argument_list  :== [leftExpression, {", ", leftExpression}];
 std::vector<std::unique_ptr<Parameter>> Parser::parseFunctionParams() {
     std::vector<std::unique_ptr<Parameter>> params;
-    std::unordered_map<std::wstring, bool> paramsMap;//TODO można po wektorze wyszukać
     std::unique_ptr<Parameter> param = std::move(parseParam());
     if (param) {
         params.push_back(std::move(param));
-        paramsMap[param->getName()] = true;
+
         while (this->consumeIf(COMMA_TYPE)){
             Position position = this->token->getPos();
             param = std::move(parseParam());
             if(!param){
                 this->handleSyntaxError(position, L"Missing param after comma.");
                 return params;
-            } else if (paramsMap.find(param->getName()) != paramsMap.end()) {
+            } else if (std::find_if(params.begin(), params.end(), [&param](std::unique_ptr<Parameter> & p) {return p.get()->name == param->name;}) != params.end()) {
                 this->handleSemanticError(position, L"Duplicate param " + param->getName());
             } else {
                 params.push_back(std::move(param));
-                paramsMap[param->getName()] = true;
             }
         }
     }
@@ -205,7 +200,7 @@ std::unique_ptr<CodeBlock> Parser::parseCodeBlock() {
     }
     this->mustBe(R_CURL_BRACKET_TYPE, L"Missing right bracket in code block.");
 
-    return std::make_unique<CodeBlock>(statements, position);
+    return std::make_unique<CodeBlock>(std::move(statements), position);
 }
 
 //statement           :== while_stmnt
