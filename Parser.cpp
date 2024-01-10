@@ -12,7 +12,7 @@ std::unique_ptr<Program> Parser::parse() {
     Position pos = token->getPos();
     bool foundFunc = true;
     bool foundFigure = true;
-    while((foundFunc || foundFigure) && !this->blocking_syntax_error){
+    while((foundFunc || foundFigure)){
         foundFunc = false;
         foundFigure = false;
         if (auto funcDecl = std::move(this->parseFuncDecl())){
@@ -64,14 +64,12 @@ std::variant<int, double, std::wstring> Parser::mustBe(unsigned int token_type, 
 
 nullptr_t Parser::handleSyntaxError(const Position & position, const std::wstring & message) {
     errorHandler->onSyntaxError(position, message);
-    this->blocking_syntax_error = true;
     throw;
     return nullptr;
 }
 
 void Parser::handleSemanticError(const Position &position, const std::wstring &message) {
     errorHandler->onSemanticError(position, message);
-    this->semantic_error = true;
 }
 
 // figure_declaration  :== "figure ", leftExpression, "{", point_list, "}";

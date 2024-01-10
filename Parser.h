@@ -72,11 +72,7 @@ public:
     Parser(Lexer *pLexer, ErrorHandler *pHandler) : lexer(pLexer), errorHandler(pHandler) {};
 
     std::unique_ptr<Program> parse();
-    bool getSemanticError() {return this->semantic_error;};
-    bool getSyntaxError() {return this->blocking_syntax_error;};
 private:
-    bool blocking_syntax_error = false;
-    bool semantic_error = false;
     Lexer * lexer;
     ErrorHandler * errorHandler;
     std::optional<Token> token;
