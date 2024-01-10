@@ -24,6 +24,8 @@ static const std::unordered_map<short int, std::wstring> error_mesages= {
         {ERR_MAX_COMMENT_LENGTH_EXCEEDED, L"Maximal length of comment exceeded."},
         {ERR_INVALID_SYNTAX,              L"Invalid syntax."},
         {ERR_SEMANTIC,                    L"Semantic error."},
+        {ERR_RUNTIME,                     L"Runtime error."},
+    {ERR_INTERPRETER,                     L"Internal interpreter error."},
 };
 
 static const std::unordered_map<wchar_t, std::wstring> escape_sequences= {
@@ -46,6 +48,8 @@ public:
     void onLexerError(int error_type, Position position, std::wstring value);
     void onSyntaxError(Position position, std::wstring value);
     void onSemanticError(Position position, std::wstring value);
+    void onRuntimeError(Position position, std::wstring value);
+    void onInterpreterError(Position position, std::wstring value);
     void displayError(std::wstring error_type, int error_subtype, Position position, std::wstring value, bool escape);
 };
 
