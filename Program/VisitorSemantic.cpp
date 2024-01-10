@@ -15,77 +15,77 @@ static const std::unordered_map<short int, std::wstring> variable_type_represent
 };
 
 
-void VisitorSemantic::visit(ExpressionOr * e) {
+void VisitorInterpreter::visit(ExpressionOr * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionAnd * e) {
+void VisitorInterpreter::visit(ExpressionAnd * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionCompEq * e) {
+void VisitorInterpreter::visit(ExpressionCompEq * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionCompNeq * e) {
+void VisitorInterpreter::visit(ExpressionCompNeq * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionCompLeq * e) {
+void VisitorInterpreter::visit(ExpressionCompLeq * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionCompGeq * e) {
+void VisitorInterpreter::visit(ExpressionCompGeq * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionCompGreater * e) {
+void VisitorInterpreter::visit(ExpressionCompGreater * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionCompLess * e) {
+void VisitorInterpreter::visit(ExpressionCompLess * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionAdd * e) {
+void VisitorInterpreter::visit(ExpressionAdd * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionSub * e) {
+void VisitorInterpreter::visit(ExpressionSub * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionMul * e) {
+void VisitorInterpreter::visit(ExpressionMul * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionDiv * e) {
+void VisitorInterpreter::visit(ExpressionDiv * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionIs * e) {
+void VisitorInterpreter::visit(ExpressionIs * e) {
     e->expression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionTo * e) {
+void VisitorInterpreter::visit(ExpressionTo * e) {
     e->expression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionNeg * e) {
+void VisitorInterpreter::visit(ExpressionNeg * e) {
     e->expression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionNegMinus * e) {
+void VisitorInterpreter::visit(ExpressionNegMinus * e) {
     e->expression->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionValueList * e) {
+void VisitorInterpreter::visit(ExpressionValueList * e) {
     for (auto const & expression : e->expressions) {
         expression->accept(*this);
     }
 }
-void VisitorSemantic::visit(ExpressionValuePoint * e) {
+void VisitorInterpreter::visit(ExpressionValuePoint * e) {
     e->xCoord->accept(*this);
 
     e->yCoord->accept(*this);
 }
-void VisitorSemantic::visit(ExpressionValueLiteral * e) {
+void VisitorInterpreter::visit(ExpressionValueLiteral * e) {
     switch (e->value.index()){
         case 0: {
             int value = std::get<int>(e->value);
@@ -108,7 +108,7 @@ void VisitorSemantic::visit(ExpressionValueLiteral * e) {
     }
 //    std::visit([](auto & x) -> void {std::wcout << x;}, e->value);
 }
-void VisitorSemantic::visit(ExpressionValueBrackets * e) {
+void VisitorInterpreter::visit(ExpressionValueBrackets * e) {
     e->expression->accept(*this);
 }
 
@@ -116,10 +116,10 @@ void VisitorSemantic::visit(ExpressionValueBrackets * e) {
 
 
 
-void VisitorSemantic::visit(WhileStatement * s) {
+void VisitorInterpreter::visit(WhileStatement * s) {
     s->conditionAndBlock->accept(*this);
 }
-void VisitorSemantic::visit(IfStatement * s) {
+void VisitorInterpreter::visit(IfStatement * s) {
     s->ifConditionAndBlock->accept(*this);
     for (auto const & condAndBlock : s->elsifConditionsAndBlocks) {
         condAndBlock->accept(*this);
@@ -130,42 +130,42 @@ void VisitorSemantic::visit(IfStatement * s) {
     } else {
     }
 }
-void VisitorSemantic::visit(ForStatement * s) {
+void VisitorInterpreter::visit(ForStatement * s) {
     s->expression->accept(*this);
     s->block->accept(*this);
 }
-void VisitorSemantic::visit(ForRangeStatement * s) {
+void VisitorInterpreter::visit(ForRangeStatement * s) {
     s->leftExpression->accept(*this);
     s->rightExpression->accept(*this);
     s->block->accept(*this);
 }
-void VisitorSemantic::visit(DeclarationStatement * s) {
+void VisitorInterpreter::visit(DeclarationStatement * s) {
 }
 
-void VisitorSemantic::visit(DeclarationAssignStatement * s) {
+void VisitorInterpreter::visit(DeclarationAssignStatement * s) {
     if (auto & expression = s->expression) {
         expression->accept(*this);
     } else {
     }
 }
 
-void VisitorSemantic::visit(ReturnStatement * s) {
+void VisitorInterpreter::visit(ReturnStatement * s) {
     if (auto & expression = s->expression) {
         expression->accept(*this);
     } else {
     }
 }
 
-void VisitorSemantic::visit(ConditionAndBlock * cb) {
+void VisitorInterpreter::visit(ConditionAndBlock * cb) {
     cb->condition->accept(*this);
 
     cb->condition->accept(*this);
 }
 
-void VisitorSemantic::visit(IdentifierExpressionStatement * s) {
+void VisitorInterpreter::visit(IdentifierExpressionStatement * s) {
     s->identifierExpression->accept(*this);
 }
-void VisitorSemantic::visit(IdentifierStatementAssign * s) {
+void VisitorInterpreter::visit(IdentifierStatementAssign * s) {
     s->identifierExpression->accept(*this);
 
     if (auto & expression = s->expression) {
@@ -173,7 +173,7 @@ void VisitorSemantic::visit(IdentifierStatementAssign * s) {
     } else {
     }
 }
-void VisitorSemantic::visit(ObjectAccessExpression * s) {
+void VisitorInterpreter::visit(ObjectAccessExpression * s) {
     s->leftExpression->accept(*this);
 
     if (auto & rightStatement = s->rightExpression) {
@@ -181,50 +181,50 @@ void VisitorSemantic::visit(ObjectAccessExpression * s) {
     } else {
     }
 }
-void VisitorSemantic::visit(IdentifierListIndexExpression * s) {
+void VisitorInterpreter::visit(IdentifierListIndexExpression * s) {
     s->leftExpression->accept(*this);
 
     auto & expression = s->indexExpression;
     expression->accept(*this);
 }
-void VisitorSemantic::visit(IdentifierFunctionCallExpression * s) {
+void VisitorInterpreter::visit(IdentifierFunctionCallExpression * s) {
     s->identifierExpression->accept(*this);
 
     for (auto const & expression : s->expressions) {
         expression->accept(*this);
     }
 }
-void VisitorSemantic::visit(IdentifierExpression * s) {
+void VisitorInterpreter::visit(IdentifierExpression * s) {
 
 }
 
 
 
 
-void VisitorSemantic::visit(CodeBlock * cb) {
+void VisitorInterpreter::visit(CodeBlock * cb) {
     for (auto const & statement : cb->statements) {
         statement->accept(*this);
     }
 }
 
-void VisitorSemantic::visit(Parameter * p) {
+void VisitorInterpreter::visit(Parameter * p) {
 }
 
-void VisitorSemantic::visit(FigureParameter * p) {
+void VisitorInterpreter::visit(FigureParameter * p) {
     p->valueExpression->accept(*this);
 }
-void VisitorSemantic::visit(FigureDeclaration * fd) {
+void VisitorInterpreter::visit(FigureDeclaration * fd) {
     for (auto const & param : fd->params) {
         param->accept(*this);
     }
 }
-void VisitorSemantic::visit(FuncDeclaration * fd) {
+void VisitorInterpreter::visit(FuncDeclaration * fd) {
     for (auto const & param : fd->params) {
         param->accept(*this);
     }
     fd->codeBlock->accept(*this);
 }
-void VisitorSemantic::visit(Program * p) {
+void VisitorInterpreter::visit(Program * p) {
     for(auto const & figure: p->figures) {
         figure.second->accept(*this);
     }
