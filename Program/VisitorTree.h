@@ -39,6 +39,7 @@ public:
     void visit(ForStatement * s);
     void visit(ForRangeStatement * s);
     void visit(DeclarationStatement * s);
+    void visit(DeclarationAssignStatement * s);
     void visit(ReturnStatement * s);
 
     void visit(ConditionAndBlock * cb);

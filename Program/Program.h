@@ -317,8 +317,15 @@ public:
 class DeclarationStatement : public Statement {
 public:
     const std::wstring identifierName;
+    DeclarationStatement(const std::wstring & identifierName, const Position & position) : identifierName(identifierName) {this->position=position;};
+    void accept(Visitor& visitor);
+};
+
+class DeclarationAssignStatement : public Statement {
+public:
+    const std::wstring identifierName;
     std::unique_ptr<Expression> expression;
-    DeclarationStatement(const std::wstring & identifierName, std::unique_ptr<Expression> expression, const Position & position) : identifierName(identifierName), expression(std::move(expression)) {this->position=position;};
+    DeclarationAssignStatement(const std::wstring & identifierName, std::unique_ptr<Expression> expression, const Position & position) : identifierName(identifierName), expression(std::move(expression)) {this->position=position;};
     void accept(Visitor& visitor);
 };
 
@@ -360,10 +367,10 @@ public:
 
 class IdentifierStatementAssign : public Statement {
 public:
-    std::unique_ptr<Statement> identifierStatement;
+    std::unique_ptr<Expression> identifierExpression;
     std::unique_ptr<Expression> expression;
-    IdentifierStatementAssign(std::unique_ptr<Statement> identifierStatement, std::unique_ptr<Expression> expression, const Position & position)
-            : identifierStatement(std::move(identifierStatement)), expression(std::move(expression)) { this->position=position;};
+    IdentifierStatementAssign(std::unique_ptr<Expression> identifierExpression, std::unique_ptr<Expression> expression, const Position & position)
+            : identifierExpression(std::move(identifierExpression)), expression(std::move(expression)) { this->position=position;};
     void accept(Visitor& visitor);
 };
 

@@ -35,6 +35,7 @@ public:
     virtual void visit(ForStatement * s) = 0;
     virtual void visit(ForRangeStatement * s) = 0;
     virtual void visit(DeclarationStatement * s) = 0;
+    virtual void visit(DeclarationAssignStatement * s) = 0;
     virtual void visit(ReturnStatement * s) = 0;
 
     virtual void visit(ConditionAndBlock * cb)= 0 ;

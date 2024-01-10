@@ -5,8 +5,7 @@
 #include "Parser.h"
 
 //program             :== {func_declaration | figure_declaration};
-std::unique_ptr<Program> Parser::parse() {//TODO unique_ptr optionale i varianty
-    //TODO statement to variant typów statementów
+std::unique_ptr<Program> Parser::parse() {
     std::unordered_map<std::wstring, std::unique_ptr<FuncDeclaration>> functions = {};
     std::unordered_map<std::wstring, std::unique_ptr<FigureDeclaration>> figures = {};
     token = lexer->nextToken();
@@ -19,7 +18,7 @@ std::unique_ptr<Program> Parser::parse() {//TODO unique_ptr optionale i varianty
         if (auto funcDecl = std::move(this->parseFuncDecl())){
             auto fName = funcDecl->name;
             if(functions.find(fName) == functions.end()){
-                functions[fName] = std::move(funcDecl);//TODO * przy opt
+                functions[fName] = std::move(funcDecl);
             } else {
                 this->handleSemanticError(pos, L"Redeclaration of function " + fName);
             }
@@ -193,7 +192,7 @@ std::unique_ptr<CodeBlock> Parser::parseCodeBlock() {
     if (!this->consumeIf(L_CURL_BRACKET_TYPE)){
         return nullptr;
     }
-    std::vector<std::unique_ptr<Statement>> statements;//TODO tu zrobić variant
+    std::vector<std::unique_ptr<Statement>> statements;
     std::unique_ptr<Statement> statement;
     while (statement = std::move(parseStatement())){
         statements.push_back(std::move(statement));
@@ -212,11 +211,11 @@ std::unique_ptr<CodeBlock> Parser::parseCodeBlock() {
 std::unique_ptr<Statement> Parser::parseStatement() {
     std::unique_ptr<Statement> statement;
     if((statement = std::move(parseWhileStatement())) ||
-        (statement = std::move(parseIfStatement())) ||
-        (statement = std::move(parseForStatement())) ||
-        (statement = std::move(parseDeclarationStatement())) ||
-        (statement = std::move(parseIdentifierAssignmentStatement())) ||
-        (statement = std::move(parseReturnStatement())))
+       (statement = std::move(parseIfStatement())) ||
+       (statement = std::move(parseForStatement())) ||
+       (statement = std::move(parseDeclarationStatement())) ||
+       (statement = std::move(parseIdentifierAssignmentOrExpressionStatement())) ||
+       (statement = std::move(parseReturnStatement())))
         return statement;
     return nullptr;
 }
@@ -282,43 +281,51 @@ std::unique_ptr<Statement> Parser::parseForStatement() {
     if(!this->consumeIf(FOR_TYPE)){
         return nullptr;
     }
-    auto name = this->mustBe(IDENTIFIER_TYPE, L"Missing identifier in for statement");
+    auto name = std::get<std::wstring>(this->mustBe(IDENTIFIER_TYPE, L"Missing identifier in for statement"));
 
     this->mustBe(IN_TYPE, L"Missing 'in' keyword in for statement");
 
 
     Position expressionPosition = this->token->getPos();
     std::unique_ptr<Expression> expression;
-    if(this->consumeIf(RANGE_TYPE)){ //TODO przenieść do osobnej funkcji
-        this->mustBe(L_BRACKET_TYPE, L"Missing left bracket in range expression.");
-
-        expressionPosition = this->token->getPos();
-        std::unique_ptr<Expression> leftExpression;
-        if (!(leftExpression = std::move(this->parseExpression()))) {
-            this->handleSyntaxError(expressionPosition, L"Missing expression in range.");
-        }
-        this->mustBe(COMMA_TYPE, L"Missing comma in range.");
-
-        expressionPosition = this->token->getPos();
-        std::unique_ptr<Expression> rightExpression;
-        if (!(rightExpression = std::move(this->parseExpression()))) {
-            this->handleSyntaxError(expressionPosition, L"Missing expression in range.");
-        }
-        this->mustBe(R_BRACKET_TYPE, L"Missing right bracket in range expression.");
-
-        std::unique_ptr<CodeBlock> block = std::move(this->parseCodeBlock());
-        if(!block) {
-            return this->handleSyntaxError(expressionPosition, L"Missing code block after for statement.");
-        }
-        return std::make_unique<ForRangeStatement>(std::get<std::wstring>(name), std::move(leftExpression), std::move(rightExpression), std::move(block), position);
-    } else if (!(expression = std::move(this->parseExpression()))) {
+    if (std::unique_ptr<Statement> statement = std::move(this->parseForRangeStatement(name, position))) {
+        return statement;
+    }
+    if (!(expression = std::move(this->parseExpression()))) {
         this->handleSyntaxError(expressionPosition, L"Missing expression or range in for statement.");
     }
     std::unique_ptr<CodeBlock> block = std::move(this->parseCodeBlock());
     if(!block) {
         return this->handleSyntaxError(expressionPosition, L"Missing code block after for statement.");
     }
-    return std::make_unique<ForStatement>(std::get<std::wstring>(name), std::move(expression), std::move(block), position);
+    return std::make_unique<ForStatement>(name, std::move(expression), std::move(block), position);
+}
+
+std::unique_ptr<Statement> Parser::parseForRangeStatement(const std::wstring & name, const Position & position) {
+    if(!this->consumeIf(RANGE_TYPE)){
+        return nullptr;
+    }
+    this->mustBe(L_BRACKET_TYPE, L"Missing left bracket in range expression.");
+
+    Position expressionPosition = this->token->getPos();
+    std::unique_ptr<Expression> leftExpression;
+    if (!(leftExpression = std::move(this->parseExpression()))) {
+        this->handleSyntaxError(expressionPosition, L"Missing expression in range.");
+    }
+    this->mustBe(COMMA_TYPE, L"Missing comma in range.");
+
+    expressionPosition = this->token->getPos();
+    std::unique_ptr<Expression> rightExpression;
+    if (!(rightExpression = std::move(this->parseExpression()))) {
+        this->handleSyntaxError(expressionPosition, L"Missing expression in range.");
+    }
+    this->mustBe(R_BRACKET_TYPE, L"Missing right bracket in range expression.");
+
+    std::unique_ptr<CodeBlock> block = std::move(this->parseCodeBlock());
+    if(!block) {
+        return this->handleSyntaxError(expressionPosition, L"Missing code block after for statement.");
+    }
+    return std::make_unique<ForRangeStatement>(name, std::move(leftExpression), std::move(rightExpression), std::move(block), position);
 }
 
 // declaration         :== "vv ", leftExpression, ["=", expression], ";";
@@ -337,17 +344,20 @@ std::unique_ptr<Statement> Parser::parseDeclarationStatement() {
     }
 
     this->mustBe(SEMICOLON_TYPE, L"Missing semicolon on end of declaration.");
+    if(!expression) {
+        return std::make_unique<DeclarationStatement>(std::get<std::wstring>(name), position);
+    }
+    return std::make_unique<DeclarationAssignStatement>(std::get<std::wstring>(name), std::move(expression), position);
 
-    return std::make_unique<DeclarationStatement>(std::get<std::wstring>(name), std::move(expression), position); // osobny byt assign tak jak niżej
 }
 
 
 //identifier_stmnt, ["=", expression], ";"
-std::unique_ptr<Statement> Parser::parseIdentifierAssignmentStatement() {
+std::unique_ptr<Statement> Parser::parseIdentifierAssignmentOrExpressionStatement() {
     Position position = this->token->getPos();
 
-    std::unique_ptr<Statement> identifierStatement;
-    if (!(identifierStatement = std::move(this->parseIdentifierExpressionStatement()))) {
+    std::unique_ptr<Expression> identifierExpression;
+    if (!(identifierExpression = std::move(this->parseObjectAccessExpression()))) {
         return nullptr;
     }
 
@@ -364,21 +374,10 @@ std::unique_ptr<Statement> Parser::parseIdentifierAssignmentStatement() {
     this->mustBe(SEMICOLON_TYPE, L"Missing semicolon.");
 
     if(expression == nullptr) {
-        return identifierStatement;
+        return std::make_unique<IdentifierExpressionStatement>(std::move(identifierExpression), position);
     }
 
-    return std::make_unique<IdentifierStatementAssign>(std::move(identifierStatement), std::move(expression), position);
-}
-
-std::unique_ptr<Statement> Parser::parseIdentifierExpressionStatement() {
-    Position position = this->token->getPos();
-
-    std::unique_ptr<Expression> identifierExpression;
-    if (!(identifierExpression = std::move(this->parseObjectAccessExpression()))) {
-        return nullptr;
-    }
-
-    return std::make_unique<IdentifierExpressionStatement>(std::move(identifierExpression), position);
+    return std::make_unique<IdentifierStatementAssign>(std::move(identifierExpression), std::move(expression), position);
 }
 
 //identifier_stmnt    :== part, {".", part};
@@ -505,7 +504,7 @@ std::unique_ptr<Expression> Parser::parseExpression() {
 }
 
 //bool_and            :== bool_comp , {"&&",  bool_comp};
-std::unique_ptr<Expression>Parser::parseExpressionAnd() {
+std::unique_ptr<Expression> Parser::parseExpressionAnd() {
     Position position = this->token->getPos();
     std::unique_ptr<Expression> leftConditionExpression;
     if (!(leftConditionExpression = std::move(this->parseExpressionComp()))) {
@@ -525,7 +524,7 @@ std::unique_ptr<Expression>Parser::parseExpressionAnd() {
 }
 
 //bool_comp           :== expression_is, [comp_operator, expression_is];
-std::unique_ptr<Expression>Parser::parseExpressionComp() {
+std::unique_ptr<Expression> Parser::parseExpressionComp() {
     Position position = this->token->getPos();
     std::unique_ptr<Expression> leftConditionExpression;
     if (!(leftConditionExpression = std::move(this->parseExpressionIs()))) {
@@ -548,7 +547,7 @@ std::unique_ptr<Expression>Parser::parseExpressionComp() {
 
 
 //expression_is       :== expression_add, [" is ",  type];
-std::unique_ptr<Expression>Parser::parseExpressionIs() {
+std::unique_ptr<Expression> Parser::parseExpressionIs() {
     Position position = this->token->getPos();
     std::unique_ptr<Expression> leftConditionExpression;
     if (!(leftConditionExpression = std::move(this->parseExpressionAdd()))) {
@@ -582,7 +581,7 @@ std::unique_ptr<Expression>Parser::parseExpressionIs() {
 
 
 //expression_add      :== expression_mul, {add_operator, expression_mul};
-std::unique_ptr<Expression>Parser::parseExpressionAdd() {
+std::unique_ptr<Expression> Parser::parseExpressionAdd() {
     Position position = this->token->getPos();
     std::unique_ptr<Expression> leftConditionExpression;
     if (!(leftConditionExpression = std::move(this->parseExpressionMul()))) {
@@ -605,7 +604,7 @@ std::unique_ptr<Expression>Parser::parseExpressionAdd() {
 }
 
 //expression_mul      :== expression_to, {mul_operator, expression_to};
-std::unique_ptr<Expression>Parser::parseExpressionMul() {
+std::unique_ptr<Expression> Parser::parseExpressionMul() {
     Position position = this->token->getPos();
     std::unique_ptr<Expression> leftConditionExpression;
     if (!(leftConditionExpression = std::move(this->parseExpressionTo()))) {
@@ -628,7 +627,7 @@ std::unique_ptr<Expression>Parser::parseExpressionMul() {
 }
 
 //expression_to       :== nagated_value, [" to ",  type];
-std::unique_ptr<Expression>Parser::parseExpressionTo() {
+std::unique_ptr<Expression> Parser::parseExpressionTo() {
     Position position = this->token->getPos();
     std::unique_ptr<Expression> leftConditionExpression;
     if (!(leftConditionExpression = std::move(this->parseExpressionNeg()))) {
@@ -661,7 +660,7 @@ std::unique_ptr<Expression>Parser::parseExpressionTo() {
 }
 
 //negated_value       :== [negation_operator], accessed_value;
-std::unique_ptr<Expression>Parser::parseExpressionNeg() {
+std::unique_ptr<Expression> Parser::parseExpressionNeg() {
     Position position = this->token->getPos();
     std::unique_ptr<Expression> expression;
     unsigned short tokenType = this->token->getTokenType();
@@ -693,44 +692,48 @@ std::unique_ptr<Expression>Parser::parseExpressionNeg() {
 //                        | point
 //                        | identifier_stmnt
 //                        | "(", std::move(expression), ")";
-std::unique_ptr<Expression>Parser::parseAccessedValue() {
+std::unique_ptr<Expression> Parser::parseAccessedValue() {
     std::unique_ptr<Expression> expression;
     if (expression = std::move(this->parseExpressionValueList())) {
     } else if (expression = std::move(this->parseExpressionValueLiteral())) {
     } else if (expression = std::move(this->parseObjectAccessExpression())){
-    } else {//osobna metoda
-        //"(", std::move(expression), ")";
-        if(!consumeIf(L_BRACKET_TYPE)) {
-            return nullptr;
-        }
-        Position insideExpressionPosition = this->token->getPos();
-        std::unique_ptr<Expression> insideExpression = std::move(parseExpression());
-        if (!insideExpression) {
-            this->handleSyntaxError(insideExpressionPosition, L"No expression inside brackets");
-        }
-        //point               :== "(", std::move(expression), ",", std::move(expression), ")";
-        if(this->consumeIf(COMMA_TYPE)) {
-            std::unique_ptr<Expression> xCoordExpression = std::move(insideExpression);
-            std::unique_ptr<Expression> yCoordExpression;
-            Position yCoordExprPos = this->token->getPos();
-            if(yCoordExpression = std::move(parseExpression())) {
-            } else {
-                this->handleSyntaxError(yCoordExprPos, L"Missing expression after comma in point value.");
-            }
-            this->mustBe(R_BRACKET_TYPE, L"No right bracket in point");
+    } else {
+        expression = std::move(this->parseExpressionValueBrackets());
+    }
+    return expression;
+}
 
-            expression = std::make_unique<ExpressionValuePoint>(std::move(xCoordExpression), std::move(yCoordExpression), insideExpressionPosition);
+std::unique_ptr<Expression> Parser::parseExpressionValueBrackets() {
+    std::unique_ptr<Expression> expression;
+    if(!consumeIf(L_BRACKET_TYPE)) {
+        return nullptr;
+    }
+    Position insideExpressionPosition = this->token->getPos();
+    std::unique_ptr<Expression> insideExpression = std::move(parseExpression());
+    if (!insideExpression) {
+        this->handleSyntaxError(insideExpressionPosition, L"No expression inside brackets");
+    }
+    //point               :== "(", std::move(expression), ",", std::move(expression), ")";
+    if(this->consumeIf(COMMA_TYPE)) {
+        std::unique_ptr<Expression> xCoordExpression = std::move(insideExpression);
+        std::unique_ptr<Expression> yCoordExpression;
+        Position yCoordExprPos = this->token->getPos();
+        if(yCoordExpression = std::move(parseExpression())) {
         } else {
-            this->mustBe(R_BRACKET_TYPE, L"No right bracket.");
-            expression = std::make_unique<ExpressionValueBrackets>(std::move(insideExpression), insideExpressionPosition);
+            this->handleSyntaxError(yCoordExprPos, L"Missing expression after comma in point value.");
         }
+        this->mustBe(R_BRACKET_TYPE, L"No right bracket in point");
 
+        expression = std::make_unique<ExpressionValuePoint>(std::move(xCoordExpression), std::move(yCoordExpression), insideExpressionPosition);
+    } else {
+        this->mustBe(R_BRACKET_TYPE, L"No right bracket.");
+        expression = std::make_unique<ExpressionValueBrackets>(std::move(insideExpression), insideExpressionPosition);
     }
     return expression;
 }
 
 //list                :== "[", std::move(expression), {", ", expression} "]";
-std::unique_ptr<Expression>Parser::parseExpressionValueList() {
+std::unique_ptr<Expression> Parser::parseExpressionValueList() {
     Position position = this->token->getPos();
     if(!consumeIf(L_SQR_BRACKET_TYPE)) {
         return nullptr;
@@ -757,7 +760,7 @@ std::unique_ptr<Expression>Parser::parseExpressionValueList() {
 //                        | double_val
 //                        | string_val
 //                        | "none";
-std::unique_ptr<Expression>Parser::parseExpressionValueLiteral() {
+std::unique_ptr<Expression> Parser::parseExpressionValueLiteral() {
     //get value i type
     auto value = this->token->getValue();
     auto position = this->token->getPos();

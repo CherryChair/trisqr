@@ -32,6 +32,7 @@ void IfStatement::accept(Visitor & visitor) {visitor.visit(this);}
 void ForStatement::accept(Visitor & visitor) {visitor.visit(this);}
 void ForRangeStatement::accept(Visitor & visitor) {visitor.visit(this);}
 void DeclarationStatement::accept(Visitor & visitor) {visitor.visit(this);}
+void DeclarationAssignStatement::accept(Visitor & visitor) {visitor.visit(this);}
 void ReturnStatement::accept(Visitor & visitor) {visitor.visit(this);}
 
 void ConditionAndBlock::accept(Visitor & visitor) {visitor.visit(this);}

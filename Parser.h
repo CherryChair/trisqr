@@ -95,9 +95,9 @@ private:
     std::unique_ptr<Statement> parseWhileStatement();
     std::unique_ptr<Statement> parseIfStatement();
     std::unique_ptr<Statement> parseForStatement();
+    std::unique_ptr<Statement> parseForRangeStatement(const std::wstring & name, const Position & position);
     std::unique_ptr<Statement> parseDeclarationStatement();
-    std::unique_ptr<Statement> parseIdentifierAssignmentStatement();
-    std::unique_ptr<Statement> parseIdentifierExpressionStatement();
+    std::unique_ptr<Statement> parseIdentifierAssignmentOrExpressionStatement();
     std::unique_ptr<Expression> parseObjectAccessExpression();
     std::unique_ptr<Expression> parseIdentifierListIndexExpression();
     std::unique_ptr<Expression> parseIdentifierFunctionCallExpression();
@@ -115,6 +115,7 @@ private:
     std::unique_ptr<Expression> parseAccessedValue();
     std::unique_ptr<Expression> parseExpressionValueList();
     std::unique_ptr<Expression> parseExpressionValueLiteral();
+    std::unique_ptr<Expression> parseExpressionValueBrackets();
 
     nullptr_t handleSyntaxError(const Position &position, const std::wstring &message);
     void handleSemanticError(const Position &position, const std::wstring &message);

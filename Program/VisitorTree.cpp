@@ -250,6 +250,14 @@ void VisitorTree::visit(DeclarationStatement * s) {
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"DeclarationStatement:");
     tree.push_back(tab_string + L"DeclarationStatement.VariableName:" + s->identifierName);
+    this->tabs--;
+}
+
+void VisitorTree::visit(DeclarationAssignStatement * s) {
+    this->tabs++;
+    std::wstring tab_string = std::wstring(this->tabs, '\t');
+    tree.push_back(tab_string + L"DeclarationStatement:");
+    tree.push_back(tab_string + L"DeclarationStatement.VariableName:" + s->identifierName);
     if (auto & expression = s->expression) {
         expression->accept(*this);
     } else {
@@ -257,6 +265,7 @@ void VisitorTree::visit(DeclarationStatement * s) {
     }
     this->tabs--;
 }
+
 void VisitorTree::visit(ReturnStatement * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
@@ -290,7 +299,7 @@ void VisitorTree::visit(IdentifierStatementAssign * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"IdentifierStatementAssign:");
-    s->identifierStatement->accept(*this);
+    s->identifierExpression->accept(*this);
 
     if (auto & expression = s->expression) {
         expression->accept(*this);
