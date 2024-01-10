@@ -34,22 +34,14 @@ using value_type = std::variant<int, double, std::wstring, bool, std::monostate,
 struct ValueVisitor {
     Value * operator()(std::unique_ptr<Value> & value) {return value.get();};
     Value * operator()(std::shared_ptr<Value> & value) {return value.get();};
-    void visit(IntValue * value);
-    void visit(DoubleValue * value);
-    void visit(StringValue * value);
-    void visit(BoolValue * value);
-    void visit(PointValue * value);
-    void visit(NoneValue * value);
-    void visitMutable(ListValue * value);
-    void visitMutable(FigureValue * value);
-    void setType(IntValue * value, variable_type & vt);
-    void setType(DoubleValue * value, variable_type & vt);
-    void setType(StringValue * value, variable_type & vt);
-    void setType(BoolValue * value, variable_type & vt);
-    void setType(PointValue * value, variable_type & vt);
-    void setType(NoneValue * value, variable_type & vt);
-    void setType(ListValue * value, variable_type & vt);
-    void setType(FigureValue * value, variable_type & vt);
+    std::unique_ptr<Value> setType(IntValue * value, variable_type & vt);
+    std::unique_ptr<Value> setType(DoubleValue * value, variable_type & vt);
+    std::unique_ptr<Value> setType(StringValue * value, variable_type & vt);
+    std::unique_ptr<Value> setType(BoolValue * value, variable_type & vt);
+    std::unique_ptr<Value> setType(PointValue * value, variable_type & vt);
+    std::unique_ptr<Value> setType(NoneValue * value, variable_type & vt);
+    std::unique_ptr<Value> setType(ListValue * value, variable_type & vt);
+    std::unique_ptr<Value> setType(FigureValue * value, variable_type & vt);
     variable_type getType(IntValue * value);
     variable_type getType(DoubleValue * value);
     variable_type getType(StringValue * value);
@@ -79,9 +71,8 @@ struct ValueVisitor {
 class Value {
 public:
     virtual ~Value()=default;
-    virtual void accept(ValueVisitor & vv)=0;
     virtual variable_type getType(ValueVisitor & vv)=0;
-    virtual variable_type setType(ValueVisitor & vv, variable_type & vt)=0;
+    virtual void setType(ValueVisitor & vv, variable_type & vt)=0;
     virtual value_type getValue(ValueVisitor & vv)=0;
     virtual void setValue(ValueVisitor & vv, value_type & toSet)=0;
 };
@@ -103,49 +94,85 @@ class IntValue : public Value  {
 private:
     int value;
 public:
-    void accept(ValueVisitor & vv) {vv.visit(this);}
+    variable_type getType(ValueVisitor & vv) {return vv.getType(this);};
+    void setType(ValueVisitor & vv, variable_type & vt) {vv.setType(this, vt);};
+    value_type getValue(ValueVisitor & vv) {return vv.getValue(this);};
+    void setValue(ValueVisitor & vv, value_type & toSet) {vv.setValue(this, toSet);};
+    void setValue(int & toSet) {this->value=toSet;};
+    int getValue() {return value;}
 };
 class DoubleValue : public Value {
 private:
     double value;
 public:
-    void accept(ValueVisitor & vv) {vv.visit(this);}
+    variable_type getType(ValueVisitor & vv) {return vv.getType(this);};
+    void setType(ValueVisitor & vv, variable_type & vt) {vv.setType(this, vt);};
+    value_type getValue(ValueVisitor & vv) {return vv.getValue(this);};
+    void setValue(ValueVisitor & vv, value_type & toSet) {vv.setValue(this, toSet);};
+    void setValue(double & toSet) {this->value=toSet;};
+    double getValue() {return value;}
 };
 class StringValue : public Value {
 private:
     std::wstring value;
 public:
-    void accept(ValueVisitor & vv) {vv.visit(this);}
+    variable_type getType(ValueVisitor & vv) {return vv.getType(this);};
+    void setType(ValueVisitor & vv, variable_type & vt) {vv.setType(this, vt);};
+    value_type getValue(ValueVisitor & vv) {return vv.getValue(this);};
+    void setValue(ValueVisitor & vv, value_type & toSet) {vv.setValue(this, toSet);};
+    void setValue(std::wstring & toSet) {this->value=toSet;};
+    std::wstring getValue() {return value;}
 };
 class BoolValue : public Value {
 private:
     bool value;
 public:
-    void accept(ValueVisitor & vv) {vv.visit(this);}
+    variable_type getType(ValueVisitor & vv) {return vv.getType(this);};
+    void setType(ValueVisitor & vv, variable_type & vt) {vv.setType(this, vt);};
+    value_type getValue(ValueVisitor & vv) {return vv.getValue(this);};
+    void setValue(ValueVisitor & vv, value_type & toSet) {vv.setValue(this, toSet);};
+    void setValue(bool & toSet) {this->value=toSet;};
+    bool getValue() {return value;}
 };
 class PointValue : public Value {
 private:
     double x;
     double y;
 public:
-    void accept(ValueVisitor & vv) {vv.visit(this);}
+    variable_type getType(ValueVisitor & vv) {return vv.getType(this);};
+    void setType(ValueVisitor & vv, variable_type & vt) {vv.setType(this, vt);};
+    value_type getValue(ValueVisitor & vv) {return vv.getValue(this);};
+    void setValue(ValueVisitor & vv, value_type & toSet) {vv.setValue(this, toSet);};
+    void setValue(std::pair<double, double> & toSet) {this->x=toSet.first;this->y=toSet.second;};
+    std::pair<double, double> getValue() {return std::pair<double, double>(x, y);}
 };
 class NoneValue : public Value {
 public:
-    void accept(ValueVisitor & vv) {vv.visit(this);}
+    variable_type getType(ValueVisitor & vv) {return vv.getType(this);};
+    void setType(ValueVisitor & vv, variable_type & vt) {vv.setType(this, vt);};
+    value_type getValue(ValueVisitor & vv) {return vv.getValue(this);};
+    void setValue(ValueVisitor & vv, value_type & toSet) {vv.setValue(this, toSet);};
 };
 
-class ListValue : public Value {
+class ListValue : public Value, public std::enable_shared_from_this<ListValue> {
 private:
     std::vector<std::variant<std::unique_ptr<Value>, std::shared_ptr<Value>>> values;
 public:
-    void accept(ValueVisitor & vv) {vv.visitMutable(this);}
+    variable_type getType(ValueVisitor & vv) {return vv.getType(this);};
+    void setType(ValueVisitor & vv, variable_type & vt) {vv.setType(this, vt);};
+    value_type getValue(ValueVisitor & vv) {return vv.getValue(this);};
+    void setValue(ValueVisitor & vv, value_type & toSet) {vv.setValue(this, toSet);};
+    std::shared_ptr<ListValue> getValue() {return shared_from_this();}
 };
-class FigureValue : public Value {
+class FigureValue : public Value, public std::enable_shared_from_this<FigureValue> {
 private:
     std::vector<Variable> values;
 public:
-    void accept(ValueVisitor & vv) {vv.visitMutable(this);}
+    variable_type getType(ValueVisitor & vv) {return vv.getType(this);};
+    void setType(ValueVisitor & vv, variable_type & vt) {vv.setType(this, vt);};
+    value_type getValue(ValueVisitor & vv) {return vv.getValue(this);};
+    void setValue(ValueVisitor & vv, value_type & toSet) {vv.setValue(this, toSet);};
+    std::shared_ptr<FigureValue> getValue() {return shared_from_this();}
 };
 
 class VisitorInterpreter : public Visitor {

@@ -4,6 +4,130 @@
 
 #include "VisitorInterpreter.h"
 
+std::unique_ptr<Value> ValueVisitor::setType(IntValue * value, variable_type & vt){
+
+}
+std::unique_ptr<Value> ValueVisitor::setType(DoubleValue * value, variable_type & vt){
+
+}
+std::unique_ptr<Value> ValueVisitor::setType(StringValue * value, variable_type & vt){
+
+}
+std::unique_ptr<Value> ValueVisitor::setType(BoolValue * value, variable_type & vt){
+
+}
+std::unique_ptr<Value> ValueVisitor::setType(PointValue * value, variable_type & vt){
+
+}
+std::unique_ptr<Value> ValueVisitor::setType(NoneValue * value, variable_type & vt){
+
+}
+std::unique_ptr<Value> ValueVisitor::setType(ListValue * value, variable_type & vt){
+
+}
+std::unique_ptr<Value> ValueVisitor::setType(FigureValue * value, variable_type & vt){
+
+}
+variable_type ValueVisitor::getType(IntValue * value){
+    return INT_VARIABLE;
+}
+variable_type ValueVisitor::getType(DoubleValue * value){
+    return DOUBLE_VARIABLE;
+}
+variable_type ValueVisitor::getType(StringValue * value){
+    return STRING_VARIABLE;
+}
+variable_type ValueVisitor::getType(BoolValue * value){
+    return BOOL_VARIABLE;
+}
+variable_type ValueVisitor::getType(PointValue * value){
+    return POINT_VARIABLE;
+}
+variable_type ValueVisitor::getType(NoneValue * value){
+    return NONE_VARIABLE;
+}
+variable_type ValueVisitor::getType(ListValue * value){
+
+}
+variable_type ValueVisitor::getType(FigureValue * value){
+
+}
+void ValueVisitor::setValue(IntValue * value, value_type & toSet){
+    if (std::holds_alternative<int>(toSet)) {
+        value->setValue(std::get<int>(toSet));
+    } else {
+        //errorHandler
+        throw;
+    }
+}
+void ValueVisitor::setValue(DoubleValue * value, value_type & toSet){
+    if (std::holds_alternative<double>(toSet)) {
+        value->setValue(std::get<double>(toSet));
+    } else {
+        //errorHandler
+        throw;
+    }
+}
+void ValueVisitor::setValue(StringValue * value, value_type & toSet){
+    if (std::holds_alternative<std::wstring>(toSet)) {
+        value->setValue(std::get<std::wstring>(toSet));
+    } else {
+        //errorHandler
+        throw;
+    }
+}
+void ValueVisitor::setValue(BoolValue * value, value_type & toSet){
+    if (std::holds_alternative<bool>(toSet)) {
+        value->setValue(std::get<bool>(toSet));
+    } else {
+        //errorHandler
+        throw;
+    }
+}
+void ValueVisitor::setValue(PointValue * value, value_type & toSet){
+    if (std::holds_alternative<std::pair<double, double>>(toSet)) {
+        value->setValue(std::get<std::pair<double, double>>(toSet));
+    } else {
+        //errorHandler
+        throw;
+    }
+}
+void ValueVisitor::setValue(NoneValue * value, value_type & toSet){
+    throw;
+}
+void ValueVisitor::setValue(ListValue * value, value_type & toSet){
+    throw;
+}
+void ValueVisitor::setValue(FigureValue * value, value_type & toSet){
+    throw;
+}
+value_type ValueVisitor::getValue(IntValue * value){
+    return value->getValue();
+}
+value_type ValueVisitor::getValue(DoubleValue * value){
+    return value->getValue();
+}
+value_type ValueVisitor::getValue(StringValue * value){
+    return value->getValue();
+}
+value_type ValueVisitor::getValue(BoolValue * value){
+    return value->getValue();
+}
+value_type ValueVisitor::getValue(PointValue * value){
+    return value->getValue();
+}
+value_type ValueVisitor::getValue(NoneValue * value){
+    return std::monostate();
+}
+value_type ValueVisitor::getValue(ListValue * value){
+    return value->getValue();
+}
+value_type ValueVisitor::getValue(FigureValue * value){
+    return value->getValue();
+}
+
+
+
 void VisitorInterpreter::visit(ExpressionOr * e) {
     e->leftExpression->accept(*this);
     e->rightExpression->accept(*this);
