@@ -145,7 +145,7 @@ void VisitorTree::visit(ExpressionValueList * e) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ExpressionValueList:");
-    for (auto const & expression : e->expressions) {//TODO źle
+    for (auto const & expression : e->expressions) {
         expression->accept(*this);
     }
     this->tabs--;

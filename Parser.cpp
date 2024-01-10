@@ -20,7 +20,7 @@ std::unique_ptr<Program> Parser::parse() {
             if(functions.find(fName) == functions.end()){
                 functions[fName] = std::move(funcDecl);
             } else {
-                this->handleSemanticError(pos, L"Redeclaration of function " + fName);
+                this->handleSemanticError(funcDecl->position, L"Redeclaration of function " + fName);
             }
             foundFunc = true;
         } else if (auto figureDecl = std::move(this->parseFigureDecl())){
@@ -28,7 +28,7 @@ std::unique_ptr<Program> Parser::parse() {
             if(figures.find(fName) == figures.end()){
                 figures[fName] = std::move(figureDecl);
             } else {
-                errorHandler->onSemanticError(pos, L"Redeclaration of figure " + fName);
+                errorHandler->onSemanticError(figureDecl->position, L"Redeclaration of figure " + fName);
             }
             foundFigure = true;
         }

@@ -80,11 +80,6 @@ public:
 class Statement : public Visitable {
 public:
     virtual ~Statement() = default;
-    Statement() {}
-    Statement(const Statement&) =delete;
-    Statement& operator=(const Statement&) =delete;
-    Statement(Statement&&) =default;
-    Statement& operator=(Statement&&) =default;
 };
 
 class Expression : public Visitable {
