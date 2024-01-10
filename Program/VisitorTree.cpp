@@ -266,11 +266,7 @@ void VisitorTree::visit(ReturnStatement * s) {
     this->tabs++;
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ReturnStatement:");
-    if (auto & expression = s->expression) {
-        expression->accept(*this);
-    } else {
-        tree.push_back(tab_string + L"null");
-    }
+    s->expression->accept(*this);
     this->tabs--;
 }
 
@@ -279,8 +275,7 @@ void VisitorTree::visit(ConditionAndBlock * cb) {
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"ConditionAndBlock:");
     cb->condition->accept(*this);
-
-    cb->condition->accept(*this);
+    cb->block->accept(*this);
     this->tabs--;
 }
 
@@ -297,11 +292,7 @@ void VisitorTree::visit(IdentifierStatementAssign * s) {
     tree.push_back(tab_string + L"IdentifierStatementAssign:");
     s->identifierExpression->accept(*this);
 
-    if (auto & expression = s->expression) {
-        expression->accept(*this);
-    } else {
-        tree.push_back(tab_string + L"null");
-    }
+    s->expression->accept(*this);
     this->tabs--;
 }
 void VisitorTree::visit(ObjectAccessExpression * s) {

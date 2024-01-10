@@ -147,16 +147,13 @@ void VisitorInterpreter::visit(DeclarationAssignStatement * s) {
 }
 
 void VisitorInterpreter::visit(ReturnStatement * s) {
-    if (auto & expression = s->expression) {
-        expression->accept(*this);
-    } else {
-    }
+    s->expression->accept(*this);
 }
 
 void VisitorInterpreter::visit(ConditionAndBlock * cb) {
     cb->condition->accept(*this);
 
-    cb->condition->accept(*this);
+    cb->block->accept(*this);
 }
 
 void VisitorInterpreter::visit(IdentifierExpressionStatement * s) {
@@ -164,11 +161,7 @@ void VisitorInterpreter::visit(IdentifierExpressionStatement * s) {
 }
 void VisitorInterpreter::visit(IdentifierStatementAssign * s) {
     s->identifierExpression->accept(*this);
-
-    if (auto & expression = s->expression) {
-        expression->accept(*this);
-    } else {
-    }
+    s->expression->accept(*this);
 }
 void VisitorInterpreter::visit(ObjectAccessExpression * s) {
     s->leftExpression->accept(*this);
