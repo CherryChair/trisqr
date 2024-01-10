@@ -48,3 +48,8 @@ void ErrorHandler::onRuntimeError(Position position, std::wstring value) {
 void ErrorHandler::onInterpreterError(Position position, std::wstring value) {
     this->displayError(L"INT_ERR", ERR_INTERPRETER, position, value, true);
 }
+
+void ErrorHandler::onInterpreterError(std::wstring value) {
+    std::wcerr << L"INR_ERR: " + error_mesages.at(ERR_INTERPRETER) << std:: endl;
+    std::wcerr << value << L" << error" << std::endl;
+}

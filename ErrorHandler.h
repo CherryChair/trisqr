@@ -50,6 +50,7 @@ public:
     void onSemanticError(Position position, std::wstring value);
     void onRuntimeError(Position position, std::wstring value);
     void onInterpreterError(Position position, std::wstring value);
+    void onInterpreterError(std::wstring value);
     void displayError(std::wstring error_type, int error_subtype, Position position, std::wstring value, bool escape);
 };
 
