@@ -143,10 +143,7 @@ void VisitorInterpreter::visit(DeclarationStatement * s) {
 }
 
 void VisitorInterpreter::visit(DeclarationAssignStatement * s) {
-    if (auto & expression = s->expression) {
-        expression->accept(*this);
-    } else {
-    }
+    s->expression->accept(*this);
 }
 
 void VisitorInterpreter::visit(ReturnStatement * s) {

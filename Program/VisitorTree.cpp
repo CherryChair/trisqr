@@ -258,11 +258,7 @@ void VisitorTree::visit(DeclarationAssignStatement * s) {
     std::wstring tab_string = std::wstring(this->tabs, '\t');
     tree.push_back(tab_string + L"DeclarationStatement:");
     tree.push_back(tab_string + L"DeclarationStatement.VariableName:" + s->identifierName);
-    if (auto & expression = s->expression) {
-        expression->accept(*this);
-    } else {
-        tree.push_back(tab_string + L"null");
-    }
+    s->expression->accept(*this);
     this->tabs--;
 }
 
