@@ -470,6 +470,24 @@ public:
 
     Program() {}
     void accept(Visitor& visitor);
+    std::unordered_map<std::wstring, FuncDeclaration *> getFuncDeclarations(){
+        std::unordered_map<std::wstring, FuncDeclaration *> functionDeclarations;
+        for(auto & func : this->functions) {
+            functionDeclarations[func.first] = func.second.get();
+        }
+        return functionDeclarations;
+    };
+
+    std::unordered_map<std::wstring, FigureDeclaration *> getFigureDeclarations(){
+        std::unordered_map<std::wstring, FigureDeclaration *> figureDeclarations;
+        for(auto & figure : this->figures) {
+            figureDeclarations[figure.first] = figure.second.get();
+        }
+        return figureDeclarations;
+    };
+
+
+
 };
 
 

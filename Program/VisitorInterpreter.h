@@ -9,6 +9,7 @@
 #include <stack>
 #include <cwctype>
 #include "map"
+#include <functional>
 
 //figura i punkt
 class FunctionCallContext;
@@ -20,7 +21,7 @@ class Variable;
 class ListValue;
 class FigureValue;
 
-using value_type = std::variant<int, double, std::wstring, bool, std::monostate, std::pair<double, double>, std::shared_ptr<ListValue>, std::shared_ptr<FigureValue>>;
+using interpeter_value = std::variant<int, double, std::wstring, bool, std::monostate, std::pair<double, double>, std::shared_ptr<ListValue>, std::shared_ptr<FigureValue>>;
 
 struct AllowedInComparisonVisitor;
 struct AllowedInAdditionVisitor;
@@ -33,17 +34,17 @@ using AllowedInOperationVisitor = std::variant<AllowedInComparisonVisitor, Allow
 
 class ListValue : public std::enable_shared_from_this<ListValue>{
 private:
-    std::vector<value_type> values;
+    std::vector<interpeter_value> values;
 public:
-    ListValue(std::vector<value_type> values): values(std::move(values)) {}
-    value_type & operator[](size_t index) {
+    ListValue(std::vector<interpeter_value> values): values(std::move(values)) {}
+    interpeter_value & operator[](size_t index) {
         return values[index];
     }
     unsigned int len() {
         return values.size();
     }
     ListValue operator+(const ListValue & lv) {
-        std::vector<value_type> copy_values = this->values;
+        std::vector<interpeter_value> copy_values = this->values;
         copy_values.insert(values.end(), lv.values.begin(), lv.values.end());
         return ListValue(std::move(copy_values));
     }
@@ -53,7 +54,7 @@ class FigureValue : public std::enable_shared_from_this<FigureValue>{
 private:
     const std::wstring name;
     std::map<std::wstring, std::pair<double, double>> points;
-    ListValue border = ListValue(std::vector<value_type>({0, 0, 0}));
+    ListValue border = ListValue(std::vector<interpeter_value>({0, 0, 0}));
 public:
     FigureValue()=default;
     FigureValue(std::map<std::wstring, std::pair<double, double>> points): points(std::move(points)){};
@@ -66,9 +67,9 @@ public:
 
 class Scope {
 protected:
-    std::map<std::wstring, value_type> variables;
+    std::map<std::wstring, interpeter_value> variables;
 public:
-    std::map<std::wstring, value_type> & getVariables() {return variables;};
+    std::map<std::wstring, interpeter_value> & getVariables() {return variables;};
 };
 
 class FunctionCallContext{
@@ -80,14 +81,18 @@ public:
 
 class VisitorInterpreter : public Visitor {
 private:
+    std::unordered_map<std::wstring, FuncDeclaration *> functionDeclarations;
+    std::unordered_map<std::wstring, FigureDeclaration *> figureDeclarations;
+    std::vector<interpeter_value> functionCallParams;
     ErrorHandler * errorHandler;
     Scope figureScope = Scope();
     std::stack<FunctionCallContext> functionContexts;
-    std::optional<value_type> returnValue = std::nullopt;
-    std::optional<value_type> lastResult = std::nullopt;
+    std::optional<interpeter_value> returnValue = std::nullopt;
+    std::optional<interpeter_value> lastResult = std::nullopt;
     std::optional<std::wstring> currentlyAnalyzedFigure = std::nullopt;
     bool lastConditionTrue = false;
 public:
+    VisitorInterpreter(ErrorHandler * eh): errorHandler(eh){};
     void visit(ExpressionOr * e);
     void visit(ExpressionAnd * e);
     void visit(ExpressionCompEq * e);
@@ -138,14 +143,14 @@ public:
     Scope & getCurrentScope() {return this->functionContexts.top().getScopes().back();}
     Scope & addNewScope();
     void popScope();
-    std::map<std::wstring, value_type> & getCurrentScopeVariables();
-    value_type & consumeLastResult();
+    std::map<std::wstring, interpeter_value> & getCurrentScopeVariables();
+    interpeter_value & consumeLastResult();
     void consumeReturnValue();
     bool consumeConditionTrue();
 
-    bool ensureTypesMatch(value_type & value1, value_type & value2);
-    void operationTypeEqualityCheck(value_type & value1, value_type & value2, const Position & position, const std::wstring operation);
-    void operationLegalityCheck(value_type &value1, const Position &position,
+    bool ensureTypesMatch(interpeter_value & value1, interpeter_value & value2);
+    void operationTypeEqualityCheck(interpeter_value & value1, interpeter_value & value2, const Position & position, const std::wstring operation);
+    void operationLegalityCheck(interpeter_value &value1, const Position &position,
                                 AllowedInOperationVisitor &&allowedInOperationVisitor,
                                 const std::wstring &operation);
 };
@@ -229,8 +234,21 @@ struct TypeMatchVisitor {
     bool operator()(std::shared_ptr<FigureValue> & visited) {return type == FIGURE_VARIABLE;}
 };
 
-//using value_type = std::variant<int, double, std::wstring, bool, std::monostate, std::pair<double, double>, std::shared_ptr<ListValue>, std::shared_ptr<FigureValue>>;
-value_type operator+(const value_type & value1, const value_type & value2) {
+struct IntConversionVisitor {
+    variable_type type;
+    IntConversionVisitor(variable_type type) : type(type) {};
+    interpeter_value operator()(int & visited) {return type == INT_VARIABLE;}
+    interpeter_value operator()(double & visited) {return type == DOUBLE_VARIABLE;}
+    interpeter_value operator()(std::wstring & visited) {return type == STRING_VARIABLE;}
+    interpeter_value operator()(bool & visited) {return type == BOOL_VARIABLE;}
+    interpeter_value operator()(std::monostate & visited) {return type == NONE_VARIABLE;}
+    interpeter_value operator()(std::pair<double, double> & visited) {return type == POINT_VARIABLE;}
+    interpeter_value operator()(std::shared_ptr<ListValue> visited) {return type == LIST_VARIABLE;}
+    interpeter_value operator()(std::shared_ptr<FigureValue> & visited) {return type == FIGURE_VARIABLE;}
+};
+
+//using value = std::variant<int, double, std::wstring, bool, std::monostate, std::pair<double, double>, std::shared_ptr<ListValue>, std::shared_ptr<FigureValue>>;
+interpeter_value operator+(const interpeter_value & value1, const interpeter_value & value2) {
     if (value1.index() != value2.index()) {
         std::wcerr << L"ERR: Addition between two different types";
         throw;
@@ -261,7 +279,7 @@ value_type operator+(const value_type & value1, const value_type & value2) {
     }
 }
 
-value_type operator-(const value_type & value1, const value_type & value2) {
+interpeter_value operator-(const interpeter_value & value1, const interpeter_value & value2) {
     if (value1.index() != value2.index()) {
         std::wcerr << L"ERR: Subtraction between two different types";
         throw;
@@ -292,7 +310,7 @@ value_type operator-(const value_type & value1, const value_type & value2) {
     }
 }
 
-value_type operator/(const value_type & value1, const value_type & value2) {
+interpeter_value operator/(const interpeter_value & value1, const interpeter_value & value2) {
     if (value1.index() != value2.index()) {
         std::wcerr << L"ERR: Division between two different types";
         throw;
@@ -324,7 +342,7 @@ value_type operator/(const value_type & value1, const value_type & value2) {
     }
 }
 
-value_type operator*(const value_type & value1, const value_type & value2) {
+interpeter_value operator*(const interpeter_value & value1, const interpeter_value & value2) {
     if (value1.index() != value2.index()) {
         std::wcerr << L"ERR: Multiplication between two different types";
         throw;
@@ -355,5 +373,107 @@ value_type operator*(const value_type & value1, const value_type & value2) {
         }
     }
 }
+
+static const std::unordered_map<variable_type, std::function<interpeter_value (int value)>> int_conversion_map= {
+        {INT_VARIABLE, [](int value){ return value;}},
+        {DOUBLE_VARIABLE, [](int value){ return (double)value;}},
+        {BOOL_VARIABLE, [](int value){ if(value == 0) return false; return true;}},
+        {STRING_VARIABLE, [](int value){ return std::to_wstring(value);}},
+        {NONE_VARIABLE, [](int value){ return std::monostate();}},
+        {POINT_VARIABLE, [](int value){ return std::monostate();}},
+        {LIST_VARIABLE, [](int value){ return std::monostate();}},
+        {FIGURE_VARIABLE, [](int value){ return std::monostate();}},
+};
+
+static const std::unordered_map<variable_type, std::function<interpeter_value (double value)>> double_conversion_map= {
+        {INT_VARIABLE, [](double value){ return (int)value;}},
+        {DOUBLE_VARIABLE, [](double value){ return value;}},
+        {BOOL_VARIABLE, [](double value){ if(value == 0.0) return false; return true;}},
+        {STRING_VARIABLE, [](double value){ return std::to_wstring(value);}},
+        {NONE_VARIABLE, [](double value){ return std::monostate();}},
+        {POINT_VARIABLE, [](double value){ return std::monostate();}},
+        {LIST_VARIABLE, [](double value){ return std::monostate();}},
+        {FIGURE_VARIABLE, [](double value){ return std::monostate();}},
+};
+
+static const std::unordered_map<variable_type, std::function<interpeter_value (bool value)>> bool_conversion_map= {
+        {INT_VARIABLE, [](bool value){ return (int)value;}},
+        {DOUBLE_VARIABLE, [](bool value){ return (double)value;}},
+        {BOOL_VARIABLE, [](bool value){ return value;}},
+        {STRING_VARIABLE, [](bool value){ if (value) return L"true"; return L"false";}},
+        {NONE_VARIABLE, [](bool value){ return std::monostate();}},
+        {POINT_VARIABLE, [](bool value){ return std::monostate();}},
+        {LIST_VARIABLE, [](bool value){ return std::monostate();}},
+        {FIGURE_VARIABLE, [](bool value){ return std::monostate();}},
+};
+
+static const std::unordered_map<variable_type, std::function<interpeter_value (std::wstring value)>> string_conversion_map= {
+        {INT_VARIABLE, [](std::wstring value){ return std::stoi(value);}},
+        {DOUBLE_VARIABLE, [](std::wstring value){ return std::stod(value);}},
+        {BOOL_VARIABLE, [](std::wstring value){ return std::monostate();}},
+        {STRING_VARIABLE, [](std::wstring value){ return value;}},
+        {NONE_VARIABLE, [](std::wstring value){ return std::monostate();}},
+        {POINT_VARIABLE, [](std::wstring value){ return std::monostate();}},
+        {LIST_VARIABLE, [](std::wstring value){ return std::monostate();}},
+        {FIGURE_VARIABLE, [](std::wstring value){ return std::monostate();}},
+};
+
+static const std::unordered_map<variable_type, std::function<interpeter_value (std::monostate value)>> none_conversion_map= {
+        {INT_VARIABLE, [](std::monostate value){ return std::monostate();}},
+        {DOUBLE_VARIABLE, [](std::monostate value){ return std::monostate();}},
+        {BOOL_VARIABLE, [](std::monostate value){ return std::monostate();}},
+        {STRING_VARIABLE, [](std::monostate value){ return std::monostate();}},
+        {NONE_VARIABLE, [](std::monostate value){ return std::monostate();}},
+        {POINT_VARIABLE, [](std::monostate value){ return std::monostate();}},
+        {LIST_VARIABLE, [](std::monostate value){ return std::monostate();}},
+        {FIGURE_VARIABLE, [](std::monostate value){ return std::monostate();}},
+};
+
+static const std::unordered_map<variable_type, std::function<interpeter_value (std::pair<double, double> value)>> point_conversion_map= {
+        {INT_VARIABLE, [](std::pair<double, double> value){ return std::monostate();}},
+        {DOUBLE_VARIABLE, [](std::pair<double, double> value){ return std::monostate();}},
+        {BOOL_VARIABLE, [](std::pair<double, double> value){ return std::monostate();}},
+        {STRING_VARIABLE, [](std::pair<double, double> value){ return std::monostate();}},
+        {NONE_VARIABLE, [](std::pair<double, double> value){ return std::monostate();}},
+        {POINT_VARIABLE, [](std::pair<double, double> value){ return std::monostate();}},
+        {LIST_VARIABLE, [](std::pair<double, double> value){ return std::monostate();}},
+        {FIGURE_VARIABLE, [](std::pair<double, double> value){ return std::monostate();}},
+};
+
+static const std::unordered_map<variable_type, std::function<interpeter_value (std::shared_ptr<ListValue> value)>> list_conversion_map= {
+        {INT_VARIABLE, [](std::shared_ptr<ListValue> value){ return std::monostate();}},
+        {DOUBLE_VARIABLE, [](std::shared_ptr<ListValue> value){ return std::monostate();}},
+        {BOOL_VARIABLE, [](std::shared_ptr<ListValue> value){ return std::monostate();}},
+        {STRING_VARIABLE, [](std::shared_ptr<ListValue> value){ return std::monostate();}},
+        {NONE_VARIABLE, [](std::shared_ptr<ListValue> value){ return std::monostate();}},
+        {POINT_VARIABLE, [](std::shared_ptr<ListValue> value){ return std::monostate();}},
+        {LIST_VARIABLE, [](std::shared_ptr<ListValue> value){ return std::monostate();}},
+        {FIGURE_VARIABLE, [](std::shared_ptr<ListValue> value){ return std::monostate();}},
+};
+
+static const std::unordered_map<variable_type, std::function<interpeter_value (std::shared_ptr<FigureValue> value)>> figure_conversion_map= {
+        {INT_VARIABLE, [](std::shared_ptr<FigureValue> value){ return std::monostate();}},
+        {DOUBLE_VARIABLE, [](std::shared_ptr<FigureValue> value){ return std::monostate();}},
+        {BOOL_VARIABLE, [](std::shared_ptr<FigureValue> value){ return std::monostate();}},
+        {STRING_VARIABLE, [](std::shared_ptr<FigureValue> value){ return std::monostate();}},
+        {NONE_VARIABLE, [](std::shared_ptr<FigureValue> value){ return std::monostate();}},
+        {POINT_VARIABLE, [](std::shared_ptr<FigureValue> value){ return std::monostate();}},
+        {LIST_VARIABLE, [](std::shared_ptr<FigureValue> value){ return std::monostate();}},
+        {FIGURE_VARIABLE, [](std::shared_ptr<FigureValue> value){ return std::monostate();}},
+};
+
+struct ConversionVisitor {
+    variable_type type;
+    Position position;
+    ConversionVisitor(variable_type & type) : type(type) {};
+    interpeter_value operator()(int & visited) {return int_conversion_map.at(this->type)(visited);};
+    interpeter_value operator()(double & visited) {return double_conversion_map.at(this->type)(visited);};
+    interpeter_value operator()(std::wstring & visited) {return string_conversion_map.at(this->type)(visited);};
+    interpeter_value operator()(bool & visited) {return bool_conversion_map.at(this->type)(visited);};
+    interpeter_value operator()(std::monostate & visited) {return none_conversion_map.at(this->type)(visited);};
+    interpeter_value operator()(std::pair<double, double> & visited) {return point_conversion_map.at(this->type)(visited);};
+    interpeter_value operator()(std::shared_ptr<ListValue> & visited) {return list_conversion_map.at(this->type)(visited);};
+    interpeter_value operator()(std::shared_ptr<FigureValue> & visited) {return figure_conversion_map.at(this->type)(visited);};
+};
 
 #endif //LEXER_VISITORINTERPTER_H
