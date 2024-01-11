@@ -5,14 +5,14 @@
 #include "lexer.h"
 
 std::unordered_map<std::wstring, unsigned short int> const Lexer::keywordMap = {
-        {L"while", WHILE_TYPE},
-        {L"if", IF_TYPE},
-        {L"elsif", ELSIF_TYPE},
-        {L"else", ELSE_TYPE},
-        {L"func", FUNC_TYPE},
-        {L"figure", FIGURE_TYPE},
+        {L"while",  WHILE_TYPE},
+        {L"if",     IF_TYPE},
+        {L"elsif",  ELSIF_TYPE},
+        {L"else",   ELSE_TYPE},
+        {L"func",   FUNC_TYPE},
+        {L"figure", FIGURE_KEYWORD_TYPE},
         {L"return", RETURN_TYPE},
-        {L"for", FOR_TYPE},
+        {L"for",    FOR_TYPE},
         {L"range",  RANGE_TYPE},
         {L"vv",     VV_TYPE},
         {L"true",   TRUE_TYPE},
@@ -26,6 +26,7 @@ std::unordered_map<std::wstring, unsigned short int> const Lexer::keywordMap = {
         {L"none",   NONE_KEYWORD_TYPE},
         {L"bool",   BOOL_KEYWORD_TYPE},
         {L"point",  POINT_KEYWORD_TYPE},
+        {L"list",  LIST_KEYWORD_TYPE},
 };
 
 std::unordered_map<wchar_t, unsigned short int> const Lexer::oneCharMap = {

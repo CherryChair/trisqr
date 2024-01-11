@@ -7,6 +7,7 @@
 
 #include "Visitor.h"
 #include <stack>
+#include <cwctype>
 #include "map"
 
 //figura i punkt
@@ -20,6 +21,15 @@ class ListValue;
 class FigureValue;
 
 using value_type = std::variant<int, double, std::wstring, bool, std::monostate, std::pair<double, double>, std::shared_ptr<ListValue>, std::shared_ptr<FigureValue>>;
+
+struct AllowedInComparisonVisitor;
+struct AllowedInAdditionVisitor;
+struct AllowedInSubtractionVisitor;
+struct AllowedInMultiplicationVisitor;
+struct AllowedInDivisionVisitor;
+
+using AllowedInOperationVisitor = std::variant<AllowedInComparisonVisitor, AllowedInAdditionVisitor, AllowedInDivisionVisitor, AllowedInMultiplicationVisitor, AllowedInSubtractionVisitor>;
+
 
 class ListValue : public std::enable_shared_from_this<ListValue>{
 private:
@@ -135,7 +145,9 @@ public:
 
     bool ensureTypesMatch(value_type & value1, value_type & value2);
     void operationTypeEqualityCheck(value_type & value1, value_type & value2, const Position & position, const std::wstring operation);
-    void operationLegalityCheck(value_type & value1, value_type & value2, const Position & position);
+    void operationLegalityCheck(value_type &value1, const Position &position,
+                                AllowedInOperationVisitor &&allowedInOperationVisitor,
+                                const std::wstring &operation);
 };
 
 struct TypeVisitor {
@@ -160,7 +172,7 @@ struct AllowedInComparisonVisitor {
     bool operator()(std::shared_ptr<FigureValue> & visited) {return false;}
 };
 
-struct AllowedAdditionVisitor {
+struct AllowedInAdditionVisitor {
     bool operator()(int & visited) {return true;}
     bool operator()(double & visited) {return true;}
     bool operator()(std::wstring & visited) {return true;}
@@ -171,7 +183,7 @@ struct AllowedAdditionVisitor {
     bool operator()(std::shared_ptr<FigureValue> & visited) {return false;}
 };
 
-struct AllowedSubtractionVisitor {
+struct AllowedInSubtractionVisitor {
     bool operator()(int & visited) {return true;}
     bool operator()(double & visited) {return true;}
     bool operator()(std::wstring & visited) {return false;}
@@ -182,7 +194,7 @@ struct AllowedSubtractionVisitor {
     bool operator()(std::shared_ptr<FigureValue> & visited) {return false;}
 };
 
-struct AllowedMultiplicationVisitor {
+struct AllowedInMultiplicationVisitor {
     bool operator()(int & visited) {return true;}
     bool operator()(double & visited) {return true;}
     bool operator()(std::wstring & visited) {return false;}
@@ -193,7 +205,7 @@ struct AllowedMultiplicationVisitor {
     bool operator()(std::shared_ptr<FigureValue> & visited) {return false;}
 };
 
-struct AllowedDivisionVisitor {
+struct AllowedInDivisionVisitor {
     bool operator()(int & visited) {return true;}
     bool operator()(double & visited) {return true;}
     bool operator()(std::wstring & visited) {return false;}
@@ -203,7 +215,19 @@ struct AllowedDivisionVisitor {
     bool operator()(std::shared_ptr<ListValue> visited) {return false;}
     bool operator()(std::shared_ptr<FigureValue> & visited) {return false;}
 };
-using AllowedInOperationVisitor = std::variant<AllowedInComparisonVisitor, AllowedAdditionVisitor, AllowedDivisionVisitor, AllowedMultiplicationVisitor, AllowedSubtractionVisitor>;
+
+struct TypeMatchVisitor {
+    variable_type type;
+    TypeMatchVisitor(variable_type type) : type(type) {};
+    bool operator()(int & visited) {return type == INT_VARIABLE;}
+    bool operator()(double & visited) {return type == DOUBLE_VARIABLE;}
+    bool operator()(std::wstring & visited) {return type == STRING_VARIABLE;}
+    bool operator()(bool & visited) {return type == BOOL_VARIABLE;}
+    bool operator()(std::monostate & visited) {return type == NONE_VARIABLE;}
+    bool operator()(std::pair<double, double> & visited) {return type == POINT_VARIABLE;}
+    bool operator()(std::shared_ptr<ListValue> visited) {return type == LIST_VARIABLE;}
+    bool operator()(std::shared_ptr<FigureValue> & visited) {return type == FIGURE_VARIABLE;}
+};
 
 //using value_type = std::variant<int, double, std::wstring, bool, std::monostate, std::pair<double, double>, std::shared_ptr<ListValue>, std::shared_ptr<FigureValue>>;
 value_type operator+(const value_type & value1, const value_type & value2) {

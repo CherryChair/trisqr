@@ -7,6 +7,7 @@
 
 #include "Program.h"
 
+
 class Visitor {
 public:
     virtual void visit(ExpressionOr * e) = 0;

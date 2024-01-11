@@ -76,7 +76,7 @@ void VisitorInterpreter::visit(ExpressionCompLeq * e) {
     e->rightExpression->accept(*this);
     value_type & rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
-    operationLegalityCheck(leftExpressionValue, rightExpressionValue, e->position);
+    operationLegalityCheck(leftExpressionValue, e->position, AllowedInComparisonVisitor(), L"comparison");
     if (leftExpressionValue <= rightExpressionValue) {
         this->lastResult = true;
     } else {
@@ -89,7 +89,7 @@ void VisitorInterpreter::visit(ExpressionCompGeq * e) {
     e->rightExpression->accept(*this);
     value_type & rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
-    operationLegalityCheck(leftExpressionValue, rightExpressionValue, e->position);
+    operationLegalityCheck(leftExpressionValue, e->position, AllowedInComparisonVisitor(), L"comparison");
     if (leftExpressionValue >= rightExpressionValue) {
         this->lastResult = true;
     } else {
@@ -102,7 +102,7 @@ void VisitorInterpreter::visit(ExpressionCompGreater * e) {
     e->rightExpression->accept(*this);
     value_type & rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
-    operationLegalityCheck(leftExpressionValue, rightExpressionValue, e->position);
+    operationLegalityCheck(leftExpressionValue, e->position, AllowedInComparisonVisitor(), L"comparison");
     if (leftExpressionValue > rightExpressionValue) {
         this->lastResult = true;
     } else {
@@ -115,7 +115,7 @@ void VisitorInterpreter::visit(ExpressionCompLess * e) {
     e->rightExpression->accept(*this);
     value_type & rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
-    operationLegalityCheck(leftExpressionValue, rightExpressionValue, e->position);
+    operationLegalityCheck(leftExpressionValue, e->position, AllowedInComparisonVisitor(), L"comparison");
     if (leftExpressionValue < rightExpressionValue) {
         this->lastResult = true;
     } else {
@@ -129,6 +129,7 @@ void VisitorInterpreter::visit(ExpressionAdd * e) {
     e->rightExpression->accept(*this);
     value_type & rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Addition");
+    operationLegalityCheck(leftExpressionValue, e->position, AllowedInAdditionVisitor(), L"addition");
     this->lastResult = leftExpressionValue + rightExpressionValue;
 }
 void VisitorInterpreter::visit(ExpressionSub * e) {
@@ -137,6 +138,7 @@ void VisitorInterpreter::visit(ExpressionSub * e) {
     e->rightExpression->accept(*this);
     value_type & rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Subtraction");
+    operationLegalityCheck(leftExpressionValue, e->position, AllowedInSubtractionVisitor(), L"subtraction");
     this->lastResult = leftExpressionValue - rightExpressionValue;
 }
 void VisitorInterpreter::visit(ExpressionMul * e) {
@@ -145,6 +147,7 @@ void VisitorInterpreter::visit(ExpressionMul * e) {
     e->rightExpression->accept(*this);
     value_type & rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Multiplication");
+    operationLegalityCheck(leftExpressionValue, e->position, AllowedInMultiplicationVisitor(), L"multiplication");
     this->lastResult = leftExpressionValue * rightExpressionValue;
 }
 void VisitorInterpreter::visit(ExpressionDiv * e) {
@@ -153,6 +156,7 @@ void VisitorInterpreter::visit(ExpressionDiv * e) {
     e->rightExpression->accept(*this);
     value_type & rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Division");
+    operationLegalityCheck(leftExpressionValue, e->position, AllowedInDivisionVisitor(), L"division");
     this->lastResult = leftExpressionValue / rightExpressionValue;
 }
 void VisitorInterpreter::visit(ExpressionIs * e) {
@@ -163,9 +167,30 @@ void VisitorInterpreter::visit(ExpressionTo * e) {
 }
 void VisitorInterpreter::visit(ExpressionNeg * e) {
     e->expression->accept(*this);
+    value_type & expression = this->consumeLastResult();
+    if (std::holds_alternative<bool>(expression)) {
+        bool expressionValue = std::get<bool>(expression);
+        this->lastResult = !expressionValue;
+    } else {
+        auto expressionType = std::visit(TypeVisitor{}, expression);
+        expressionType[0] = std::towupper(expressionType[0]);
+        this->handleRuntimeError(e->position, expressionType + L" expression can't be negated with !.");
+    }
 }
 void VisitorInterpreter::visit(ExpressionNegMinus * e) {
     e->expression->accept(*this);
+    value_type & expression = this->consumeLastResult();
+    if (std::holds_alternative<int>(expression)) {
+        int expressionValue = std::get<int>(expression);
+        this->lastResult = -expressionValue;
+    } else if (std::holds_alternative<double>(expression)) {
+        double expressionValue = std::get<double>(expression);
+        this->lastResult = -expressionValue;
+    } else {
+        auto expressionType = std::visit(TypeVisitor{}, expression);
+        expressionType[0] = std::towupper(expressionType[0]);
+        this->handleRuntimeError(e->position, expressionType + L" expression can't be negated with minus.");
+    }
 }
 void VisitorInterpreter::visit(ExpressionValueList * e) {
     for (auto & expression : e->expressions) {
@@ -454,8 +479,11 @@ bool VisitorInterpreter::ensureTypesMatch(value_type &value1, value_type &value2
     return true;
 }
 
-void VisitorInterpreter::operationLegalityCheck(value_type &value1, value_type &value2, const Position &position) {
-    if (!std::visit(AllowedInComparisonVisitor{}, value1)) {
+void VisitorInterpreter::operationLegalityCheck(value_type &value1, const Position &position,
+                                                AllowedInOperationVisitor &&allowedInOperationVisitor,
+                                                const std::wstring &operation) {
+    bool allowed = std::visit([&value1](auto & allowedIn) -> bool{return std::visit(allowedIn, value1);}, allowedInOperationVisitor);
+    if (!allowed) {
         this->handleRuntimeError(position, L"Expressions of type " + std::visit(TypeVisitor{}, value1) +
                                            L" are not allowed in comparison");
     }

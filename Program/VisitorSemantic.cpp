@@ -12,6 +12,7 @@ static const std::unordered_map<short int, std::wstring> variable_type_represent
         {NONE_VARIABLE,     L"none"},
         {FIGURE_VARIABLE,   L"figure"},
         {POINT_VARIABLE,    L"point"},
+        {LIST_VARIABLE,    L"list"},
 };
 
 

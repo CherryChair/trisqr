@@ -76,7 +76,7 @@ void Parser::handleSemanticError(const Position &position, const std::wstring &m
 // point_list          :== point_declaration, {",", point_declaration}, "," "color", ":",
 std::unique_ptr<FigureDeclaration> Parser::parseFigureDecl() {
     Position position = token->getPos();
-    if (!this->consumeIf(FIGURE_TYPE)){
+    if (!this->consumeIf(FIGURE_KEYWORD_TYPE)){
         return nullptr;
     }
     auto name = this->mustBe(IDENTIFIER_TYPE, L"Missing identifer in figure declaration.");
@@ -567,8 +567,10 @@ std::unique_ptr<Expression> Parser::parseExpressionIs() {
             leftConditionExpression = std::make_unique<ExpressionIs>(std::move(leftConditionExpression), NONE_VARIABLE, factorPos);
         } else if(this->consumeIf(POINT_KEYWORD_TYPE)) {
             leftConditionExpression = std::make_unique<ExpressionIs>(std::move(leftConditionExpression), POINT_VARIABLE, factorPos);
-        } else if(this->consumeIf(FIGURE_TYPE)) {
+        } else if(this->consumeIf(FIGURE_KEYWORD_TYPE)) {
             leftConditionExpression = std::make_unique<ExpressionIs>(std::move(leftConditionExpression), FIGURE_VARIABLE, factorPos);
+        } else if(this->consumeIf(LIST_KEYWORD_TYPE)) {
+            leftConditionExpression = std::make_unique<ExpressionIs>(std::move(leftConditionExpression), LIST_VARIABLE, factorPos);
         } else {
             this->handleSyntaxError(factorPos, L"No type after is keyword.");
         }
@@ -647,8 +649,10 @@ std::unique_ptr<Expression> Parser::parseExpressionTo() {
             leftConditionExpression = std::make_unique<ExpressionTo>(std::move(leftConditionExpression), NONE_VARIABLE, factorPos);
         } else if(this->consumeIf(POINT_KEYWORD_TYPE)) {
             leftConditionExpression = std::make_unique<ExpressionTo>(std::move(leftConditionExpression), POINT_VARIABLE, factorPos);
-        } else if(this->consumeIf(FIGURE_TYPE)) {
+        } else if(this->consumeIf(FIGURE_KEYWORD_TYPE)) {
             leftConditionExpression = std::make_unique<ExpressionTo>(std::move(leftConditionExpression), FIGURE_VARIABLE, factorPos);
+        } else if(this->consumeIf(LIST_KEYWORD_TYPE)) {
+            leftConditionExpression = std::make_unique<ExpressionTo>(std::move(leftConditionExpression), LIST_VARIABLE, factorPos);
         } else {
             this->handleSyntaxError(factorPos, L"No expression after is keyword.");
         }

@@ -66,6 +66,7 @@ enum variable_type {
     DOUBLE_VARIABLE,
     NONE_VARIABLE,
     POINT_VARIABLE,
+    LIST_VARIABLE,
     FIGURE_VARIABLE
 };
 

@@ -230,6 +230,11 @@ TEST(BasicTests, pointKwrdTest) {
     basic_test(a, POINT_KEYWORD_TYPE);
 }
 
+TEST(BasicTests, listKwrdTest) {
+    std::wstring a = L"list";
+    basic_test(a, LIST_KEYWORD_TYPE);
+}
+
 TEST(BasicTests, nonASCIITest) {
     basic_test(L"'ąćęłóśźż'", STRING_TYPE);
 }

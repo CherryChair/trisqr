@@ -21,7 +21,7 @@ enum token_type {
     ELSIF_TYPE,
     ELSE_TYPE,
     FUNC_TYPE,
-    FIGURE_TYPE,
+    FIGURE_KEYWORD_TYPE,
     RETURN_TYPE,
     FOR_TYPE,
     RANGE_TYPE,
@@ -65,6 +65,7 @@ enum token_type {
     NONE_KEYWORD_TYPE,
     BOOL_KEYWORD_TYPE,
     POINT_KEYWORD_TYPE,
+    LIST_KEYWORD_TYPE,
 };
 
 static const std::unordered_map<unsigned short int, std::wstring> type_map= {
@@ -77,7 +78,7 @@ static const std::unordered_map<unsigned short int, std::wstring> type_map= {
         {ELSIF_TYPE, L"ELSIF_TYPE"},
         {ELSE_TYPE, L"ELSE_TYPE"},
         {FUNC_TYPE, L"FUNC_TYPE"},
-        {FIGURE_TYPE, L"FIGURE_TYPE"},
+        {FIGURE_KEYWORD_TYPE, L"FIGURE_KEYWORD_TYPE"},
         {RETURN_TYPE, L"RETURN_TYPE"},
         {FOR_TYPE, L"FOR_TYPE"},
         {RANGE_TYPE, L"RANGE_TYPE"},
@@ -121,6 +122,7 @@ static const std::unordered_map<unsigned short int, std::wstring> type_map= {
         {NONE_KEYWORD_TYPE,   L"NONE_KEYWORD_TYPE"},
         {BOOL_KEYWORD_TYPE,   L"BOOL_KEYWORD_TYPE"},
         {POINT_KEYWORD_TYPE,  L"POINT_KEYWORD_TYPE"},
+        {LIST_KEYWORD_TYPE,  L"POINT_KEYWORD_TYPE"},
 };
 
 struct Token
