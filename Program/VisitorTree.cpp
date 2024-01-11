@@ -4,17 +4,6 @@
 
 #include "VisitorTree.h"
 
-static const std::unordered_map<short int, std::wstring> variable_type_representation= {
-        {STRING_VARIABLE,   L"string"},
-        {INT_VARIABLE,      L"int"},
-        {DOUBLE_VARIABLE,   L"double"},
-        {BOOL_VARIABLE,     L"bool"},
-        {NONE_VARIABLE,     L"none"},
-        {FIGURE_VARIABLE,   L"figure"},
-        {POINT_VARIABLE,    L"point"},
-        {LIST_VARIABLE,     L"list"},
-};
-
 
 void VisitorTree::visit(ExpressionOr * e) {
     this->tabs++;
