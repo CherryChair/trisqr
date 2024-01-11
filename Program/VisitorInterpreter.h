@@ -10,6 +10,7 @@
 #include <cwctype>
 #include "map"
 #include <functional>
+#include <queue>
 
 //figura i punkt
 class FunctionCallContext;
@@ -81,9 +82,10 @@ public:
 
 class VisitorInterpreter : public Visitor {
 private:
+    Position funcCallPosition;
     std::unordered_map<std::wstring, FuncDeclaration *> functionDeclarations;
     std::unordered_map<std::wstring, FigureDeclaration *> figureDeclarations;
-    std::vector<interpeter_value> functionCallParams;
+    std::queue<interpeter_value> functionCallParams;
     ErrorHandler * errorHandler;
     Scope figureScope = Scope();
     std::stack<FunctionCallContext> functionContexts;
@@ -128,7 +130,7 @@ public:
     void visit(IdentifierExpressionStatement * s);
     void visit(IdentifierStatementAssign * s);
     void visit(IdentifierListIndexExpression * s);
-    void visit(IdentifierFunctionCallExpression * s);
+    void visit(IdentifierFunctionCallExpression * e);
     void visit(IdentifierExpression * s);
 
     void visit(CodeBlock * cb);
@@ -144,7 +146,7 @@ public:
     Scope & addNewScope();
     void popScope();
     std::map<std::wstring, interpeter_value> & getCurrentScopeVariables();
-    interpeter_value & consumeLastResult();
+    interpeter_value consumeLastResult();
     void consumeReturnValue();
     bool consumeConditionTrue();
 
