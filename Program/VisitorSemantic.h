@@ -9,7 +9,7 @@
 
 
 
-class VisitorInterpreter : public Visitor {
+class VisitorSemantic : public Visitor {
 public:
     void visit(ExpressionOr * e);
     void visit(ExpressionAnd * e);

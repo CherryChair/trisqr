@@ -4,177 +4,156 @@
 
 #include "VisitorInterpreter.h"
 
-std::unique_ptr<Value> ValueVisitor::setType(IntValue * value, variable_type & vt){
-
-}
-std::unique_ptr<Value> ValueVisitor::setType(DoubleValue * value, variable_type & vt){
-
-}
-std::unique_ptr<Value> ValueVisitor::setType(StringValue * value, variable_type & vt){
-
-}
-std::unique_ptr<Value> ValueVisitor::setType(BoolValue * value, variable_type & vt){
-
-}
-std::unique_ptr<Value> ValueVisitor::setType(PointValue * value, variable_type & vt){
-
-}
-std::unique_ptr<Value> ValueVisitor::setType(NoneValue * value, variable_type & vt){
-
-}
-std::unique_ptr<Value> ValueVisitor::setType(ListValue * value, variable_type & vt){
-
-}
-std::unique_ptr<Value> ValueVisitor::setType(FigureValue * value, variable_type & vt){
-
-}
-variable_type ValueVisitor::getType(IntValue * value){
-    return INT_VARIABLE;
-}
-variable_type ValueVisitor::getType(DoubleValue * value){
-    return DOUBLE_VARIABLE;
-}
-variable_type ValueVisitor::getType(StringValue * value){
-    return STRING_VARIABLE;
-}
-variable_type ValueVisitor::getType(BoolValue * value){
-    return BOOL_VARIABLE;
-}
-variable_type ValueVisitor::getType(PointValue * value){
-    return POINT_VARIABLE;
-}
-variable_type ValueVisitor::getType(NoneValue * value){
-    return NONE_VARIABLE;
-}
-variable_type ValueVisitor::getType(ListValue * value){
-
-}
-variable_type ValueVisitor::getType(FigureValue * value){
-
-}
-void ValueVisitor::setValue(IntValue * value, value_type & toSet){
-    if (std::holds_alternative<int>(toSet)) {
-        value->setValue(std::get<int>(toSet));
-    } else {
-        //errorHandler
-        throw;
-    }
-}
-void ValueVisitor::setValue(DoubleValue * value, value_type & toSet){
-    if (std::holds_alternative<double>(toSet)) {
-        value->setValue(std::get<double>(toSet));
-    } else {
-        //errorHandler
-        throw;
-    }
-}
-void ValueVisitor::setValue(StringValue * value, value_type & toSet){
-    if (std::holds_alternative<std::wstring>(toSet)) {
-        value->setValue(std::get<std::wstring>(toSet));
-    } else {
-        //errorHandler
-        throw;
-    }
-}
-void ValueVisitor::setValue(BoolValue * value, value_type & toSet){
-    if (std::holds_alternative<bool>(toSet)) {
-        value->setValue(std::get<bool>(toSet));
-    } else {
-        //errorHandler
-        throw;
-    }
-}
-void ValueVisitor::setValue(PointValue * value, value_type & toSet){
-    if (std::holds_alternative<std::pair<double, double>>(toSet)) {
-        value->setValue(std::get<std::pair<double, double>>(toSet));
-    } else {
-        //errorHandler
-        throw;
-    }
-}
-void ValueVisitor::setValue(NoneValue * value, value_type & toSet){
-    throw;
-}
-void ValueVisitor::setValue(ListValue * value, value_type & toSet){
-    throw;
-}
-void ValueVisitor::setValue(FigureValue * value, value_type & toSet){
-    throw;
-}
-value_type ValueVisitor::getValue(IntValue * value){
-    return value->getValue();
-}
-value_type ValueVisitor::getValue(DoubleValue * value){
-    return value->getValue();
-}
-value_type ValueVisitor::getValue(StringValue * value){
-    return value->getValue();
-}
-value_type ValueVisitor::getValue(BoolValue * value){
-    return value->getValue();
-}
-value_type ValueVisitor::getValue(PointValue * value){
-    return value->getValue();
-}
-value_type ValueVisitor::getValue(NoneValue * value){
-    return std::monostate();
-}
-value_type ValueVisitor::getValue(ListValue * value){
-    return value->getValue();
-}
-value_type ValueVisitor::getValue(FigureValue * value){
-    return value->getValue();
-}
-
-
-
 void VisitorInterpreter::visit(ExpressionOr * e) {
     e->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
+    if (!std::holds_alternative<bool>(leftExpressionValue)) {
+        this->handleRuntimeError(e->position, L"Expression on left to 'or' evaluated to non boolean.");
+    }
+    if(std::get<bool>(leftExpressionValue)) {
+        this->lastResult = true;
+    }
     e->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    if (!std::holds_alternative<bool>(rightExpressionValue)) {
+        this->handleRuntimeError(e->position, L"Expression right to 'or' evaluated to non boolean.");
+    }
+    if(std::get<bool>(rightExpressionValue)) {
+        this->lastResult = true;
+    } else {
+        this->lastResult = false;
+    }
 }
 void VisitorInterpreter::visit(ExpressionAnd * e) {
     e->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
+    if (!std::holds_alternative<bool>(leftExpressionValue)) {
+        this->handleRuntimeError(e->position, L"Expression left to 'and' evaluated to non boolean.");
+    }
+    if(!std::get<bool>(leftExpressionValue)) {
+        this->lastResult = false;
+        return;
+    }
     e->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    if (!std::holds_alternative<bool>(rightExpressionValue)) {
+        this->handleRuntimeError(e->position, L"Expression right to 'and' evaluated to non boolean.");
+    }
+    if(!std::get<bool>(rightExpressionValue)) {
+        this->lastResult = false;
+    } else {
+        this->lastResult = true;
+    }
 }
 void VisitorInterpreter::visit(ExpressionCompEq * e) {
     e->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
+    if (leftExpressionValue == rightExpressionValue) {
+        this->lastResult = true;
+    } else {
+        this->lastResult = false;
+    }
 }
+
 void VisitorInterpreter::visit(ExpressionCompNeq * e) {
     e->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
+    if (leftExpressionValue != rightExpressionValue) {
+        this->lastResult = true;
+    } else {
+        this->lastResult = false;
+    }
 }
 void VisitorInterpreter::visit(ExpressionCompLeq * e) {
     e->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
+    operationLegalityCheck(leftExpressionValue, rightExpressionValue, e->position);
+    if (leftExpressionValue <= rightExpressionValue) {
+        this->lastResult = true;
+    } else {
+        this->lastResult = false;
+    }
 }
 void VisitorInterpreter::visit(ExpressionCompGeq * e) {
     e->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
+    operationLegalityCheck(leftExpressionValue, rightExpressionValue, e->position);
+    if (leftExpressionValue >= rightExpressionValue) {
+        this->lastResult = true;
+    } else {
+        this->lastResult = false;
+    }
 }
 void VisitorInterpreter::visit(ExpressionCompGreater * e) {
     e->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
+    operationLegalityCheck(leftExpressionValue, rightExpressionValue, e->position);
+    if (leftExpressionValue > rightExpressionValue) {
+        this->lastResult = true;
+    } else {
+        this->lastResult = false;
+    }
 }
 void VisitorInterpreter::visit(ExpressionCompLess * e) {
     e->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
+    operationLegalityCheck(leftExpressionValue, rightExpressionValue, e->position);
+    if (leftExpressionValue < rightExpressionValue) {
+        this->lastResult = true;
+    } else {
+        this->lastResult = false;
+    }
 }
 void VisitorInterpreter::visit(ExpressionAdd * e) {
+
     e->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Addition");
+    this->lastResult = leftExpressionValue + rightExpressionValue;
 }
 void VisitorInterpreter::visit(ExpressionSub * e) {
     e->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Subtraction");
+    this->lastResult = leftExpressionValue - rightExpressionValue;
 }
 void VisitorInterpreter::visit(ExpressionMul * e) {
     e->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Multiplication");
+    this->lastResult = leftExpressionValue * rightExpressionValue;
 }
 void VisitorInterpreter::visit(ExpressionDiv * e) {
     e->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Division");
+    this->lastResult = leftExpressionValue / rightExpressionValue;
 }
 void VisitorInterpreter::visit(ExpressionIs * e) {
     e->expression->accept(*this);
@@ -189,7 +168,7 @@ void VisitorInterpreter::visit(ExpressionNegMinus * e) {
     e->expression->accept(*this);
 }
 void VisitorInterpreter::visit(ExpressionValueList * e) {
-    for (auto const & expression : e->expressions) {
+    for (auto & expression : e->expressions) {
         expression->accept(*this);
     }
 }
@@ -225,67 +204,6 @@ void VisitorInterpreter::visit(ExpressionValueBrackets * e) {
     e->expression->accept(*this);
 }
 
-
-
-
-
-void VisitorInterpreter::visit(WhileStatement * s) {
-    s->conditionAndBlock->accept(*this);
-}
-void VisitorInterpreter::visit(IfStatement * s) {
-    s->ifConditionAndBlock->accept(*this);
-    for (auto const & condAndBlock : s->elsifConditionsAndBlocks) {
-        condAndBlock->accept(*this);
-    }
-
-    if (auto & elseCodeBlock = s->elseCodeBlock) {
-        elseCodeBlock->accept(*this);
-    } else {
-    }
-}
-void VisitorInterpreter::visit(ForStatement * s) {
-    s->expression->accept(*this);
-    s->block->accept(*this);
-}
-void VisitorInterpreter::visit(ForRangeStatement * s) {
-    s->leftExpression->accept(*this);
-    s->rightExpression->accept(*this);
-    s->block->accept(*this);
-}
-void VisitorInterpreter::visit(DeclarationStatement * s) {
-}
-
-void VisitorInterpreter::visit(DeclarationAssignStatement * s) {
-    if (auto & expression = s->expression) {
-        expression->accept(*this);
-    } else {
-    }
-}
-
-void VisitorInterpreter::visit(ReturnStatement * s) {
-    if (auto & expression = s->expression) {
-        expression->accept(*this);
-    } else {
-    }
-}
-
-void VisitorInterpreter::visit(ConditionAndBlock * cb) {
-    cb->condition->accept(*this);
-
-    cb->condition->accept(*this);
-}
-
-void VisitorInterpreter::visit(IdentifierExpressionStatement * s) {
-    s->identifierExpression->accept(*this);
-}
-void VisitorInterpreter::visit(IdentifierStatementAssign * s) {
-    s->identifierExpression->accept(*this);
-
-    if (auto & expression = s->expression) {
-        expression->accept(*this);
-    } else {
-    }
-}
 void VisitorInterpreter::visit(ObjectAccessExpression * s) {
     s->leftExpression->accept(*this);
 
@@ -303,7 +221,7 @@ void VisitorInterpreter::visit(IdentifierListIndexExpression * s) {
 void VisitorInterpreter::visit(IdentifierFunctionCallExpression * s) {
     s->identifierExpression->accept(*this);
 
-    for (auto const & expression : s->expressions) {
+    for (auto & expression : s->expressions) {
         expression->accept(*this);
     }
 }
@@ -314,34 +232,238 @@ void VisitorInterpreter::visit(IdentifierExpression * s) {
 
 
 
+
+void VisitorInterpreter::visit(WhileStatement * s) {
+    this->addNewScope();
+    s->conditionAndBlock->accept(*this);
+    this->popScope();
+}
+void VisitorInterpreter::visit(IfStatement * s) {
+    this->addNewScope();
+    s->ifConditionAndBlock->accept(*this);
+    this->popScope();
+    if(this->consumeConditionTrue()) {
+        return;
+    }
+    for (auto & condAndBlock : s->elsifConditionsAndBlocks) {
+        this->addNewScope();
+        condAndBlock->accept(*this);
+        this->popScope();
+        if(this->consumeConditionTrue()) {
+            return;
+        }
+        if (this->returnValue) {
+            return;
+        }
+    }
+    if (auto & elseCodeBlock = s->elseCodeBlock) {
+        this->addNewScope();
+        elseCodeBlock->accept(*this);
+        this->popScope();
+    }
+}
+void VisitorInterpreter::visit(ForStatement * s) {
+    s->expression->accept(*this);
+    value_type & expressionValue = this->consumeLastResult();
+    if(!std::holds_alternative<std::shared_ptr<ListValue>>(expressionValue)) {
+        this->handleRuntimeError(s->position, L"Iterated variable is not list");
+    }
+    ListValue* iteratedList = std::get<std::shared_ptr<ListValue>>(expressionValue).get();
+    for(size_t i=0; i<iteratedList->len(); i++) {
+        this->addNewScope();
+        this->getCurrentScopeVariables()[s->identifier] = (*iteratedList)[i];
+        s->block->accept(*this);
+        this->popScope();
+        if (this->returnValue) {
+            return;
+        }
+    }
+}
+void VisitorInterpreter::visit(ForRangeStatement * s) {
+    s->leftExpression->accept(*this);
+    value_type & leftExpressionValue = this->consumeLastResult();
+    if(!std::holds_alternative<int>(leftExpressionValue)) {
+        this->handleRuntimeError(s->position, L"Left range parameter is not int");
+    }
+    int startOfRange = std::get<int>(leftExpressionValue);
+    s->rightExpression->accept(*this);
+    value_type & rightExpressionValue = this->consumeLastResult();
+    if(!std::holds_alternative<int>(rightExpressionValue)) {
+        this->handleRuntimeError(s->position, L"Left range parameter is not int");
+    }
+    int endOfRange = std::get<int>(rightExpressionValue);
+    for(int i=startOfRange; i<endOfRange; i++) {
+        this->addNewScope();
+        this->getCurrentScopeVariables()[s->identifier] = value_type(i);
+        s->block->accept(*this);
+        this->popScope();
+        if (this->returnValue) {
+            return;
+        }
+    }
+}
+void VisitorInterpreter::visit(DeclarationStatement * s) {
+    this->getCurrentScopeVariables()[s->identifierName] = std::monostate();
+}
+
+void VisitorInterpreter::visit(DeclarationAssignStatement * s) {
+    s->expression->accept(*this);
+    value_type & expressionValue = this->consumeLastResult();
+    this->getCurrentScopeVariables()[s->identifierName] = expressionValue;
+}
+
+void VisitorInterpreter::visit(ReturnStatement * s) {
+    s->expression->accept(*this);
+    value_type & expressionValue = this->consumeLastResult();
+    this->returnValue = expressionValue;
+}
+
+void VisitorInterpreter::visit(IdentifierExpressionStatement * s) {
+    s->identifierExpression->accept(*this);
+    this->consumeLastResult();
+}
+
+void VisitorInterpreter::visit(IdentifierStatementAssign * s) {
+    s->identifierExpression->accept(*this);
+    value_type & expressionValue = this->consumeLastResult();
+    s->expression->accept(*this);
+}
+
+
+void VisitorInterpreter::visit(ConditionAndBlock * cb) {
+
+    cb->condition->accept(*this);
+    value_type & conditionValue = this->consumeLastResult();
+    if(!std::holds_alternative<bool>(conditionValue)) {
+        this->handleRuntimeError(cb->position, L"Condition evaluated to non boolean value.");
+    }
+    if(std::get<bool>(conditionValue)) {
+        cb->block->accept(*this);
+        this->lastConditionTrue = true;
+    }
+}
+
+
+
+
+
 void VisitorInterpreter::visit(CodeBlock * cb) {
-    for (auto const & statement : cb->statements) {
+    for (auto & statement : cb->statements) {
         statement->accept(*this);
+        if(this->returnValue) {
+            return;
+        }
     }
 }
 
 void VisitorInterpreter::visit(Parameter * p) {
+    this->getCurrentScope().getVariables()[p->getName()] = std::monostate();
 }
 
 void VisitorInterpreter::visit(FigureParameter * p) {
+    auto & figureScope = this->getFigureScope();
     p->valueExpression->accept(*this);
+    value_type & expressionValue = this->consumeLastResult();
+    if(!std::holds_alternative<std::pair<double, double>>(expressionValue)) {
+        this->handleRuntimeError(p->position, L"Point does not have default value in form (double, double)");
+    }
+    value_type & lastFigure = this->getFigureScope().getVariables()[this->currentlyAnalyzedFigure.value()];
+    FigureValue * currentFigure = std::get<std::shared_ptr<FigureValue>>(lastFigure).get();
+    currentFigure->getPoints()[p->getName()] = std::get<std::pair<double, double>>(expressionValue);
 }
 void VisitorInterpreter::visit(FigureDeclaration * fd) {
-    for (auto const & param : fd->params) {
+    auto & figureScope = this->getFigureScope();
+    std::shared_ptr<FigureValue> figureDecl = std::make_shared<FigureValue>(FigureValue());
+    this->currentlyAnalyzedFigure = fd->name;
+    figureScope.getVariables()[fd->name] = figureDecl;
+    for (auto & param : fd->params) {
         param->accept(*this);
     }
+    this->currentlyAnalyzedFigure = L"";
 }
 void VisitorInterpreter::visit(FuncDeclaration * fd) {
-    for (auto const & param : fd->params) {
+    this->functionContexts.push(FunctionCallContext());
+    this->addNewScope();
+    for (auto & param : fd->params) {
         param->accept(*this);
     }
     fd->codeBlock->accept(*this);
+    this->popScope();
+    this->functionContexts.pop();
+    this->consumeReturnValue();
 }
 void VisitorInterpreter::visit(Program * p) {
-    for(auto const & figure: p->figures) {
-        figure.second->accept(*this);
+    auto mainFunc = p->functions.find(L"main");
+    if (mainFunc != p->functions.end()) {
+        for(auto & figure: p->figures) {
+            figure.second->accept(*this);
+        }
+        mainFunc->second->accept(*this);
     }
-    for(auto const & function: p->functions) {
-        function.second->accept(*this);
+}
+
+void VisitorInterpreter::handleRuntimeError(const Position &pos, const std::wstring &errorMsg) {
+    this->errorHandler->onRuntimeError(pos, errorMsg);
+    throw;
+}
+
+Scope &VisitorInterpreter::addNewScope() {
+    this->functionContexts.top().getScopes().push_back(Scope());
+    return this->functionContexts.top().getScopes().back();
+}
+
+void VisitorInterpreter::popScope() {
+    this->functionContexts.top().getScopes().pop_back();
+}
+
+void VisitorInterpreter::consumeReturnValue() {
+    if (returnValue) {
+        this->lastResult = this->returnValue;
+        this->returnValue = std::nullopt;
+    } else {
+        this->lastResult = std::monostate();
+    }
+}
+
+bool VisitorInterpreter::consumeConditionTrue() {
+    if(this->lastConditionTrue) {
+        this->lastConditionTrue = false;
+        return true;
+    }
+    return false;
+}
+
+value_type &VisitorInterpreter::consumeLastResult() {
+    std::optional<value_type> retVal = lastResult;
+    if (!retVal) {
+        this->errorHandler->onInterpreterError(L"Expression didn't evaluate properly.");
+        throw;
+    }
+    lastResult = std::nullopt;
+    return retVal.value();
+}
+
+std::map<std::wstring, value_type> &VisitorInterpreter::getCurrentScopeVariables() {
+    return this->functionContexts.top().getScopes().back().getVariables();
+}
+
+bool VisitorInterpreter::ensureTypesMatch(value_type &value1, value_type &value2) {
+    if (value1.index() != value2.index()) {
+        return false;
+    }
+    return true;
+}
+
+void VisitorInterpreter::operationLegalityCheck(value_type &value1, value_type &value2, const Position &position) {
+    if (!std::visit(AllowedInComparisonVisitor{}, value1)) {
+        this->handleRuntimeError(position, L"Expressions of type " + std::visit(TypeVisitor{}, value1) +
+                                           L" are not allowed in comparison");
+    }
+}
+
+void VisitorInterpreter::operationTypeEqualityCheck(value_type &value1, value_type &value2, const Position &position, const std::wstring operation) {
+    if (!this->ensureTypesMatch(value1, value2)) {
+        this->handleRuntimeError(position, operation + L" between " + std::visit(TypeVisitor{}, value1) +
+                                           L" and " + std::visit(TypeVisitor{}, value2));
     }
 }
