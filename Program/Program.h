@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <string>
 #include <optional>
+#include <unordered_set>
 #include "../lexer.h"
 
 
@@ -79,6 +80,48 @@ static const std::unordered_map<short int, std::wstring> variable_type_represent
         {FIGURE_VARIABLE,   L"figure"},
         {POINT_VARIABLE,    L"point"},
         {LIST_VARIABLE,     L"list"},
+};
+
+static const std::unordered_set<std::wstring> special_keywords = {
+        L"Circle",
+        L"circ",
+        L"area",
+        L"scale",
+        L"rotate",
+        L"transport",
+        L"vertex",
+        L"copy",
+        L"color",
+        L"len",
+        L"append",
+        L"delete",
+        L"print",
+        L"input",
+        L"draw"
+};
+
+static const std::unordered_set<std::wstring> special_list_keywords = {
+        L"len",
+        L"append",
+        L"delete",
+};
+
+static const std::unordered_set<std::wstring> special_figure_keywords = {
+        L"circ",
+        L"area",
+        L"scale",
+        L"rotate",
+        L"transport",
+        L"vertex",
+        L"copy",
+        L"color",
+};
+
+static const std::unordered_set<std::wstring> special_function_keywords = {
+        L"Circle",
+        L"print",
+        L"input",
+        L"draw"
 };
 
 class Visitable {
@@ -485,9 +528,6 @@ public:
         }
         return figureDeclarations;
     };
-
-
-
 };
 
 

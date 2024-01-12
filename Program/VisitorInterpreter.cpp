@@ -6,7 +6,7 @@
 
 void VisitorInterpreter::visit(ExpressionOr * e) {
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     if (!std::holds_alternative<bool>(leftExpressionValue)) {
         this->handleRuntimeError(e->position, L"Expression on left to 'or' evaluated to non boolean.");
     }
@@ -14,7 +14,7 @@ void VisitorInterpreter::visit(ExpressionOr * e) {
         this->lastResult = true;
     }
     e->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     if (!std::holds_alternative<bool>(rightExpressionValue)) {
         this->handleRuntimeError(e->position, L"Expression right to 'or' evaluated to non boolean.");
     }
@@ -26,7 +26,7 @@ void VisitorInterpreter::visit(ExpressionOr * e) {
 }
 void VisitorInterpreter::visit(ExpressionAnd * e) {
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     if (!std::holds_alternative<bool>(leftExpressionValue)) {
         this->handleRuntimeError(e->position, L"Expression left to 'and' evaluated to non boolean.");
     }
@@ -35,7 +35,7 @@ void VisitorInterpreter::visit(ExpressionAnd * e) {
         return;
     }
     e->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     if (!std::holds_alternative<bool>(rightExpressionValue)) {
         this->handleRuntimeError(e->position, L"Expression right to 'and' evaluated to non boolean.");
     }
@@ -47,9 +47,9 @@ void VisitorInterpreter::visit(ExpressionAnd * e) {
 }
 void VisitorInterpreter::visit(ExpressionCompEq * e) {
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
     if (leftExpressionValue == rightExpressionValue) {
         this->lastResult = true;
@@ -60,9 +60,9 @@ void VisitorInterpreter::visit(ExpressionCompEq * e) {
 
 void VisitorInterpreter::visit(ExpressionCompNeq * e) {
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
     if (leftExpressionValue != rightExpressionValue) {
         this->lastResult = true;
@@ -72,9 +72,9 @@ void VisitorInterpreter::visit(ExpressionCompNeq * e) {
 }
 void VisitorInterpreter::visit(ExpressionCompLeq * e) {
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
     operationLegalityCheck(leftExpressionValue, e->position, AllowedInComparisonVisitor(), L"comparison");
     if (leftExpressionValue <= rightExpressionValue) {
@@ -85,9 +85,9 @@ void VisitorInterpreter::visit(ExpressionCompLeq * e) {
 }
 void VisitorInterpreter::visit(ExpressionCompGeq * e) {
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
     operationLegalityCheck(leftExpressionValue, e->position, AllowedInComparisonVisitor(), L"comparison");
     if (leftExpressionValue >= rightExpressionValue) {
@@ -98,9 +98,9 @@ void VisitorInterpreter::visit(ExpressionCompGeq * e) {
 }
 void VisitorInterpreter::visit(ExpressionCompGreater * e) {
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
     operationLegalityCheck(leftExpressionValue, e->position, AllowedInComparisonVisitor(), L"comparison");
     if (leftExpressionValue > rightExpressionValue) {
@@ -111,9 +111,9 @@ void VisitorInterpreter::visit(ExpressionCompGreater * e) {
 }
 void VisitorInterpreter::visit(ExpressionCompLess * e) {
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Comparison");
     operationLegalityCheck(leftExpressionValue, e->position, AllowedInComparisonVisitor(), L"comparison");
     if (leftExpressionValue < rightExpressionValue) {
@@ -125,51 +125,51 @@ void VisitorInterpreter::visit(ExpressionCompLess * e) {
 void VisitorInterpreter::visit(ExpressionAdd * e) {
 
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Addition");
     operationLegalityCheck(leftExpressionValue, e->position, AllowedInAdditionVisitor(), L"addition");
     this->lastResult = leftExpressionValue + rightExpressionValue;
 }
 void VisitorInterpreter::visit(ExpressionSub * e) {
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Subtraction");
     operationLegalityCheck(leftExpressionValue, e->position, AllowedInSubtractionVisitor(), L"subtraction");
     this->lastResult = leftExpressionValue - rightExpressionValue;
 }
 void VisitorInterpreter::visit(ExpressionMul * e) {
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Multiplication");
     operationLegalityCheck(leftExpressionValue, e->position, AllowedInMultiplicationVisitor(), L"multiplication");
     this->lastResult = leftExpressionValue * rightExpressionValue;
 }
 void VisitorInterpreter::visit(ExpressionDiv * e) {
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     e->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     operationTypeEqualityCheck(leftExpressionValue, rightExpressionValue, e->position, L"Division");
     operationLegalityCheck(leftExpressionValue, e->position, AllowedInDivisionVisitor(), L"division");
     this->lastResult = leftExpressionValue / rightExpressionValue;
 }
 void VisitorInterpreter::visit(ExpressionIs * e) {
     e->expression->accept(*this);
-    interpeter_value expressionValue = this->consumeLastResult();
+    interpreter_value expressionValue = this->consumeLastResult();
     bool typesMatch = std::visit(TypeMatchVisitor(e->checkedType), expressionValue);
     this->lastResult = typesMatch;
 }
 void VisitorInterpreter::visit(ExpressionTo * e) {
     e->expression->accept(*this);
-    interpeter_value expressionValue = this->consumeLastResult();
+    interpreter_value expressionValue = this->consumeLastResult();
     variable_type conversionType = e->conversionType;
-    interpeter_value conversedValue = std::visit(ConversionVisitor(conversionType), expressionValue);
+    interpreter_value conversedValue = std::visit(ConversionVisitor(conversionType), expressionValue);
     if (std::holds_alternative<std::monostate>(conversedValue)) {
         this->handleRuntimeError(e->position, L"Conversion from " + std::visit(TypeVisitor{}, expressionValue) + L" to" +
             variable_type_representation.at(conversionType) + L" is illegal.");
@@ -178,7 +178,7 @@ void VisitorInterpreter::visit(ExpressionTo * e) {
 }
 void VisitorInterpreter::visit(ExpressionNeg * e) {
     e->expression->accept(*this);
-    interpeter_value expression = this->consumeLastResult();
+    interpreter_value expression = this->consumeLastResult();
     if (std::holds_alternative<bool>(expression)) {
         bool expressionValue = std::get<bool>(expression);
         this->lastResult = !expressionValue;
@@ -190,7 +190,7 @@ void VisitorInterpreter::visit(ExpressionNeg * e) {
 }
 void VisitorInterpreter::visit(ExpressionNegMinus * e) {
     e->expression->accept(*this);
-    interpeter_value expression = this->consumeLastResult();
+    interpreter_value expression = this->consumeLastResult();
     if (std::holds_alternative<int>(expression)) {
         int expressionValue = std::get<int>(expression);
         this->lastResult = -expressionValue;
@@ -204,10 +204,10 @@ void VisitorInterpreter::visit(ExpressionNegMinus * e) {
     }
 }
 void VisitorInterpreter::visit(ExpressionValueList * e) {
-    std::vector<interpeter_value> values;
+    std::vector<interpreter_value> values;
     for (auto & expression : e->expressions) {
         expression->accept(*this);
-        interpeter_value expressionValue = this->consumeLastResult();
+        interpreter_value expressionValue = this->consumeLastResult();
         values.push_back(expressionValue);
     }
     std::shared_ptr<ListValue> value = std::make_shared<ListValue>(std::move(values));
@@ -215,17 +215,17 @@ void VisitorInterpreter::visit(ExpressionValueList * e) {
 }
 void VisitorInterpreter::visit(ExpressionValuePoint * e) {
     e->xCoord->accept(*this);
-    interpeter_value xCoordExpressionValue = this->consumeLastResult();
+    interpreter_value xCoordExpressionValue = this->consumeLastResult();
     if (!std::holds_alternative<double>(xCoordExpressionValue)) {
         this->handleRuntimeError(e->position, L"Left coord of point is not double.");
     }
 
     e->yCoord->accept(*this);
-    interpeter_value yCoordExpressionValue = this->consumeLastResult();
+    interpreter_value yCoordExpressionValue = this->consumeLastResult();
     if (!std::holds_alternative<double>(yCoordExpressionValue)) {
         this->handleRuntimeError(e->position, L"Left coord of point is not double.");
     }
-    this->lastResult = std::pair<double, double>(std::get<double>(xCoordExpressionValue), std::get<double>(yCoordExpressionValue));
+    this->lastResult = std::make_shared<std::pair<double, double>>(std::get<double>(xCoordExpressionValue), std::get<double>(yCoordExpressionValue));
 }
 void VisitorInterpreter::visit(ExpressionValueLiteral * e) {
     std::visit([this](auto & value){this->lastResult = value;}, e->value);
@@ -234,34 +234,30 @@ void VisitorInterpreter::visit(ExpressionValueBrackets * e) {
     e->expression->accept(*this);
 }
 
-void VisitorInterpreter::visit(ObjectAccessExpression * s) {
-    s->leftExpression->accept(*this);
-
-    if (auto & rightStatement = s->rightExpression) {
-        rightStatement->accept(*this);
-    } else {
-    }
+void VisitorInterpreter::visit(ObjectAccessExpression * e) {
+    e->leftExpression->accept(*this);
+    this->accessedObject = this->consumeLastResult();
 }
 void VisitorInterpreter::visit(IdentifierListIndexExpression * e) {
     e->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     if (!std::holds_alternative<std::shared_ptr<ListValue>>(leftExpressionValue)) {
         this->handleRuntimeError(e->position, std::visit(TypeVisitor{}, leftExpressionValue) + L" is not subscriptable.");
     }
 
     e->indexExpression->accept(*this);
-    interpeter_value indexExpressionValue = this->consumeLastResult();
+    interpreter_value indexExpressionValue = this->consumeLastResult();
     if (!std::holds_alternative<int>(indexExpressionValue)) {
         this->handleRuntimeError(e->position, std::visit(TypeVisitor{}, indexExpressionValue) + L" value in index. Index must be int.");
     }
     ListValue * listValue = std::get<std::shared_ptr<ListValue>>(leftExpressionValue).get();
-    int index = std::get<int>(indexExpressionValue);
+    int index = std::get<int>(indexExpressionValue);//co jak zapisujemy do listy?
     this->lastResult = (*listValue)[index];
 }
 void VisitorInterpreter::visit(IdentifierFunctionCallExpression * e) {
     //getFunctionDeclAndGoToIt
     e->identifierExpression->accept(*this);
-    interpeter_value identifierExpression = this->consumeLastResult();
+    interpreter_value identifierExpression = this->consumeLastResult();
     for (auto & expression : e->expressions) {
         expression->accept(*this);
         functionCallParams.push(this->consumeLastResult());
@@ -271,6 +267,26 @@ void VisitorInterpreter::visit(IdentifierFunctionCallExpression * e) {
 }
 void VisitorInterpreter::visit(IdentifierExpression * e) {
     //getValueFormScope
+    if(this->accessedObject) {
+        interpreter_value accessedValue = this->consumeAccessedObject();
+        if (std::holds_alternative<std::shared_ptr<ListValue>>(accessedValue)) {
+            if (special_list_keywords.find(e->identifierName) == special_list_keywords.end()) {
+            }
+        } else if (std::holds_alternative<std::shared_ptr<FigureValue>>(accessedValue)) {
+            if (special_figure_keywords.find(e->identifierName) == special_figure_keywords.end()) {
+            }
+        } else if (std::holds_alternative<std::shared_ptr<std::pair<double, double>>>(accessedValue)) {
+            if (e->identifierName == L"x") {
+
+            }
+            if (e->identifierName == L"y") {
+
+            }
+        }
+        this->handleRuntimeError(e->position, L"Object" + std::visit(TypeVisitor{}, accessedValue) + L" does not have member " + e->identifierName);
+
+
+    }
     this->lastResult = e->identifierName;
 }
 
@@ -309,7 +325,7 @@ void VisitorInterpreter::visit(IfStatement * s) {
 }
 void VisitorInterpreter::visit(ForStatement * s) {
     s->expression->accept(*this);
-    interpeter_value expressionValue = this->consumeLastResult();
+    interpreter_value expressionValue = this->consumeLastResult();
     if(!std::holds_alternative<std::shared_ptr<ListValue>>(expressionValue)) {
         this->handleRuntimeError(s->position, L"Iterated variable is not list");
     }
@@ -326,20 +342,20 @@ void VisitorInterpreter::visit(ForStatement * s) {
 }
 void VisitorInterpreter::visit(ForRangeStatement * s) {
     s->leftExpression->accept(*this);
-    interpeter_value leftExpressionValue = this->consumeLastResult();
+    interpreter_value leftExpressionValue = this->consumeLastResult();
     if(!std::holds_alternative<int>(leftExpressionValue)) {
         this->handleRuntimeError(s->position, L"Left range parameter is not int");
     }
     int startOfRange = std::get<int>(leftExpressionValue);
     s->rightExpression->accept(*this);
-    interpeter_value rightExpressionValue = this->consumeLastResult();
+    interpreter_value rightExpressionValue = this->consumeLastResult();
     if(!std::holds_alternative<int>(rightExpressionValue)) {
         this->handleRuntimeError(s->position, L"Left range parameter is not int");
     }
     int endOfRange = std::get<int>(rightExpressionValue);
     for(int i=startOfRange; i<endOfRange; i++) {
         this->addNewScope();
-        this->getCurrentScopeVariables()[s->identifier] = interpeter_value(i);
+        this->getCurrentScopeVariables()[s->identifier] = interpreter_value(i);
         s->block->accept(*this);
         this->popScope();
         if (this->returnValue) {
@@ -353,13 +369,13 @@ void VisitorInterpreter::visit(DeclarationStatement * s) {
 
 void VisitorInterpreter::visit(DeclarationAssignStatement * s) {
     s->expression->accept(*this);
-    interpeter_value expressionValue = this->consumeLastResult();
+    interpreter_value expressionValue = this->consumeLastResult();
     this->getCurrentScopeVariables()[s->identifierName] = expressionValue;
 }
 
 void VisitorInterpreter::visit(ReturnStatement * s) {
     s->expression->accept(*this);
-    interpeter_value expressionValue = this->consumeLastResult();
+    interpreter_value expressionValue = this->consumeLastResult();
     this->returnValue = expressionValue;
 }
 
@@ -370,15 +386,16 @@ void VisitorInterpreter::visit(IdentifierExpressionStatement * s) {
 
 void VisitorInterpreter::visit(IdentifierStatementAssign * s) {
     s->identifierExpression->accept(*this);
-    interpeter_value expressionValue = this->consumeLastResult();
+    interpreter_value expressionValue = this->consumeLastResult();
     s->expression->accept(*this); // problem ze zmiennymi zagnieżdżonymi . albo elemet listy
+    //pierwsze liczymy wartośc po prawej, potem otrzymujemy obiekt po lewej
 }
 
 
 void VisitorInterpreter::visit(ConditionAndBlock * cb) {
 
     cb->condition->accept(*this);
-    interpeter_value conditionValue = this->consumeLastResult();
+    interpreter_value conditionValue = this->consumeLastResult();
     if(!std::holds_alternative<bool>(conditionValue)) {
         this->handleRuntimeError(cb->position, L"Condition evaluated to non boolean value.");
     }
@@ -403,27 +420,27 @@ void VisitorInterpreter::visit(CodeBlock * cb) {
 
 void VisitorInterpreter::visit(Parameter * p) {
     if(!functionCallParams.empty()) {
-        this->getCurrentScope().getVariables()[p->getName()] = functionCallParams.front();
+        this->getCurrentScope().getVariables()[p->getName()] = std::make_shared<AssignableValue>(functionCallParams.front());
         functionCallParams.pop();
     } else {
-        this->getCurrentScope().getVariables()[p->getName()] = std::monostate();
+        this->getCurrentScope().getVariables()[p->getName()] = std::make_shared<AssignableValue>();
     }
 }
 
 void VisitorInterpreter::visit(FigureParameter * p) {
     p->valueExpression->accept(*this);
-    interpeter_value expressionValue = this->consumeLastResult();
-    if(!std::holds_alternative<std::pair<double, double>>(expressionValue)) {
+    interpreter_value expressionValue = this->consumeLastResult();
+    if(!std::holds_alternative<std::shared_ptr<std::pair<double, double>>>(expressionValue)) {
         this->handleRuntimeError(p->position, L"Point does not have default value in form (double, double)");
     }
-    interpeter_value & lastFigure = this->getFigureScope().getVariables()[this->currentlyAnalyzedFigure.value()]; //todo co jak usuniemy coś i kopiujemy przez referencję interpreter_value &
+    interpreter_value & lastFigure = this->getFigureScope().getVariables()[this->currentlyAnalyzedFigure.value()]->value; //todo co jak usuniemy coś i kopiujemy przez referencję interpreter_value &
     FigureValue * currentFigure = std::get<std::shared_ptr<FigureValue>>(lastFigure).get();
-    currentFigure->getPoints()[p->getName()] = std::get<std::pair<double, double>>(expressionValue);
+    currentFigure->getPoints()[p->getName()] = std::get<std::shared_ptr<std::pair<double, double>>>(expressionValue);
 }
 void VisitorInterpreter::visit(FigureDeclaration * fd) {
     std::shared_ptr<FigureValue> figureDecl = std::make_shared<FigureValue>(FigureValue());
     this->currentlyAnalyzedFigure = fd->name;
-    this->figureScope.getVariables()[fd->name] = figureDecl;
+    this->figureScope.getVariables()[fd->name] = std::make_shared<AssignableValue>(figureDecl);
     for (auto & param : fd->params) {
         param->accept(*this);
     }
@@ -485,8 +502,8 @@ bool VisitorInterpreter::consumeConditionTrue() {
     return false;
 }
 
-interpeter_value VisitorInterpreter::consumeLastResult() {
-    std::optional<interpeter_value> retVal = lastResult;
+interpreter_value VisitorInterpreter::consumeLastResult() {
+    std::optional<interpreter_value> retVal = lastResult;
     if (!retVal) {
         this->errorHandler->onInterpreterError(L"Expression didn't evaluate properly.");
         throw;
@@ -495,18 +512,28 @@ interpeter_value VisitorInterpreter::consumeLastResult() {
     return retVal.value();
 }
 
-std::map<std::wstring, interpeter_value> &VisitorInterpreter::getCurrentScopeVariables() {
+interpreter_value VisitorInterpreter::consumeAccessedObject() {
+    std::optional<interpreter_value> retVal = this->accessedObject;
+    if (!retVal) {
+        this->errorHandler->onInterpreterError(L"Expression didn't evaluate properly.");
+        throw;
+    }
+    this->accessedObject = std::nullopt;
+    return retVal.value();
+}
+
+std::map<std::wstring, interpreter_value> &VisitorInterpreter::getCurrentScopeVariables() {
     return this->functionContexts.top().getScopes().back().getVariables();
 }
 
-bool VisitorInterpreter::ensureTypesMatch(interpeter_value &value1, interpeter_value &value2) {
+bool VisitorInterpreter::ensureTypesMatch(interpreter_value &value1, interpreter_value &value2) {
     if (value1.index() != value2.index()) {
         return false;
     }
     return true;
 }
 
-void VisitorInterpreter::operationLegalityCheck(interpeter_value &value1, const Position &position,
+void VisitorInterpreter::operationLegalityCheck(interpreter_value &value1, const Position &position,
                                                 AllowedInOperationVisitor &&allowedInOperationVisitor,
                                                 const std::wstring &operation) {
     bool allowed = std::visit([&value1](auto & allowedIn) -> bool{return std::visit(allowedIn, value1);}, allowedInOperationVisitor);
@@ -516,7 +543,7 @@ void VisitorInterpreter::operationLegalityCheck(interpeter_value &value1, const 
     }
 }
 
-void VisitorInterpreter::operationTypeEqualityCheck(interpeter_value &value1, interpeter_value &value2, const Position &position, const std::wstring operation) {
+void VisitorInterpreter::operationTypeEqualityCheck(interpreter_value &value1, interpreter_value &value2, const Position &position, const std::wstring operation) {
     if (!this->ensureTypesMatch(value1, value2)) {
         this->handleRuntimeError(position, operation + L" between " + std::visit(TypeVisitor{}, value1) +
                                            L" and " + std::visit(TypeVisitor{}, value2));
