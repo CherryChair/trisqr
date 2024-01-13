@@ -47,4 +47,46 @@ func main() {
     condition_test(!(true && false), index);
     condition_test(!(false && false), index);
     condition_test(!(false && true), index);
+    tests_of_evaluation_of_left_condition(index);
+}
+
+func fail_if_this_gets_evaluated() {
+    print('FAIL!!!!!\n');
+    return false;
+}
+
+func pass_if_this_gets_evaluated() {
+    print('PASS\n');
+    return true;
+}
+
+func tests_of_evaluation_of_left_condition(index) {
+    begin_function_test(index);
+    if(true || fail_if_this_gets_evaluated()) {
+        print('PASS\n');
+    }
+    begin_function_test(index);
+    if(!(false && fail_if_this_gets_evaluated())) {
+        print('PASS\n');
+    }
+    begin_function_test(index);
+    if(true || fail_if_this_gets_evaluated() || !fail_if_this_gets_evaluated() || !fail_if_this_gets_evaluated()) {
+        print('PASS\n');
+    }
+    begin_function_test(index);
+    if(!(false && fail_if_this_gets_evaluated() && fail_if_this_gets_evaluated() && fail_if_this_gets_evaluated())) {
+        print('PASS\n');
+    }
+    begin_function_test(index);
+    if(pass_if_this_gets_evaluated() && true || fail_if_this_gets_evaluated()){
+        print('PASS\n');
+    }
+    begin_function_test(index);
+    if(pass_if_this_gets_evaluated() || false && fail_if_this_gets_evaluated()){
+        print('PASS\n');
+    }
+    begin_function_test(index);
+    if(pass_if_this_gets_evaluated() && pass_if_this_gets_evaluated() && pass_if_this_gets_evaluated()){
+        print('PASS\n');
+    }
 }
