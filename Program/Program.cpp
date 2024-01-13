@@ -3,7 +3,7 @@
 //
 
 #include "Program.h"
-#include "Visitor.h"
+#include "../Visitors/Visitor.h"
 
 
 void ExpressionOr::accept(Visitor & visitor) {visitor.visit(this);}

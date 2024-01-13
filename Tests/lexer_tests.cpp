@@ -5,7 +5,7 @@
 
 
 #include "gtest/gtest.h"
-#include "../lexer.h"
+#include "../Lexer/lexer.h"
 #include <codecvt>
 #include <locale>
 

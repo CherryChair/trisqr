@@ -9,7 +9,7 @@
 #include <string>
 #include <iostream>
 #include <unordered_map>
-#include "Position.h"
+#include "position.h"
 
 enum token_type {
     IDENTIFIER_TYPE,

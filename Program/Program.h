@@ -11,7 +11,7 @@
 #include <string>
 #include <optional>
 #include <unordered_set>
-#include "../lexer.h"
+#include "../Lexer/lexer.h"
 
 
 class Visitor;

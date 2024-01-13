@@ -5,9 +5,9 @@
 
 
 #include "gtest/gtest.h"
-#include "../lexer.h"
+#include "../Lexer/lexer.h"
 #include "../Program/Program.h"
-#include "../Parser.h"
+#include "../Parser/Parser.h"
 #include <codecvt>
 #include <locale>
 

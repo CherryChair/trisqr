@@ -8,8 +8,8 @@
 #include <string>
 #include <optional>
 #include <functional>
-#include "lexer.h"
-#include "Program/Program.h"
+#include "../Lexer/lexer.h"
+#include "../Program/Program.h"
 
 #ifndef LEXER_PARSER_H
 #define LEXER_PARSER_H

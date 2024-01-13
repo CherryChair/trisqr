@@ -16,7 +16,7 @@
 #include <unordered_map>
 #include <optional>
 #include "Token.h"
-#include "ErrorHandler.h"
+#include "../ErrorHandler/ErrorHandler.h"
 
 static const std::unordered_map<wchar_t, wchar_t> escape_characters= {
         {'"','\"'},

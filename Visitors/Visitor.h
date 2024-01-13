@@ -5,7 +5,7 @@
 #ifndef LEXER_VISITOR_H
 #define LEXER_VISITOR_H
 
-#include "Program.h"
+#include "../Program/Program.h"
 
 
 class Visitor {

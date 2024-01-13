@@ -5,13 +5,13 @@
 
 
 #include "gtest/gtest.h"
-#include "../lexer.h"
+#include "../Lexer/lexer.h"
 #include "../Program/Program.h"
-#include "../Parser.h"
+#include "../Parser/Parser.h"
 #include <codecvt>
 #include <locale>
 #include <fstream>
-#include "../Program/VisitorInterpreter.h"
+#include "../Visitors/VisitorInterpreter.h"
 
 void basic_test(std::string filename) {
     std::wfilebuf ss;
@@ -37,5 +37,5 @@ void basic_test(std::string filename) {
 }
 
 TEST(BasicInterpreterTests, ConditionTest) {
-    basic_test("../../parser_condition_tests.trisqr");
+    basic_test("../../Tests/parser_condition_tests.trisqr");
 }

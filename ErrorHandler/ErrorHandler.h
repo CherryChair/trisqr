@@ -4,8 +4,8 @@
 
 #include <string>
 #include <unordered_map>
-#include "Position.h"
-#include "lexer_error_types.h"
+#include "../Lexer/position.h"
+#include "../Lexer/lexer_error_types.h"
 
 #ifndef LEXER_ERRORHANDLER_H
 #define LEXER_ERRORHANDLER_H

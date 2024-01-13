@@ -3,6 +3,6 @@ project(lexer)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(lexer main.cpp lexer.cpp lexer.h ErrorHandler.cpp ErrorHandler.h Token.cpp Token.h Parser.cpp Parser.h Program/Program.cpp Program/Program.h Program/Visitor.cpp Program/Visitor.h position.h lexer_error_types.h Program/VisitorTree.cpp Program/VisitorTree.h Program/VisitorSemantic.cpp Program/VisitorSemantic.h Program/VisitorInterpreter.cpp Program/VisitorInterpreter.h)
+add_executable(lexer main.cpp Lexer/lexer.cpp Lexer/lexer.h ErrorHandler/ErrorHandler.cpp ErrorHandler/ErrorHandler.h Lexer/Token.cpp Lexer/Token.h Parser/Parser.cpp Parser/Parser.h Program/Program.cpp Program/Program.h Visitors/Visitor.cpp Visitors/Visitor.h Lexer/position.h Lexer/lexer_error_types.h Visitors/VisitorTree.cpp Visitors/VisitorTree.h Visitors/VisitorSemantic.cpp Visitors/VisitorSemantic.h Visitors/VisitorInterpreter.cpp Visitors/VisitorInterpreter.h)
 
 add_subdirectory(googletest)
