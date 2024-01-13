@@ -1,7 +1,8 @@
 #include "lexer.h"
 #include "parser.h"
 #include <fstream>
-#include "Program/VisitorTree.h"
+//#include "Program/VisitorTree.h"
+#include "Program/VisitorInterpreter.h"
 
 
 int main() {
@@ -21,10 +22,15 @@ int main() {
 //    a += L"}";
 //    std::string a = "123.12312312132896128736127836178256367125476235647812346578934265897623453142389748923748923423.1.23.123.12.31.23.12";
 //    std::wstring a = L"\n\rvv a  = 3.3 ;   \n\r  \n\r   if ( a != 5.4) { \n\rfigure && ||   \n\r}";
-//    std::wstringbuf ss(a);
+    std::wstring a = L"func main() {\n";
+    a += L"\tvv a = 1 + 2;\n";
+    a += L"\tprint(a to str);\n";
+    a += L"}\n";
+    std::wstringbuf ss(a);
 //    std::wistream ss(&is);
-    std::wfilebuf ss;
-    ss.open("../parser_test.trisqr", std::ios_base::in);
+
+//    std::wfilebuf ss;
+//    ss.open("../parser_test.trisqr", std::ios_base::in);
     ErrorHandler* eh = new ErrorHandler();
     Lexer * l = new Lexer(ss, eh, 1024, 1000, 1111, 1111);
     std::optional<Token> tkn;
@@ -33,9 +39,14 @@ int main() {
     }
     Parser * parser = new Parser(l, eh);
     auto program = parser->parse();
-    VisitorTree * vt = new VisitorTree();
-    program->accept(*vt);
-    vt->printTree(std::wcout);
+
+//    VisitorTree * vt = new VisitorTree();
+//    program->accept(*vt);
+//    vt->printTree(std::wcout);
+
+//    VisitorInterpreter vi = VisitorInterpreter(eh);
+//    program->accept(vi);
+
 //    while(tkn = l->nextToken()){
 //        printToken(*tkn);
 //        if(tkn->getTokenType() == EOF_TYPE) {
