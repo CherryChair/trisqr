@@ -25,7 +25,7 @@ static const std::unordered_map<short int, std::wstring> error_mesages= {
         {ERR_INVALID_SYNTAX,              L"Invalid syntax."},
         {ERR_SEMANTIC,                    L"Semantic error."},
         {ERR_RUNTIME,                     L"Runtime error."},
-    {ERR_INTERPRETER,                     L"Internal interpreter error."},
+        {ERR_INTERPRETER,                 L"Internal interpreter error."},
 };
 
 static const std::unordered_map<wchar_t, std::wstring> escape_sequences= {

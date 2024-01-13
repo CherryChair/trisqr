@@ -1,0 +1,6 @@
+func main() {
+    vv a = 123;
+    vv b = 32;
+    vv c = a to double / b;
+    print(c to str);
+}

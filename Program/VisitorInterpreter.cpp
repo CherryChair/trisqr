@@ -335,7 +335,7 @@ void VisitorInterpreter::visit(IdentifierExpression * e) {
         //2) //3)
     } else {
         this->accessedObject = this->getCurrentScopeVariables()[e->identifierName]; //1) //4)
-//        this->lastResult = *(this->accessedObject.value().value); // może niekonieczne zapisywanie lastResult, będziemy przezrzucać wyżej z assignable value do lastResult
+        this->lastResult = e->identifierName; // może niekonieczne zapisywanie lastResult, będziemy przezrzucać wyżej z assignable value do lastResult
     }
 }
 
@@ -622,5 +622,143 @@ void VisitorInterpreter::operationTypeEqualityCheck(interpreter_value &value1, i
     if (!this->ensureTypesMatch(value1, value2)) {
         this->handleRuntimeError(position, operation + L" between " + std::visit(TypeVisitor{}, value1) +
                                            L" and " + std::visit(TypeVisitor{}, value2));
+    }
+}
+
+interpreter_value operator+(const interpreter_value & value1, const interpreter_value & value2) {
+    if (value1.index() != value2.index()) {
+        std::wcerr << L"ERR: Addition between two different types";
+        throw;
+    }
+    switch (value1.index()){
+        case 0: {
+            return std::get<int>(value1) + std::get<int>(value2);
+        } case 1: {
+            return std::get<double>(value1) + std::get<double>(value2);
+        } case 2: {
+            return std::get<std::wstring>(value1) + std::get<std::wstring>(value2);
+        } case 3: {
+            std::wcerr << L"ERR: Addition between two boolean illegal";
+            throw;
+        } case 4: {
+            std::wcerr << L"ERR: Addition between monostate illegal";
+            throw;
+        } case 5: {
+            PointValue pair1 = *(std::get<std::shared_ptr<PointValue>>(value1));
+            PointValue pair2 = *(std::get<std::shared_ptr<PointValue>>(value2));
+            auto p1_x = std::get<double>(*(pair1.getX().value));
+            auto p1_y = std::get<double>(*(pair1.getY().value));
+            auto p2_x = std::get<double>(*(pair2.getX().value));
+            auto p2_y = std::get<double>(*(pair2.getY().value));
+            return std::make_shared<PointValue>( p1_x + p2_x, p1_y + p2_y);
+        } case 6: {
+            ListValue * list1 = std::get<std::shared_ptr<ListValue>>(value1).get();
+            ListValue * list2 = std::get<std::shared_ptr<ListValue>>(value2).get();
+            return (*list1 + *list2).shared_from_this();
+        } case 7: {
+            std::wcerr << L"ERR: Addition between FigureValue illegal";
+            throw;
+        }
+    }
+}
+
+interpreter_value operator-(const interpreter_value & value1, const interpreter_value & value2) {
+    if (value1.index() != value2.index()) {
+        std::wcerr << L"ERR: Subtraction between two different types";
+        throw;
+    }
+    switch (value1.index()){
+        case 0: {
+            return std::get<int>(value1) - std::get<int>(value2);
+        } case 1: {
+            return std::get<double>(value1) - std::get<double>(value2);
+        } case 2: {
+            std::wcerr << L"ERR: Subtraction between two strings illegal";
+            throw;
+        } case 3: {
+            std::wcerr << L"ERR: Subtraction between two boolean illegal";
+            throw;
+        } case 4: {
+            std::wcerr << L"ERR: Subtraction between monostate illegal";
+            throw;
+        } case 5: {
+            PointValue pair1 = *(std::get<std::shared_ptr<PointValue>>(value1));
+            PointValue pair2 = *(std::get<std::shared_ptr<PointValue>>(value2));
+            auto p1_x = std::get<double>(*(pair1.getX().value));
+            auto p1_y = std::get<double>(*(pair1.getY().value));
+            auto p2_x = std::get<double>(*(pair2.getX().value));
+            auto p2_y = std::get<double>(*(pair2.getY().value));
+            return std::make_shared<PointValue>( p1_x - p2_x, p1_y - p2_y);
+        } case 6: {
+            std::wcerr << L"ERR: Subtraction between ListValue illegal";
+            throw;
+        } case 7: {
+            std::wcerr << L"ERR: Subtraction between FigureValue illegal";
+            throw;
+        }
+    }
+}
+
+interpreter_value operator/(const interpreter_value & value1, const interpreter_value & value2) {
+    if (value1.index() != value2.index()) {
+        std::wcerr << L"ERR: Division between two different types";
+        throw;
+    }
+    switch (value1.index()){
+        case 0: {
+            return std::get<int>(value1)/std::get<int>(value2);
+        } case 1: {
+            return std::get<double>(value1)/std::get<double>(value2);
+        } case 2: {
+            std::wcerr << L"ERR: Division between two strings illegal";
+            throw;
+        } case 3: {
+            std::wcerr << L"ERR: Division between two boolean illegal";
+            throw;
+        } case 4: {
+            std::wcerr << L"ERR: Division between two monostates illegal";
+            throw;
+        } case 5: {
+            std::wcerr << L"ERR: Division between points illegal";
+            throw;
+        } case 6: {
+            std::wcerr << L"ERR: Division between ListValue illegal";
+            throw;
+        } case 7: {
+            std::wcerr << L"ERR: Division between FigureValue illegal";
+            throw;
+        }
+    }
+}
+
+interpreter_value operator*(const interpreter_value & value1, const interpreter_value & value2) {
+    if (value1.index() != value2.index()) {
+        std::wcerr << L"ERR: Multiplication between two different types";
+        throw;
+    }
+    switch (value1.index()){
+        case 0: {
+            return std::get<int>(value1) * std::get<int>(value2);
+        } case 1: {
+            return std::get<double>(value1) * std::get<double>(value2);
+        } case 2: {
+            std::wcerr << L"ERR: Multiplication between two strings illegal";
+            throw;
+        } case 3: {
+            std::wcerr << L"ERR: Multiplication between two boolean illegal";
+            throw;
+        } case 4: {
+            std::wcerr << L"ERR: Multiplication between two monostates illegal";
+            throw;
+        } case 5: {
+            std::wcerr << L"ERR: Multiplication between points illegal";
+            throw;
+        } case 6: {
+            std::wcerr << L"ERR: Multiplication between ListValue illegal";
+            throw;
+        } case 7: {
+            std::wcerr << L"ERR: Multiplication between FigureValue illegal";
+            throw;
+        }
     }
 }

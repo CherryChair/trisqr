@@ -42,7 +42,7 @@ void ErrorHandler::onSemanticError(Position position, std::wstring value) {
 }
 
 void ErrorHandler::onRuntimeError(Position position, std::wstring value) {
-    this->displayError(L"RUN_ERR", ERR_SEMANTIC, position, value, true);
+    this->displayError(L"RUN_ERR", ERR_RUNTIME, position, value, true);
 }
 
 void ErrorHandler::onInterpreterError(Position position, std::wstring value) {
