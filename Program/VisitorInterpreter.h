@@ -21,8 +21,9 @@ class AssignableValue;
 
 class ListValue;
 class FigureValue;
+class PointValue;
 
-using interpreter_value = std::variant<int, double, std::wstring, bool, std::monostate, std::shared_ptr<std::pair<double, double>>, std::shared_ptr<ListValue>, std::shared_ptr<FigureValue>>;
+using interpreter_value = std::variant<int, double, std::wstring, bool, std::monostate, std::shared_ptr<PointValue>, std::shared_ptr<ListValue>, std::shared_ptr<FigureValue>>;
 
 struct AllowedInComparisonVisitor;
 struct AllowedInAdditionVisitor;
@@ -32,52 +33,69 @@ struct AllowedInDivisionVisitor;
 
 using AllowedInOperationVisitor = std::variant<AllowedInComparisonVisitor, AllowedInAdditionVisitor, AllowedInDivisionVisitor, AllowedInMultiplicationVisitor, AllowedInSubtractionVisitor>;
 
-class AssignableValue : public std::enable_shared_from_this<AssignableValue> {
+
+class AssignableValue {
 public:
-    interpreter_value value;
-    AssignableValue() : value(std::monostate()){};
-    AssignableValue(interpreter_value && value) : value(value){};
-    AssignableValue(interpreter_value & value) : value(value){};
+    std::shared_ptr<interpreter_value> value;
+    AssignableValue() : value(std::make_shared<interpreter_value>(std::monostate())){};
+    AssignableValue(interpreter_value && value) : value(std::make_shared<interpreter_value>(value)){};
+    AssignableValue(interpreter_value & value) : value(std::make_shared<interpreter_value>(value)){};
+};
+
+class PointValue : public std::enable_shared_from_this<PointValue> {
+private:
+    AssignableValue x;
+    AssignableValue y;
+public:
+    PointValue(double x, double y) : x(AssignableValue(x)), y(AssignableValue(y)) {};
+    AssignableValue & getX() {return x;}
+    AssignableValue & getY() {return y;}
 };
 
 class ListValue : public std::enable_shared_from_this<ListValue>{
 private:
-    std::vector<interpreter_value> values;
+    std::vector<AssignableValue> values;
 public:
-    ListValue(std::vector<interpreter_value> values): values(std::move(values)) {}
-    interpreter_value & operator[](size_t index) {
+    ListValue(std::vector<AssignableValue> values): values(std::move(values)) {}
+    AssignableValue & operator[](size_t index) {
         return values[index];
+    }
+    void remove(int i) {
+        values.erase(values.begin()+i);
     }
     unsigned int len() {
         return values.size();
     }
     ListValue operator+(const ListValue & lv) {
-        std::vector<interpreter_value> copy_values = this->values;
+        std::vector<AssignableValue> copy_values = this->values;
         copy_values.insert(values.end(), lv.values.begin(), lv.values.end());
         return ListValue(std::move(copy_values));
+    }
+    void append(AssignableValue & value) {
+        this->values.push_back(value);
     }
 };
 
 class FigureValue : public std::enable_shared_from_this<FigureValue>{
 private:
     const std::wstring name;
-    std::map<std::wstring, std::shared_ptr<std::pair<double, double>>> points;
-    ListValue border = ListValue(std::vector<interpreter_value>({0, 0, 0}));
+    std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points;
+    ListValue border = ListValue(std::vector<AssignableValue>({AssignableValue(0), AssignableValue(0), AssignableValue(0)}));
 public:
     FigureValue()=default;
-    FigureValue(std::map<std::wstring, std::shared_ptr<std::pair<double, double>>> points): points(std::move(points)){};
-    FigureValue(std::map<std::wstring, std::shared_ptr<std::pair<double, double>>> points, ListValue border)
+    FigureValue(std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points): points(std::move(points)){};
+    FigureValue(std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points, ListValue border)
         : points(std::move(points)), border(std::move(border)){};
-    std::map<std::wstring, std::shared_ptr<std::pair<double, double>>> & getPoints() {return points;};
+    std::unordered_map<std::wstring, std::shared_ptr<PointValue>> & getPoints() {return points;};
     ListValue & getBorder() {return border;};
     void setBorder(ListValue border) {this->border = std::move(border);};
 };
 
 class Scope {
 protected:
-    std::map<std::wstring, std::shared_ptr<AssignableValue>> variables;
+    std::unordered_map<std::wstring, AssignableValue> variables;
 public:
-    std::map<std::wstring, std::shared_ptr<AssignableValue>> & getVariables() {return variables;};
+    std::unordered_map<std::wstring, AssignableValue> & getVariables() {return variables;};
 };
 
 class FunctionCallContext{
@@ -87,21 +105,104 @@ public:
     std::vector<Scope> & getScopes() {return scopes;};
 };
 
+
+
+
 class VisitorInterpreter : public Visitor {
 private:
     Position funcCallPosition;
     std::unordered_map<std::wstring, FuncDeclaration *> functionDeclarations;
-    std::unordered_map<std::wstring, FigureDeclaration *> figureDeclarations;
+    const std::unordered_map<std::wstring, std::function<void()>> internalFunctions = {
+            {L"print", [this](){
+                std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
+                if (funcCallParams.size() == 0) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Too few arguments print() requires 1 string argument.");
+                }
+                interpreter_value value = funcCallParams.front();
+                funcCallParams.pop();
+                if (funcCallParams.size() > 1) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Too many arguments print() requires 1 string argument.");
+                }
+                if (!std::holds_alternative<std::wstring>(value)) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Removed element index is not int");
+                }
+                std::wstring printedString = std::get<std::wstring>(value);//jak więcej czasu to wizytator printujący wszystko
+                std::wcout << printedString;
+                this->lastResult = std::monostate();
+            }},
+            {L"draw", [this](){
+                //rysuj listę figur za pomocą allegro
+            }},
+            {L"input", [this](){
+                std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
+                if (funcCallParams.size() > 0) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Too many arguments input() requires no arguments.");
+                }
+                std::wstring result;
+                std::wcin >> result;
+                this->lastResult = result;
+            }},
+    };
+
+    const std::unordered_map<std::wstring, std::function<void(ListValue *)>> internalListFunctions= {
+            {L"append", [this](ListValue * listValue){
+                std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
+                while(!(funcCallParams.empty())) {
+                    AssignableValue value = AssignableValue(funcCallParams.front());
+                    listValue->append(value);
+                    funcCallParams.pop();
+                }
+                this->lastResult = listValue->shared_from_this();
+            }},
+            {L"delete", [this](ListValue * listValue){
+                std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
+                if (funcCallParams.size() == 0) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Too few arguments .delete() requires 1 int argument.");
+                }
+                interpreter_value value = funcCallParams.front();
+                funcCallParams.pop();
+                if (funcCallParams.size() > 1) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Too many arguments .delete() requires 1 int argument.");
+                }
+                if (!std::holds_alternative<int>(value)) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Removed element index is not int");
+                }
+                int removedIndex = std::get<int>(value);
+                if (listValue->len() <= removedIndex) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Removed index out of range");
+                }
+                this->lastResult = listValue->shared_from_this();
+            }},
+            {L"len", [this](ListValue * listValue){
+                if (this->functionCallParams.size() != 0) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Too many arguments .delete() requires 0 arguments.");
+                }
+                this->lastResult = (int) listValue->len();
+            }},
+    };
+
+    const std::unordered_map<std::wstring, std::function<void(FigureValue *)>> internalFigureFunctions= {
+            {L"circ", [this](FigureValue * figureValue){}},
+            {L"area", [this](FigureValue * figureValue){}},
+            {L"scale", [this](FigureValue * figureValue){}},
+            {L"rotate", [this](FigureValue * figureValue){}},
+            {L"transport", [this](FigureValue * figureValue){}},
+            {L"copy", [this](FigureValue * figureValue){}},
+    };
     std::queue<interpreter_value> functionCallParams;
     ErrorHandler * errorHandler;
     Scope figureScope = Scope();
     std::stack<FunctionCallContext> functionContexts;
+    bool figurePointAssigned = false;
+    bool figureColorAssigned = false;
+    bool pointCoordAssigned = false;
     std::optional<interpreter_value> returnValue = std::nullopt;
-    std::optional<interpreter_value> lastResult = std::nullopt;
-    std::optional<interpreter_value> accessedObject = std::nullopt;
+    std::optional<AssignableValue> accessedObject = std::nullopt;
     std::optional<std::wstring> currentlyAnalyzedFigure = std::nullopt;
+    std::optional<std::wstring> accessedSpecialFunctionIdentifier = std::nullopt;
     bool lastConditionTrue = false;
 public:
+    std::optional<interpreter_value> lastResult = std::nullopt; // private ale temp public
     VisitorInterpreter(ErrorHandler * eh): errorHandler(eh){};
     void visit(ExpressionOr * e);
     void visit(ExpressionAnd * e);
@@ -149,18 +250,19 @@ public:
     void visit(Program * p);
 
     void handleRuntimeError(const Position & pos, const std::wstring & errorMsg);
+    std::queue<interpreter_value> & getFunctionCallParams() {return this->functionCallParams;}
     Scope & getFigureScope() {return this->figureScope;}
     Scope & getCurrentScope() {return this->functionContexts.top().getScopes().back();}
     Scope & addNewScope();
     void popScope();
-    std::map<std::wstring, interpreter_value> & getCurrentScopeVariables();
+    std::unordered_map<std::wstring, AssignableValue> & getCurrentScopeVariables();
     interpreter_value consumeLastResult();
-    interpreter_value consumeAccessedObject();
+    std::shared_ptr<interpreter_value> consumeAccessedObject();
     void consumeReturnValue();
     bool consumeConditionTrue();
 
     bool ensureTypesMatch(interpreter_value & value1, interpreter_value & value2);
-    void operationTypeEqualityCheck(interpreter_value & value1, interpreter_value & value2, const Position & position, const std::wstring operation);
+    void operationTypeEqualityCheck(interpreter_value & value1, interpreter_value & value2, const Position & position, const std::wstring & operation);
     void operationLegalityCheck(interpreter_value &value1, const Position &position,
                                 AllowedInOperationVisitor &&allowedInOperationVisitor,
                                 const std::wstring &operation);
@@ -172,7 +274,7 @@ struct TypeVisitor {
     std::wstring operator()(std::wstring & visited) {return L"string";}
     std::wstring operator()(bool & visited) {return L"bool";}
     std::wstring operator()(std::monostate & visited) {return L"None";}
-    std::wstring operator()(std::shared_ptr<std::pair<double, double>> & visited) {return L"point";}
+    std::wstring operator()(std::shared_ptr<PointValue> & visited) {return L"point";}
     std::wstring operator()(std::shared_ptr<ListValue> visited) {return L"list";}
     std::wstring operator()(std::shared_ptr<FigureValue> & visited) {return L"figure";}
 };
@@ -183,7 +285,7 @@ struct AllowedInComparisonVisitor {
     bool operator()(std::wstring & visited) {return true;}
     bool operator()(bool & visited) {return true;}
     bool operator()(std::monostate & visited) {return true;}
-    bool operator()(std::shared_ptr<std::pair<double, double>> & visited) {return true;}
+    bool operator()(std::shared_ptr<PointValue> & visited) {return true;}
     bool operator()(std::shared_ptr<ListValue> visited) {return false;}
     bool operator()(std::shared_ptr<FigureValue> & visited) {return false;}
 };
@@ -194,7 +296,7 @@ struct AllowedInAdditionVisitor {
     bool operator()(std::wstring & visited) {return true;}
     bool operator()(bool & visited) {return false;}
     bool operator()(std::monostate & visited) {return false;}
-    bool operator()(std::shared_ptr<std::pair<double, double>> & visited) {return true;}
+    bool operator()(std::shared_ptr<PointValue> & visited) {return true;}
     bool operator()(std::shared_ptr<ListValue> visited) {return true;}
     bool operator()(std::shared_ptr<FigureValue> & visited) {return false;}
 };
@@ -205,7 +307,7 @@ struct AllowedInSubtractionVisitor {
     bool operator()(std::wstring & visited) {return false;}
     bool operator()(bool & visited) {return false;}
     bool operator()(std::monostate & visited) {return false;}
-    bool operator()(std::shared_ptr<std::pair<double, double>> & visited) {return true;}
+    bool operator()(std::shared_ptr<PointValue> & visited) {return true;}
     bool operator()(std::shared_ptr<ListValue> visited) {return false;}
     bool operator()(std::shared_ptr<FigureValue> & visited) {return false;}
 };
@@ -216,7 +318,7 @@ struct AllowedInMultiplicationVisitor {
     bool operator()(std::wstring & visited) {return false;}
     bool operator()(bool & visited) {return false;}
     bool operator()(std::monostate & visited) {return false;}
-    bool operator()(std::shared_ptr<std::pair<double, double>> & visited) {return false;}
+    bool operator()(std::shared_ptr<PointValue> & visited) {return false;}
     bool operator()(std::shared_ptr<ListValue> visited) {return false;}
     bool operator()(std::shared_ptr<FigureValue> & visited) {return false;}
 };
@@ -227,7 +329,7 @@ struct AllowedInDivisionVisitor {
     bool operator()(std::wstring & visited) {return false;}
     bool operator()(bool & visited) {return false;}
     bool operator()(std::monostate & visited) {return false;}
-    bool operator()(std::shared_ptr<std::pair<double, double>> & visited) {return false;}
+    bool operator()(std::shared_ptr<PointValue> & visited) {return false;}
     bool operator()(std::shared_ptr<ListValue> visited) {return false;}
     bool operator()(std::shared_ptr<FigureValue> & visited) {return false;}
 };
@@ -240,7 +342,7 @@ struct TypeMatchVisitor {
     bool operator()(std::wstring & visited) {return type == STRING_VARIABLE;}
     bool operator()(bool & visited) {return type == BOOL_VARIABLE;}
     bool operator()(std::monostate & visited) {return type == NONE_VARIABLE;}
-    bool operator()(std::shared_ptr<std::pair<double, double>> & visited) {return type == POINT_VARIABLE;}
+    bool operator()(std::shared_ptr<PointValue> & visited) {return type == POINT_VARIABLE;}
     bool operator()(std::shared_ptr<ListValue> visited) {return type == LIST_VARIABLE;}
     bool operator()(std::shared_ptr<FigureValue> & visited) {return type == FIGURE_VARIABLE;}
 };
@@ -253,12 +355,12 @@ struct IntConversionVisitor {
     interpreter_value operator()(std::wstring & visited) {return type == STRING_VARIABLE;}
     interpreter_value operator()(bool & visited) {return type == BOOL_VARIABLE;}
     interpreter_value operator()(std::monostate & visited) {return type == NONE_VARIABLE;}
-    interpreter_value operator()(std::shared_ptr<std::pair<double, double>> & visited) {return type == POINT_VARIABLE;}
+    interpreter_value operator()(std::shared_ptr<PointValue> & visited) {return type == POINT_VARIABLE;}
     interpreter_value operator()(std::shared_ptr<ListValue> visited) {return type == LIST_VARIABLE;}
     interpreter_value operator()(std::shared_ptr<FigureValue> & visited) {return type == FIGURE_VARIABLE;}
 };
 
-//using value = std::variant<int, double, std::wstring, bool, std::monostate, std::shared_ptr<std::pair<double, double>>, std::shared_ptr<ListValue>, std::shared_ptr<FigureValue>>;
+//using value = std::variant<int, double, std::wstring, bool, std::monostate, std::shared_ptr<PointValue>, std::shared_ptr<ListValue>, std::shared_ptr<FigureValue>>;
 interpreter_value operator+(const interpreter_value & value1, const interpreter_value & value2) {
     if (value1.index() != value2.index()) {
         std::wcerr << L"ERR: Addition between two different types";
@@ -278,9 +380,13 @@ interpreter_value operator+(const interpreter_value & value1, const interpreter_
             std::wcerr << L"ERR: Addition between monostate illegal";
             throw;
         } case 5: {
-            std::pair<double, double> pair1 = *(std::get<std::shared_ptr<std::pair<double, double>>>(value1));
-            std::pair<double, double> pair2 = *(std::get<std::shared_ptr<std::pair<double, double>>>(value2));
-            return std::make_shared<std::pair<double, double>>(pair1.first + pair2.first, pair1.second + pair2.second);
+            PointValue pair1 = *(std::get<std::shared_ptr<PointValue>>(value1));
+            PointValue pair2 = *(std::get<std::shared_ptr<PointValue>>(value2));
+            auto p1_x = std::get<double>(*(pair1.getX().value));
+            auto p1_y = std::get<double>(*(pair1.getY().value));
+            auto p2_x = std::get<double>(*(pair2.getX().value));
+            auto p2_y = std::get<double>(*(pair2.getY().value));
+            return std::make_shared<PointValue>( p1_x + p2_x, p1_y + p2_y);
         } case 6: {
             ListValue * list1 = std::get<std::shared_ptr<ListValue>>(value1).get();
             ListValue * list2 = std::get<std::shared_ptr<ListValue>>(value2).get();
@@ -312,9 +418,13 @@ interpreter_value operator-(const interpreter_value & value1, const interpreter_
             std::wcerr << L"ERR: Subtraction between monostate illegal";
             throw;
         } case 5: {
-            std::pair<double, double> pair1 = *(std::get<std::shared_ptr<std::pair<double, double>>>(value1));
-            std::pair<double, double> pair2 = *(std::get<std::shared_ptr<std::pair<double, double>>>(value2));
-            return std::make_shared<std::pair<double, double>>(pair1.first - pair2.first, pair1.second - pair2.second);
+            PointValue pair1 = *(std::get<std::shared_ptr<PointValue>>(value1));
+            PointValue pair2 = *(std::get<std::shared_ptr<PointValue>>(value2));
+            auto p1_x = std::get<double>(*(pair1.getX().value));
+            auto p1_y = std::get<double>(*(pair1.getY().value));
+            auto p2_x = std::get<double>(*(pair2.getX().value));
+            auto p2_y = std::get<double>(*(pair2.getY().value));
+            return std::make_shared<PointValue>( p1_x - p2_x, p1_y - p2_y);
         } case 6: {
             std::wcerr << L"ERR: Subtraction between ListValue illegal";
             throw;
@@ -444,15 +554,15 @@ static const std::unordered_map<variable_type, std::function<interpreter_value (
         {FIGURE_VARIABLE, [](std::monostate value){ return std::monostate();}},
 };
 
-static const std::unordered_map<variable_type, std::function<interpreter_value (std::shared_ptr<std::pair<double, double>> value)>> point_conversion_map= {
-        {INT_VARIABLE, [](std::shared_ptr<std::pair<double, double>> value){ return std::monostate();}},
-        {DOUBLE_VARIABLE, [](std::shared_ptr<std::pair<double, double>> value){ return std::monostate();}},
-        {BOOL_VARIABLE, [](std::shared_ptr<std::pair<double, double>> value){ return std::monostate();}},
-        {STRING_VARIABLE, [](std::shared_ptr<std::pair<double, double>> value){ return std::monostate();}},
-        {NONE_VARIABLE, [](std::shared_ptr<std::pair<double, double>> value){ return std::monostate();}},
-        {POINT_VARIABLE, [](std::shared_ptr<std::pair<double, double>> value){ return std::monostate();}},
-        {LIST_VARIABLE, [](std::shared_ptr<std::pair<double, double>> value){ return std::monostate();}},
-        {FIGURE_VARIABLE, [](std::shared_ptr<std::pair<double, double>> value){ return std::monostate();}},
+static const std::unordered_map<variable_type, std::function<interpreter_value (std::shared_ptr<PointValue> value)>> point_conversion_map= {
+        {INT_VARIABLE, [](std::shared_ptr<PointValue> value){ return std::monostate();}},
+        {DOUBLE_VARIABLE, [](std::shared_ptr<PointValue> value){ return std::monostate();}},
+        {BOOL_VARIABLE, [](std::shared_ptr<PointValue> value){ return std::monostate();}},
+        {STRING_VARIABLE, [](std::shared_ptr<PointValue> value){ return std::monostate();}},
+        {NONE_VARIABLE, [](std::shared_ptr<PointValue> value){ return std::monostate();}},
+        {POINT_VARIABLE, [](std::shared_ptr<PointValue> value){ return std::monostate();}},
+        {LIST_VARIABLE, [](std::shared_ptr<PointValue> value){ return std::monostate();}},
+        {FIGURE_VARIABLE, [](std::shared_ptr<PointValue> value){ return std::monostate();}},
 };
 
 static const std::unordered_map<variable_type, std::function<interpreter_value (std::shared_ptr<ListValue> value)>> list_conversion_map= {
@@ -486,7 +596,7 @@ struct ConversionVisitor {
     interpreter_value operator()(std::wstring & visited) {return string_conversion_map.at(this->type)(visited);};
     interpreter_value operator()(bool & visited) {return bool_conversion_map.at(this->type)(visited);};
     interpreter_value operator()(std::monostate & visited) {return none_conversion_map.at(this->type)(visited);};
-    interpreter_value operator()(std::shared_ptr<std::pair<double, double>> & visited) {return point_conversion_map.at(this->type)(visited);};
+    interpreter_value operator()(std::shared_ptr<PointValue> & visited) {return point_conversion_map.at(this->type)(visited);};
     interpreter_value operator()(std::shared_ptr<ListValue> & visited) {return list_conversion_map.at(this->type)(visited);};
     interpreter_value operator()(std::shared_ptr<FigureValue> & visited) {return figure_conversion_map.at(this->type)(visited);};
 };

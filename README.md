@@ -194,7 +194,6 @@ Metody:
 - .scale(double scale, (double x1, double y1)) - skaluje figurę o skalę scale w stosunku do wybranego punktu
 - .rotate(double angle) - obraca figurę wokół początku układu współrzędnych o kąt angle podawany w radianach
 - .transport(double x, double y) - przesuwa figurę o wektor (x, y)
-- .vertex() - zwraca listę wierzchołków (oprócz koła)
 - .copy() - zwraca kopię danej figury
 
 Parametry:

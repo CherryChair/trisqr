@@ -89,7 +89,6 @@ static const std::unordered_set<std::wstring> special_keywords = {
         L"scale",
         L"rotate",
         L"transport",
-        L"vertex",
         L"copy",
         L"color",
         L"len",
@@ -112,7 +111,6 @@ static const std::unordered_set<std::wstring> special_figure_keywords = {
         L"scale",
         L"rotate",
         L"transport",
-        L"vertex",
         L"copy",
         L"color",
 };
