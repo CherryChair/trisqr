@@ -122,6 +122,12 @@ static const std::unordered_set<std::wstring> special_function_keywords = {
         L"draw"
 };
 
+template <typename T>
+extern bool operator==(const std::vector<std::unique_ptr<T>> & v1, const std::vector<std::unique_ptr<T>> & v2);
+
+template <typename T>
+extern bool operator!=(const std::vector<std::unique_ptr<T>> & v1, const std::vector<std::unique_ptr<T>> & v2);
+
 class Visitable {
 public:
     virtual void accept(Visitor& visitor) = 0;
@@ -132,312 +138,13 @@ public:
 class Statement : public Visitable {
 public:
     virtual ~Statement() = default;
+    virtual bool isEqual(const Statement* obj) const=0;
 };
 
 class Expression : public Visitable {
 public:
     virtual ~Expression() = default;
-};
-
-class ExpressionOr : public Expression{
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ExpressionOr(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-        : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionAnd : public Expression{
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ExpressionAnd(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionCompEq : public Expression{
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ExpressionCompEq(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionCompNeq : public Expression{
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ExpressionCompNeq(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionCompGeq : public Expression{
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ExpressionCompGeq(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionCompLeq : public Expression{
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ExpressionCompLeq(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionCompGreater : public Expression{
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ExpressionCompGreater(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionCompLess : public Expression{
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ExpressionCompLess(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionAdd : public Expression{
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ExpressionAdd(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionSub : public Expression{
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ExpressionSub(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionMul : public Expression{
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ExpressionMul(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionDiv : public Expression{
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ExpressionDiv(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionIs : public Expression{
-public:
-    std::unique_ptr<Expression> expression;
-    variable_type checkedType;
-    ExpressionIs(std::unique_ptr<Expression> expression, variable_type checkedType, const Position & position)
-            : expression(std::move(expression)), checkedType(checkedType) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionTo : public Expression {
-public:
-    std::unique_ptr<Expression> expression;
-    variable_type conversionType;
-    ExpressionTo(std::unique_ptr<Expression> expression, variable_type conversionType, const Position & position)
-            : expression(std::move(expression)), conversionType(conversionType) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionNeg : public Expression {
-public:
-    std::unique_ptr<Expression> expression;
-    ExpressionNeg(std::unique_ptr<Expression> expression, const Position & position)
-            : expression(std::move(expression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionNegMinus : public Expression {
-public:
-    std::unique_ptr<Expression> expression;
-    ExpressionNegMinus(std::unique_ptr<Expression> expression, const Position & position)
-            : expression(std::move(expression)) {this->position = position;}
-    void accept(Visitor& visitor);
-};
-
-class ExpressionValueList : public Expression {
-public:
-    std::vector<std::unique_ptr<Expression>> expressions;
-    ExpressionValueList(std::vector<std::unique_ptr<Expression>> expressions, const Position & position)
-        : expressions(std::move(expressions)) {this->position = position;};
-    void accept(Visitor& visitor);
-};
-
-class ExpressionValuePoint : public Expression {
-public:
-    std::unique_ptr<Expression> xCoord;
-    std::unique_ptr<Expression> yCoord;
-    ExpressionValuePoint(std::unique_ptr<Expression> xCoord, std::unique_ptr<Expression> yCoord, const Position & position)
-    : xCoord(std::move(xCoord)), yCoord(std::move(yCoord)) {this->position = position;};
-    void accept(Visitor& visitor);
-};
-
-class ExpressionValueLiteral : public Expression {
-public:
-    std::variant<int, double, std::wstring, bool, std::monostate> value;
-    template<typename T>
-    ExpressionValueLiteral(T value, const Position & position) : value(value) {this->position = position;};
-    void accept(Visitor& visitor);
-};
-
-class ExpressionValueBrackets : public Expression {
-public:
-    std::unique_ptr<Expression> expression;
-    ExpressionValueBrackets(std::unique_ptr<Expression> expression, const Position & position)
-    : expression(std::move(expression)) {this->position = position;};
-    void accept(Visitor& visitor);
-};
-
-class ConditionAndBlock : public Visitable{
-public:
-    std::unique_ptr<Expression> condition;
-    std::unique_ptr<CodeBlock> block;
-    ConditionAndBlock(std::unique_ptr<Expression> condition, std::unique_ptr<CodeBlock> block) : condition(std::move(condition)), block(std::move(block)) {};
-    void accept(Visitor& visitor);
-};
-
-class WhileStatement : public Statement {
-public:
-    std::unique_ptr<ConditionAndBlock> conditionAndBlock;
-    WhileStatement(std::unique_ptr<ConditionAndBlock> conditionAndBlock, const Position & position) : conditionAndBlock(std::move(conditionAndBlock)) {this->position = position;};
-    void accept(Visitor& visitor);
-};
-
-class IfStatement : public Statement {
-public:
-    std::unique_ptr<ConditionAndBlock> ifConditionAndBlock;
-    std::vector<std::unique_ptr<ConditionAndBlock>> elsifConditionsAndBlocks;
-    std::unique_ptr<CodeBlock> elseCodeBlock;
-    IfStatement(std::unique_ptr<ConditionAndBlock> ifConditionAndBlock, std::vector<std::unique_ptr<ConditionAndBlock>> elsifConditionsAndBlocks, std::unique_ptr<CodeBlock> elseCodeBlock, const Position & position)
-            : ifConditionAndBlock(std::move(ifConditionAndBlock)), elsifConditionsAndBlocks(std::move(elsifConditionsAndBlocks)), elseCodeBlock(std::move(elseCodeBlock)){ this->position = position;};
-    void accept(Visitor& visitor);
-};
-
-class ForStatement : public Statement {
-public:
-    const std::wstring identifier;
-    std::unique_ptr<Expression> expression;
-    std::unique_ptr<CodeBlock> block;
-    ForStatement(const std::wstring & identifier, std::unique_ptr<Expression> expression, std::unique_ptr<CodeBlock> block, const Position & position) :
-            identifier(identifier), expression(std::move(expression)), block(std::move(block)) {this->position = position;};
-    void accept(Visitor& visitor);
-};
-
-class ForRangeStatement : public Statement {
-public:
-    const std::wstring identifier;
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    std::unique_ptr<CodeBlock> block;
-    ForRangeStatement(const std::wstring & identifier, std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, std::unique_ptr<CodeBlock> block, const Position & position) :
-            identifier(identifier), leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)), block(std::move(block)) {this->position = position;};
-    void accept(Visitor& visitor);
-
-};
-
-class DeclarationStatement : public Statement {
-public:
-    const std::wstring identifierName;
-    DeclarationStatement(const std::wstring & identifierName, const Position & position) : identifierName(identifierName) {this->position=position;};
-    void accept(Visitor& visitor);
-};
-
-class DeclarationAssignStatement : public Statement {
-public:
-    const std::wstring identifierName;
-    std::unique_ptr<Expression> expression;
-    DeclarationAssignStatement(const std::wstring & identifierName, std::unique_ptr<Expression> expression, const Position & position) : identifierName(identifierName), expression(std::move(expression)) {this->position=position;};
-    void accept(Visitor& visitor);
-};
-
-class IdentifierExpression : public Expression {
-public:
-    const std::wstring identifierName;
-    IdentifierExpression(const std::wstring & identifierName, const Position & position)
-            : identifierName(identifierName) {this->position=position;};
-    void accept(Visitor& visitor);
-};
-
-class IdentifierFunctionCallExpression : public Expression {
-public:
-    std::unique_ptr<Expression> identifierExpression;
-    std::vector<std::unique_ptr<Expression>> expressions;
-    IdentifierFunctionCallExpression(std::unique_ptr<Expression> identifierExpression, std::vector<std::unique_ptr<Expression>> expressions,
-                                     const Position & position)
-            : identifierExpression(std::move(identifierExpression)), expressions(std::move(expressions)) { this->position=position;};
-    void accept(Visitor& visitor);
-};
-
-class IdentifierListIndexExpression : public Expression {
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> indexExpression;
-    IdentifierListIndexExpression(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> indexExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), indexExpression(std::move(indexExpression)) { this->position=position;};
-    void accept(Visitor& visitor);
-};
-
-class ObjectAccessExpression : public Expression {
-public:
-    std::unique_ptr<Expression> leftExpression;
-    std::unique_ptr<Expression> rightExpression;
-    ObjectAccessExpression(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
-            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) { this->position=position;};
-    void accept(Visitor& visitor);
-};
-
-class IdentifierStatementAssign : public Statement {
-public:
-    std::unique_ptr<Expression> identifierExpression;
-    std::unique_ptr<Expression> expression;
-    IdentifierStatementAssign(std::unique_ptr<Expression> identifierExpression, std::unique_ptr<Expression> expression, const Position & position)
-            : identifierExpression(std::move(identifierExpression)), expression(std::move(expression)) { this->position=position;};
-    void accept(Visitor& visitor);
-};
-
-class IdentifierExpressionStatement : public Statement {
-public:
-    std::unique_ptr<Expression> identifierExpression;
-    IdentifierExpressionStatement(std::unique_ptr<Expression> identifierExpression, const Position & position) : identifierExpression(std::move(identifierExpression))
-    {
-        this->position=position;
-    };
-    void accept(Visitor& visitor);
-
-};
-
-class ReturnStatement : public Statement {
-public:
-    std::unique_ptr<Expression> expression;
-    ReturnStatement(std::unique_ptr<Expression> expression, const Position & position) : expression(std::move(expression)){this->position=position;};
-    void accept(Visitor& visitor);
-
+    virtual bool isEqual(const Expression* obj) const=0;
 };
 
 
@@ -454,7 +161,473 @@ public:
 //    ~CodeBlock()=default;
 
     void accept(Visitor& visitor);
+    bool operator==(const CodeBlock& rhs) {
+        return statements == rhs.statements;
+    }
+    bool operator!=(const CodeBlock& rhs) {
+        return !(*this != rhs);
+    }
 };
+
+extern bool operator==(const Expression& lhs, const Expression& rhs);
+
+extern bool operator!=(const Expression& lhs, const Expression& rhs);
+
+bool operator==(const Statement& lhs, const Statement& rhs);
+
+bool operator!=(const Statement& lhs, const Statement& rhs);
+
+class ExpressionOr : public Expression{
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionOr(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+        : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionOr*>(comparedExpression);
+        return *leftExpression == *(expr->leftExpression) && *rightExpression == *(expr->rightExpression);
+    }
+};
+
+class ExpressionAnd : public Expression{
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionAnd(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionAnd*>(comparedExpression);
+        return *leftExpression == *(expr->leftExpression) && *rightExpression == *(expr->rightExpression);
+    }
+};
+
+class ExpressionCompEq : public Expression{
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionCompEq(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionCompEq*>(comparedExpression);
+        return *leftExpression == *(expr->leftExpression) && *rightExpression == *(expr->rightExpression);
+    }
+};
+
+class ExpressionCompNeq : public Expression{
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionCompNeq(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionCompNeq*>(comparedExpression);
+        return *leftExpression == *(expr->leftExpression) && *rightExpression == *(expr->rightExpression);
+    }
+};
+
+class ExpressionCompGeq : public Expression{
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionCompGeq(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionCompGeq*>(comparedExpression);
+        return *leftExpression == *(expr->leftExpression) && *rightExpression == *(expr->rightExpression);
+    }
+};
+
+class ExpressionCompLeq : public Expression{
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionCompLeq(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionCompLeq*>(comparedExpression);
+        return *leftExpression == *(expr->leftExpression) && *rightExpression == *(expr->rightExpression);
+    }
+};
+
+class ExpressionCompGreater : public Expression{
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionCompGreater(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionCompGreater*>(comparedExpression);
+        return *leftExpression == *(expr->leftExpression) && *rightExpression == *(expr->rightExpression);
+    }
+};
+
+class ExpressionCompLess : public Expression{
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionCompLess(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionCompLess*>(comparedExpression);
+        return *leftExpression == *(expr->leftExpression) && *rightExpression == *(expr->rightExpression);
+    }
+};
+
+class ExpressionAdd : public Expression{
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionAdd(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionAdd*>(comparedExpression);
+        return *leftExpression == *(expr->leftExpression) && *rightExpression == *(expr->rightExpression);
+    }
+};
+
+class ExpressionSub : public Expression{
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionSub(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionSub*>(comparedExpression);
+        return *leftExpression == *(expr->leftExpression) && *rightExpression == *(expr->rightExpression);
+    }
+};
+
+class ExpressionMul : public Expression{
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionMul(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionMul*>(comparedExpression);
+        return *leftExpression == *(expr->leftExpression) && *rightExpression == *(expr->rightExpression);
+    }
+};
+
+class ExpressionDiv : public Expression{
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ExpressionDiv(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionDiv*>(comparedExpression);
+        return *leftExpression == *(expr->leftExpression) && *rightExpression == *(expr->rightExpression);
+    }
+};
+
+class ExpressionIs : public Expression{
+public:
+    std::unique_ptr<Expression> expression;
+    variable_type checkedType;
+    ExpressionIs(std::unique_ptr<Expression> expression, variable_type checkedType, const Position & position)
+            : expression(std::move(expression)), checkedType(checkedType) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionIs*>(comparedExpression);
+        return *expression == *(expr->expression) && checkedType == (expr->checkedType);
+    }
+};
+
+class ExpressionTo : public Expression {
+public:
+    std::unique_ptr<Expression> expression;
+    variable_type conversionType;
+    ExpressionTo(std::unique_ptr<Expression> expression, variable_type conversionType, const Position & position)
+            : expression(std::move(expression)), conversionType(conversionType) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionTo*>(comparedExpression);
+        return *expression == *(expr->expression) && conversionType == (expr->conversionType);
+    }
+};
+
+class ExpressionNeg : public Expression {
+public:
+    std::unique_ptr<Expression> expression;
+    ExpressionNeg(std::unique_ptr<Expression> expression, const Position & position)
+            : expression(std::move(expression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionNeg*>(comparedExpression);
+        return *expression == *(expr->expression);
+    }
+};
+
+class ExpressionNegMinus : public Expression {
+public:
+    std::unique_ptr<Expression> expression;
+    ExpressionNegMinus(std::unique_ptr<Expression> expression, const Position & position)
+            : expression(std::move(expression)) {this->position = position;}
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionNegMinus*>(comparedExpression);
+        return *expression == *(expr->expression);
+    }
+};
+
+class ExpressionValueList : public Expression {
+public:
+    std::vector<std::unique_ptr<Expression>> expressions;
+    ExpressionValueList(std::vector<std::unique_ptr<Expression>> expressions, const Position & position)
+        : expressions(std::move(expressions)) {this->position = position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionValueList*>(comparedExpression);
+        return expressions == expr->expressions;
+    }
+};
+
+class ExpressionValuePoint : public Expression {
+public:
+    std::unique_ptr<Expression> xCoord;
+    std::unique_ptr<Expression> yCoord;
+    ExpressionValuePoint(std::unique_ptr<Expression> xCoord, std::unique_ptr<Expression> yCoord, const Position & position)
+    : xCoord(std::move(xCoord)), yCoord(std::move(yCoord)) {this->position = position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionValuePoint*>(comparedExpression);
+        return *(xCoord) == *(expr->xCoord) && *(yCoord) == *(expr->yCoord);
+    }
+};
+
+class ExpressionValueLiteral : public Expression {
+public:
+    std::variant<int, double, std::wstring, bool, std::monostate> value;
+    template<typename T>
+    ExpressionValueLiteral(T value, const Position & position) : value(value) {this->position = position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionValueLiteral*>(comparedExpression);
+        return value == expr->value;
+    }
+};
+
+class ExpressionValueBrackets : public Expression {
+public:
+    std::unique_ptr<Expression> expression;
+    ExpressionValueBrackets(std::unique_ptr<Expression> expression, const Position & position)
+    : expression(std::move(expression)) {this->position = position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ExpressionValueBrackets*>(comparedExpression);
+        return *(expression) == *(expr->expression);
+    }
+};
+
+class ConditionAndBlock : public Visitable{
+public:
+    std::unique_ptr<Expression> condition;
+    std::unique_ptr<CodeBlock> block;
+    ConditionAndBlock(std::unique_ptr<Expression> condition, std::unique_ptr<CodeBlock> block) : condition(std::move(condition)), block(std::move(block)) {};
+    void accept(Visitor& visitor);
+    bool operator==(const ConditionAndBlock & rhs) {
+        return *(condition) == *(rhs.condition) && *(block) == *(rhs.block);
+    }
+    bool operator!=(const ConditionAndBlock & rhs) {
+        return !(*this == rhs);
+    }
+};
+
+class WhileStatement : public Statement {
+public:
+    std::unique_ptr<ConditionAndBlock> conditionAndBlock;
+    WhileStatement(std::unique_ptr<ConditionAndBlock> conditionAndBlock, const Position & position) : conditionAndBlock(std::move(conditionAndBlock)) {this->position = position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Statement* comparedExpression) const override {
+        auto stmnt = dynamic_cast<const WhileStatement*>(comparedExpression);
+        return *(conditionAndBlock) == *(stmnt->conditionAndBlock);
+    }
+};
+
+class IfStatement : public Statement {
+public:
+    std::unique_ptr<ConditionAndBlock> ifConditionAndBlock;
+    std::vector<std::unique_ptr<ConditionAndBlock>> elsifConditionsAndBlocks;
+    std::unique_ptr<CodeBlock> elseCodeBlock;
+    IfStatement(std::unique_ptr<ConditionAndBlock> ifConditionAndBlock, std::vector<std::unique_ptr<ConditionAndBlock>> elsifConditionsAndBlocks, std::unique_ptr<CodeBlock> elseCodeBlock, const Position & position)
+            : ifConditionAndBlock(std::move(ifConditionAndBlock)), elsifConditionsAndBlocks(std::move(elsifConditionsAndBlocks)), elseCodeBlock(std::move(elseCodeBlock)){ this->position = position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Statement* comparedExpression) const override {
+            auto stmnt = dynamic_cast<const IfStatement*>(comparedExpression);
+            if (*(ifConditionAndBlock) != *(stmnt->ifConditionAndBlock)) {
+                return false;
+            }
+            if (elsifConditionsAndBlocks != stmnt->elsifConditionsAndBlocks) {
+                return false;
+            }
+            if ((elseCodeBlock == nullptr || stmnt->elseCodeBlock == nullptr) && (elseCodeBlock.get() != stmnt->elseCodeBlock.get())){
+                return false;
+            }
+            if (*(elseCodeBlock) != *(stmnt->elseCodeBlock)) {
+                return false;
+            }
+            return true;
+    }
+};
+
+class ForStatement : public Statement {
+public:
+    const std::wstring identifier;
+    std::unique_ptr<Expression> expression;
+    std::unique_ptr<CodeBlock> block;
+    ForStatement(const std::wstring & identifier, std::unique_ptr<Expression> expression, std::unique_ptr<CodeBlock> block, const Position & position) :
+            identifier(identifier), expression(std::move(expression)), block(std::move(block)) {this->position = position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Statement* comparedExpression) const override {
+        auto stmnt = dynamic_cast<const ForStatement*>(comparedExpression);
+        return identifier == stmnt->identifier && *(expression) == *(stmnt->expression) && *(block) == *(stmnt->block);
+    }
+};
+
+class ForRangeStatement : public Statement {
+public:
+    const std::wstring identifier;
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    std::unique_ptr<CodeBlock> block;
+    ForRangeStatement(const std::wstring & identifier, std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, std::unique_ptr<CodeBlock> block, const Position & position) :
+            identifier(identifier), leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)), block(std::move(block)) {this->position = position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Statement* comparedExpression) const override {
+        auto stmnt = dynamic_cast<const ForRangeStatement*>(comparedExpression);
+        return identifier == stmnt->identifier && *(leftExpression) == *(stmnt->leftExpression) && *(rightExpression) == *(stmnt->rightExpression) &&
+            *(block) == *(stmnt->block);
+    }
+
+};
+
+class DeclarationStatement : public Statement {
+public:
+    const std::wstring identifierName;
+    DeclarationStatement(const std::wstring & identifierName, const Position & position) : identifierName(identifierName) {this->position=position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Statement* comparedExpression) const override {
+        auto stmnt = dynamic_cast<const DeclarationStatement*>(comparedExpression);
+        return identifierName == stmnt->identifierName;
+    }
+};
+
+class DeclarationAssignStatement : public Statement {
+public:
+    const std::wstring identifierName;
+    std::unique_ptr<Expression> expression;
+    DeclarationAssignStatement(const std::wstring & identifierName, std::unique_ptr<Expression> expression, const Position & position) : identifierName(identifierName), expression(std::move(expression)) {this->position=position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Statement* comparedExpression) const override {
+        auto stmnt = dynamic_cast<const DeclarationAssignStatement*>(comparedExpression);
+        return identifierName == stmnt->identifierName && *(expression) == *(stmnt->expression);
+    }
+};
+
+class IdentifierExpression : public Expression {
+public:
+    const std::wstring identifierName;
+    IdentifierExpression(const std::wstring & identifierName, const Position & position)
+            : identifierName(identifierName) {this->position=position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const IdentifierExpression*>(comparedExpression);
+        return identifierName == expr->identifierName;
+    }
+};
+
+class IdentifierFunctionCallExpression : public Expression {
+public:
+    std::unique_ptr<Expression> identifierExpression;
+    std::vector<std::unique_ptr<Expression>> expressions;
+    IdentifierFunctionCallExpression(std::unique_ptr<Expression> identifierExpression, std::vector<std::unique_ptr<Expression>> expressions,
+                                     const Position & position)
+            : identifierExpression(std::move(identifierExpression)), expressions(std::move(expressions)) { this->position=position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const IdentifierFunctionCallExpression*>(comparedExpression);
+        return *(identifierExpression) == *(expr->identifierExpression) && expressions == expr->expressions;
+    }
+};
+
+class IdentifierListIndexExpression : public Expression {
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> indexExpression;
+    IdentifierListIndexExpression(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> indexExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), indexExpression(std::move(indexExpression)) { this->position=position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const IdentifierListIndexExpression*>(comparedExpression);
+        return *(leftExpression) == *(expr->leftExpression) && *(indexExpression) == *(expr->indexExpression);
+    }
+};
+
+class ObjectAccessExpression : public Expression {
+public:
+    std::unique_ptr<Expression> leftExpression;
+    std::unique_ptr<Expression> rightExpression;
+    ObjectAccessExpression(std::unique_ptr<Expression> leftExpression, std::unique_ptr<Expression> rightExpression, const Position & position)
+            : leftExpression(std::move(leftExpression)), rightExpression(std::move(rightExpression)) { this->position=position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Expression* comparedExpression) const override {
+        auto expr = dynamic_cast<const ObjectAccessExpression*>(comparedExpression);
+        return *(leftExpression) == *(expr->leftExpression) && *(rightExpression) == *(expr->rightExpression);
+    }
+};
+
+class IdentifierStatementAssign : public Statement {
+public:
+    std::unique_ptr<Expression> identifierExpression;
+    std::unique_ptr<Expression> expression;
+    IdentifierStatementAssign(std::unique_ptr<Expression> identifierExpression, std::unique_ptr<Expression> expression, const Position & position)
+            : identifierExpression(std::move(identifierExpression)), expression(std::move(expression)) { this->position=position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Statement* comparedExpression) const override {
+        auto stmnt = dynamic_cast<const IdentifierStatementAssign*>(comparedExpression);
+        return *(identifierExpression) == *(stmnt->identifierExpression) && *(expression) == *(stmnt->expression);
+    }
+};
+
+class IdentifierExpressionStatement : public Statement {
+public:
+    std::unique_ptr<Expression> identifierExpression;
+    IdentifierExpressionStatement(std::unique_ptr<Expression> identifierExpression, const Position & position) : identifierExpression(std::move(identifierExpression))
+    {
+        this->position=position;
+    };
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Statement* comparedExpression) const override {
+        auto stmnt = dynamic_cast<const IdentifierExpressionStatement*>(comparedExpression);
+        return *(identifierExpression) == *(stmnt->identifierExpression);
+    }
+
+};
+
+class ReturnStatement : public Statement {
+public:
+    std::unique_ptr<Expression> expression;
+    ReturnStatement(std::unique_ptr<Expression> expression, const Position & position) : expression(std::move(expression)){this->position=position;};
+    void accept(Visitor& visitor);
+    virtual bool isEqual(const Statement* comparedExpression) const override {
+        auto stmnt = dynamic_cast<const ReturnStatement*>(comparedExpression);
+        return *(expression) == *(stmnt->expression);
+    }
+};
+
 
 class Parameter : public Visitable {
 public:
@@ -467,14 +640,32 @@ public:
         return name;
     }
     void accept(Visitor& visitor);
+    bool operator==(const Parameter & rhs) {
+        return name == rhs.name;
+    }
+    virtual bool isEqual(const Parameter* comparedParameter) const {
+        auto param = dynamic_cast<const Parameter*>(comparedParameter);
+        return name == param->name;
+    };
 };
+
+
 
 class FigureParameter : public Parameter {
 public:
     std::unique_ptr<Expression> valueExpression;
     FigureParameter(const std::wstring & name, std::unique_ptr<Expression> valueExpression, const Position & position) : valueExpression(std::move(valueExpression)) {this->name = name; this->position=position;};
     void accept(Visitor& visitor);
+
+    virtual bool isEqual(const Parameter* comparedParameter) const override {
+        auto param = dynamic_cast<const FigureParameter*>(comparedParameter);
+        return name == param->name && *(valueExpression) == *(param->valueExpression);
+    };
 };
+
+bool operator==(const Parameter& lhs, const Parameter& rhs);
+
+bool operator!=(const Parameter& lhs, const Parameter& rhs);
 
 class FuncDeclaration : public Visitable{
 public:
@@ -488,6 +679,12 @@ public:
     FuncDeclaration() {}
 
     void accept(Visitor& visitor);
+    bool operator==(const FuncDeclaration & rhs) const {
+        return name == rhs.name && params == rhs.params && codeBlock == rhs.codeBlock;
+    }
+    bool operator!=(const FuncDeclaration & rhs) const {
+        return !(*this == rhs);
+    }
 };
 
 class FigureDeclaration : public Visitable {
@@ -500,6 +697,12 @@ public:
     FigureDeclaration() {}
 
     void accept(Visitor& visitor);
+    bool operator==(const FigureDeclaration & rhs) const {
+        return name == rhs.name && params == rhs.params;
+    }
+    bool operator!=(const FigureDeclaration & rhs) const {
+        return !(*this == rhs);
+    }
 };
 
 class Program : public Visitable {
@@ -526,7 +729,44 @@ public:
         }
         return figureDeclarations;
     };
+
+    bool operator==(const Program & rhs) {
+        auto functions = getFuncDeclarations();
+        auto figures = getFigureDeclarations();
+        auto functions_rhs = getFuncDeclarations();
+        auto figures_rhs = getFigureDeclarations();
+        if (functions.size() != functions_rhs.size()){
+            return false;
+        }
+        for (auto & element : functions) {
+            auto index = functions_rhs.find(element.first);
+            if (index == functions_rhs.end() || *(index->second) != *(element.second)) {
+                return false;
+            }
+        }
+        if (figures.size() != figures_rhs.size()){
+            return false;
+        }
+        for (auto & element : figures) {
+            auto index = figures_rhs.find(element.first);
+            if (index == figures_rhs.end() || *(index->second) != *(element.second)) {
+                return false;
+            }
+        }
+        return true;
+    }
+    bool operator!=(const Program & rhs) {
+        return !(*this == rhs);
+    }
+
 };
+
+
+
+bool operator==(const Parameter &lhs, const Parameter &rhs);
+bool operator!=(const Parameter &lhs, const Parameter &rhs);
+
+
 
 
 #endif //LEXER_PROGRAM_H
