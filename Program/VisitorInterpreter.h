@@ -33,6 +33,7 @@ struct AllowedInDivisionVisitor;
 
 using AllowedInOperationVisitor = std::variant<AllowedInComparisonVisitor, AllowedInAdditionVisitor, AllowedInDivisionVisitor, AllowedInMultiplicationVisitor, AllowedInSubtractionVisitor>;
 
+struct PrintVisitor;
 
 class AssignableValue {
 public:
@@ -74,6 +75,9 @@ public:
     void append(AssignableValue & value) {
         this->values.push_back(value);
     }
+    std::vector<AssignableValue> & getValues() {
+        return this->values;
+    }
 };
 
 class FigureValue : public std::enable_shared_from_this<FigureValue>{
@@ -105,8 +109,40 @@ public:
     std::vector<Scope> & getScopes() {return scopes;};
 };
 
-
-
+struct PrintVisitor {
+    std::wstring operator()(int & visited) {return std::to_wstring(visited);}
+    std::wstring operator()(double & visited) {return std::to_wstring(visited);}
+    std::wstring operator()(std::wstring & visited) {return visited;}
+    std::wstring operator()(bool & visited) { if (visited) return L"true"; return L"false";}
+    std::wstring operator()(std::monostate & visited) {return L"None";}
+    std::wstring operator()(std::shared_ptr<PointValue> & visited) {
+        std::wstring result = L"(" + std::to_wstring(std::get<double>(*(visited.get()->getX().value)));
+        result += L", " + std::to_wstring(std::get<double>(*(visited.get()->getY().value))) + L")";
+        return result;
+    }
+    std::wstring operator()(std::shared_ptr<ListValue> & visited) {
+        std::wstring result = L"[";
+        for (auto & element : visited->getValues()) {
+            std::wstring quotes = L"";
+            if (std::holds_alternative<std::wstring>(*element.value)) {
+                quotes = L"'";
+            }
+            result += quotes + std::visit(*this, *(element.value)) + quotes + L", ";
+        }
+        result.erase(result.end()-2, result.end());
+        result += L"]";
+        return result;
+    }
+    std::wstring operator()(std::shared_ptr<FigureValue> & visited) {
+        std::wstring result = L"{\n";
+        for (auto & element : visited->getPoints()) {
+            auto point  = *(element.second);
+            result += L"\t" + element.first + L": " + (*this)(element.second) + L", ";
+        }
+        result += L"}";
+        return result;
+    }
+};
 
 class VisitorInterpreter : public Visitor {
 private:
@@ -123,11 +159,7 @@ private:
                 if (funcCallParams.size() > 1) {
                     this->handleRuntimeError(this->funcCallPosition, L"Too many arguments print() requires 1 string argument.");
                 }
-                if (!std::holds_alternative<std::wstring>(value)) {
-                    this->handleRuntimeError(this->funcCallPosition, L"Removed element index is not int");
-                }
-                std::wstring printedString = std::get<std::wstring>(value);//jak więcej czasu to wizytator printujący wszystko
-                std::wcout << printedString;
+                std::wcout << std::visit(PrintVisitor{}, value);
                 this->lastResult = std::monostate();
             }},
             {L"draw", [this](){
@@ -255,8 +287,9 @@ public:
     Scope & addNewScope();
     void popScope();
     std::unordered_map<std::wstring, AssignableValue> & getCurrentScopeVariables();
-    interpreter_value consumeLastResult();
-    std::shared_ptr<interpreter_value> consumeAccessedObject();
+    AssignableValue & findVariableInScopes(const std::wstring & variableName);
+    interpreter_value consumeLastResultAndAccessedObject();
+    std::shared_ptr<interpreter_value> getAccessedObject();
     void consumeReturnValue();
     bool consumeConditionTrue();
 

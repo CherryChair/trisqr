@@ -31,7 +31,7 @@ int main() {
 //    std::wistream ss(&is);
 
     std::wfilebuf ss;
-    ss.open("../parser_basic.trisqr", std::ios_base::in);
+    ss.open("../parser_condition_tests.trisqr", std::ios_base::in);
     ErrorHandler* eh = new ErrorHandler();
     Lexer * l = new Lexer(ss, eh, 1024, 1000, 1111, 1111);
     std::optional<Token> tkn;
