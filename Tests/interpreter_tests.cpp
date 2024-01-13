@@ -28,6 +28,7 @@ void basic_test(std::string filename) {
     std::wstring token;
     std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
     std::wstring output = converter.from_bytes(testing::internal::GetCapturedStdout());
+    EXPECT_FALSE(output.empty());
     while ((pos = output.find(delimiter)) != std::string::npos) {
         token = output.substr(0, pos);
         EXPECT_EQ(L"PASS", token);
