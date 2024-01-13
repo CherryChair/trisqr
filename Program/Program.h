@@ -122,11 +122,23 @@ static const std::unordered_set<std::wstring> special_function_keywords = {
         L"draw"
 };
 
-template <typename T>
-extern bool operator==(const std::vector<std::unique_ptr<T>> & v1, const std::vector<std::unique_ptr<T>> & v2);
+template<typename T>
+bool operator==(const std::vector<std::unique_ptr<T>> &v1, const std::vector<std::unique_ptr<T>> &v2) {
+    if (v1.size() != v2.size()){
+        return false;
+    }
+    for (int i=0; i<v1.size(); i++) {
+        if (*(v1[i]) != *(v2[i])) {
+            return false;
+        }
+    }
+    return true;
+}
 
-template <typename T>
-extern bool operator!=(const std::vector<std::unique_ptr<T>> & v1, const std::vector<std::unique_ptr<T>> & v2);
+template<typename T>
+bool operator!=(const std::vector<std::unique_ptr<T>> &v1, const std::vector<std::unique_ptr<T>> &v2) {
+    return !(v1 == v2);
+}
 
 class Visitable {
 public:
@@ -161,13 +173,11 @@ public:
 //    ~CodeBlock()=default;
 
     void accept(Visitor& visitor);
-    bool operator==(const CodeBlock& rhs) {
-        return statements == rhs.statements;
-    }
-    bool operator!=(const CodeBlock& rhs) {
-        return !(*this != rhs);
-    }
+
 };
+
+bool operator==(const CodeBlock& lhs, const CodeBlock& rhs);
+bool operator!=(const CodeBlock& lhs, const CodeBlock& rhs);
 
 extern bool operator==(const Expression& lhs, const Expression& rhs);
 
@@ -679,13 +689,11 @@ public:
     FuncDeclaration() {}
 
     void accept(Visitor& visitor);
-    bool operator==(const FuncDeclaration & rhs) const {
-        return name == rhs.name && params == rhs.params && codeBlock == rhs.codeBlock;
-    }
-    bool operator!=(const FuncDeclaration & rhs) const {
-        return !(*this == rhs);
-    }
+
 };
+
+bool operator==(const FuncDeclaration & lhs, const FuncDeclaration & rhs);
+bool operator!=(const FuncDeclaration & lhs, const FuncDeclaration & rhs);
 
 class FigureDeclaration : public Visitable {
 public:
@@ -714,7 +722,7 @@ public:
 
     Program() {}
     void accept(Visitor& visitor);
-    std::unordered_map<std::wstring, FuncDeclaration *> getFuncDeclarations(){
+    std::unordered_map<std::wstring, FuncDeclaration *> getFuncDeclarations() const{
         std::unordered_map<std::wstring, FuncDeclaration *> functionDeclarations;
         for(auto & func : this->functions) {
             functionDeclarations[func.first] = func.second.get();
@@ -722,7 +730,7 @@ public:
         return functionDeclarations;
     };
 
-    std::unordered_map<std::wstring, FigureDeclaration *> getFigureDeclarations(){
+    std::unordered_map<std::wstring, FigureDeclaration *> getFigureDeclarations() const {
         std::unordered_map<std::wstring, FigureDeclaration *> figureDeclarations;
         for(auto & figure : this->figures) {
             figureDeclarations[figure.first] = figure.second.get();
@@ -733,8 +741,8 @@ public:
     bool operator==(const Program & rhs) {
         auto functions = getFuncDeclarations();
         auto figures = getFigureDeclarations();
-        auto functions_rhs = getFuncDeclarations();
-        auto figures_rhs = getFigureDeclarations();
+        auto functions_rhs = rhs.getFuncDeclarations();
+        auto figures_rhs = rhs.getFigureDeclarations();
         if (functions.size() != functions_rhs.size()){
             return false;
         }
@@ -760,8 +768,6 @@ public:
     }
 
 };
-
-
 
 bool operator==(const Parameter &lhs, const Parameter &rhs);
 bool operator!=(const Parameter &lhs, const Parameter &rhs);

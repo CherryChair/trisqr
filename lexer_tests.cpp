@@ -38,7 +38,7 @@ TEST(BasicTests, funcTest) {
 }
 
 TEST(BasicTests, figureTest) {
-    basic_test(L"figure", FIGURE_TYPE);
+    basic_test(L"figure", FIGURE_KEYWORD_TYPE);
 }
 
 TEST(BasicTests, returnTest) {
@@ -473,7 +473,7 @@ TEST(errorTests, longDoubleTest) {
 TEST(errorTests, maxStringLengthErrorTest) {
     std::wstring a = L"'abcdef'";
     unsigned short int expected_values[1000] {
-            ERR_TYPE,
+            STRING_TYPE,
             EOF_TYPE
     };
     std::wstring expected_errors = L"LEX_ERR: " + error_mesages.at(ERR_MAX_STRING_LEN_EXCEEDED) +L"\n" + L"Line 1, character 1: 'abcde << error\n";
@@ -653,7 +653,7 @@ TEST(PositionTests, largePostionTest) {
             DOUBLE_TYPE,
             R_BRACKET_TYPE,
             L_CURL_BRACKET_TYPE,
-            FIGURE_TYPE,
+            FIGURE_KEYWORD_TYPE,
             AND_TYPE,
             OR_TYPE,
             R_CURL_BRACKET_TYPE,

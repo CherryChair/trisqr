@@ -11,17 +11,16 @@
 #include <codecvt>
 #include <locale>
 
-void basic_test(std::wstring a, std::unique_ptr<Program> & program) {
+bool basic_test(std::wstring a, std::unique_ptr<Program> & program) {
     std::wstringbuf ss(a);
     ErrorHandler * eh = new ErrorHandler();
     Lexer * lexer = new Lexer(ss, eh);
     Parser * parser = new Parser(lexer, eh);
     auto parsedProgram = parser->parse();
-    bool result = *parsedProgram == *program;
-    ASSERT_TRUE(result);
+    return  *parsedProgram == *program;
 }
 
-TEST(BasicParserTests, BaiscParsingTest) {
+TEST(BasicParserTests, ParsingTest) {
     std::wstring toParse = L"func main() {\n";
     toParse += L"\tvv toParse = 1 + 2;\n";
     toParse += L"\ttoParse = '1 + 2';\n";
@@ -32,7 +31,7 @@ TEST(BasicParserTests, BaiscParsingTest) {
     std::unique_ptr<IdentifierExpression> identifierExpression4 = std::make_unique<IdentifierExpression>(L"toParse", dummyPosition);
     std::unique_ptr<IdentifierExpression> identifierExpression3 = std::make_unique<IdentifierExpression>(L"print", dummyPosition);
     std::unique_ptr<IdentifierExpression> identifierExpression2 = std::make_unique<IdentifierExpression>(L"toParse", dummyPosition);
-    std::unique_ptr<ExpressionValueLiteral> stringExpression = std::make_unique<ExpressionValueLiteral>(L"1 + 2", dummyPosition);
+    std::unique_ptr<ExpressionValueLiteral> stringExpression = std::make_unique<ExpressionValueLiteral>((std::wstring)L"1 + 2", dummyPosition);
     std::unique_ptr<ExpressionValueLiteral> intExpression2 = std::make_unique<ExpressionValueLiteral>(2, dummyPosition);
     std::unique_ptr<ExpressionValueLiteral> intExpression1 = std::make_unique<ExpressionValueLiteral>(1, dummyPosition);
     std::unique_ptr<ExpressionTo> toExpression = std::make_unique<ExpressionTo>(std::move(identifierExpression4), STRING_VARIABLE, dummyPosition);
@@ -55,5 +54,22 @@ TEST(BasicParserTests, BaiscParsingTest) {
     std::unordered_map<std::wstring, std::unique_ptr<FigureDeclaration>> figures;
     std::unique_ptr<Program> p = std::make_unique<Program>(std::move(functions), std::move(figures));
 
+    bool result = basic_test(toParse, p);
+    ASSERT_TRUE(result);
+}
+
+TEST(BasicParserTests, FailedEqualityParsingTest) {
+    std::wstring toParse = L"func main() {\n";
+    toParse += L"\tvv toParse = 1 + 2;\n";
+    toParse += L"\ttoParse = '1 + 2';\n";
+    toParse += L"\tprint(toParse to str);\n";
+    toParse += L"}\n";
+
+    std::unordered_map<std::wstring, std::unique_ptr<FuncDeclaration>> functions;
+    std::unordered_map<std::wstring, std::unique_ptr<FigureDeclaration>> figures;
+    std::unique_ptr<Program> p = std::make_unique<Program>(std::move(functions), std::move(figures));
+
     basic_test(toParse, p);
+    bool result = basic_test(toParse, p);
+    ASSERT_FALSE(result);
 }

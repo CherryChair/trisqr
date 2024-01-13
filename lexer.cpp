@@ -368,10 +368,10 @@ std::optional<Token> Lexer::tryBuildString()
                 str += char_to_add;
                 moveToNextCharacter();
             } else {
-                //handleStrLenError
+                break;
             }
         }
-        if(this->character == '\'') {//zostaje
+        if(this->character == '\'') {
             moveToNextCharacter();
             return buildToken(STRING_TYPE, str);
         } else if (str.length()>=this->max_string_chars) {

@@ -1,7 +1,7 @@
 func begin_function_test(list_with_test_index) {
-    print('---------------------\n');
-    print('test_' + list_with_test_index[0] to str + '\n');
-    print('---------------------\n');
+    #print('---------------------\n');
+    #print('test_' + list_with_test_index[0] to str + '\n');
+    #print('---------------------\n');
     list_with_test_index[0] = list_with_test_index[0] + 1;
 }
 
