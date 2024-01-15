@@ -13,9 +13,9 @@
 #include <queue>
 
 //figura i punkt
-class FunctionContextSem;
+class FunctionCallContext;
 
-class ScopeSem;
+class Scope;
 
 class AssignableValue;
 
@@ -95,18 +95,18 @@ public:
     void setColor(ListValue color) { this->color = std::move(color);};
 };
 
-class ScopeSem {
+class Scope {
 protected:
     std::unordered_map<std::wstring, AssignableValue> variables;
 public:
     std::unordered_map<std::wstring, AssignableValue> & getVariables() {return variables;};
 };
 
-class FunctionContextSem{
+class FunctionCallContext{
 private:
-    std::vector<ScopeSem> scopes;
+    std::vector<Scope> scopes;
 public:
-    std::vector<ScopeSem> & getScopes() {return scopes;};
+    std::vector<Scope> & getScopes() {return scopes;};
 };
 
 struct PrintVisitor {
@@ -235,8 +235,8 @@ private:
     };
     std::queue<interpreter_value> functionCallParams;
     ErrorHandler * errorHandler;
-    ScopeSem figureScope = ScopeSem();
-    std::stack<FunctionContextSem> functionContexts;
+    Scope figureScope = Scope();
+    std::stack<FunctionCallContext> functionContexts;
     bool figurePointAssigned = false;
     bool figureColorAssigned = false;
     bool pointCoordAssigned = false;
@@ -294,9 +294,9 @@ public:
 
     void handleRuntimeError(const Position & pos, const std::wstring & errorMsg);
     std::queue<interpreter_value> & getFunctionCallParams() {return this->functionCallParams;}
-    ScopeSem & getFigureScope() {return this->figureScope;}
-    ScopeSem & getCurrentScope() {return this->functionContexts.top().getScopes().back();}
-    ScopeSem & addNewScope();
+    Scope & getFigureScope() {return this->figureScope;}
+    Scope & getCurrentScope() {return this->functionContexts.top().getScopes().back();}
+    Scope & addNewScope();
     void popScope();
     std::unordered_map<std::wstring, AssignableValue> & getCurrentScopeVariables();
     AssignableValue & findVariableInScopes(const std::wstring & variableName);

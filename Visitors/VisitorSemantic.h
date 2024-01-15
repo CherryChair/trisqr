@@ -47,8 +47,8 @@ class VisitorSemantic : public Visitor {
 private:
     Position lastFigurePos = Position({1,1});
     Position lastFuncPos = Position({1,1});
-    ScopeSem figureScope = ScopeSem();
-    std::stack<FunctionContextSem> functionContexts;
+    ScopeSem figureScopeSem = ScopeSem();
+    FunctionContextSem functionContexts;
     std::unordered_map<std::wstring, int> functionsDeclNum;
     std::unordered_map<std::wstring, int> figuresDeclNum;
     ErrorHandler * errorHandler;

@@ -215,10 +215,10 @@ void VisitorSemantic::visit(FigureParameter * p) {
     } else if (type != NOT_FOUND) {
         this->handleDeclarationError(p->position, p->name, type);
     }
-    if (figureScope.getVariables().find(p->name) != figureScope.getVariables().end()) {
+    if (figureScopeSem.getVariables().find(p->name) != figureScopeSem.getVariables().end()) {
         this->handleSemanticError(p->position, L"Memeber of figure " + p->name + L" redefined.");
     }
-    figureScope.getVariables().insert(p->name);
+    figureScopeSem.getVariables().insert(p->name);
     p->valueExpression->accept(*this);
 }
 
@@ -227,7 +227,7 @@ void VisitorSemantic::visit(FigureDeclaration * fd) {
     for (auto const & param : fd->params) {
         param->accept(*this);
     }
-    this->figureScope.getVariables().clear();
+    this->figureScopeSem.getVariables().clear();
     this->lastFigurePos = fd->position;
 }
 
@@ -312,10 +312,10 @@ found_type VisitorSemantic::findVariable(const std::wstring & variableName) {
     if (figuresDeclNum.find(variableName) != figuresDeclNum.end()) {
         return FIGURE_FOUND;
     }
-    auto & currentScopes = this->functionContexts.top().getScopes();
-    for (auto iter = currentScopes.rbegin(); iter != currentScopes.rend(); iter++) {
-        auto & currentScopeVariables = iter->getVariables();
-        if (currentScopeVariables.find(variableName) != currentScopeVariables.end()) {
+    auto & currentScopeSems = this->functionContexts.getScopes();
+    for (auto iter = currentScopeSems.rbegin(); iter != currentScopeSems.rend(); iter++) {
+        auto & currentScopeSemVariables = iter->getVariables();
+        if (currentScopeSemVariables.find(variableName) != currentScopeSemVariables.end()) {
             return IDENTIFIER_FOUND;
         }
 
@@ -340,12 +340,12 @@ bool VisitorSemantic::checkIfMethod(const std::wstring & variableName) {
 }
 
 ScopeSem &VisitorSemantic::addNewScope() {
-    this->functionContexts.top().getScopes().push_back(ScopeSem());
-    return this->functionContexts.top().getScopes().back();
+    this->functionContexts.getScopes().push_back(ScopeSem());
+    return this->functionContexts.getScopes().back();
 }
 
 void VisitorSemantic::popScope() {
-    this->functionContexts.top().getScopes().pop_back();
+    this->functionContexts.getScopes().pop_back();
 }
 
 void VisitorSemantic::handleDeclarationError(const Position &pos, const std::wstring & name, found_type foundType) {
@@ -359,5 +359,5 @@ void VisitorSemantic::handleSemanticError(const Position &pos, const std::wstrin
 }
 
 void VisitorSemantic::insertVariableNameToCurrentScope(const std::wstring &name) {
-    this->functionContexts.top().getScopes().back().getVariables().insert(name);
+    this->functionContexts.getScopes().back().getVariables().insert(name);
 }

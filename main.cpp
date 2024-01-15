@@ -2,6 +2,7 @@
 #include "Parser/Parser.h"
 #include <fstream>
 #include "Visitors/VisitorTree.h"
+#include "Visitors/VisitorSemantic.h"
 #include "Visitors/VisitorInterpreter.h"
 
 
@@ -32,6 +33,9 @@ int main(int argc, char *argv[]) {
 
     Parser * parser = new Parser(l, eh);
     auto program = parser->parse();
+
+    VisitorSemantic vs = VisitorSemantic(eh);
+    program->accept(vs);
 
     VisitorInterpreter vi = VisitorInterpreter(eh);
     program->accept(vi);
