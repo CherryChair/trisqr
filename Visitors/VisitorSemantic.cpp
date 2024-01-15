@@ -293,13 +293,13 @@ VisitorSemantic::checkFunctionOrFigure(const std::wstring &name, std::unordered_
 }
 
 found_type VisitorSemantic::findVariable(const std::wstring & variableName) {
-    if (special_function_keywords.find(variableName) != special_function_keywords.find(variableName)) {
+    if (special_function_keywords.find(variableName) != special_function_keywords.end()) {
         return FUNCTION_FOUND;
     }
-    if (special_list_keywords.find(variableName) != special_list_keywords.find(variableName)) {
+    if (special_list_keywords.find(variableName) != special_list_keywords.end()) {
         return LIST_METHOD_FOUND;
     }
-    if (special_figure_keywords.find(variableName) != special_figure_keywords.find(variableName)) {
+    if (special_figure_keywords.find(variableName) != special_figure_keywords.end()) {
         if (variableName == L"color") {
             return COLOR_FOUND;
         } else {
