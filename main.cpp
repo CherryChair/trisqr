@@ -5,7 +5,7 @@
 #include "Visitors/VisitorInterpreter.h"
 
 
-int main() {
+int main(int argc, char *argv[]) {
 //    std::wstring a = L"func main() {\n";
 //    a += L"\tvv a = 1 + 2;\n";
 //    a += L"\ta = '1 + 2';\n";
@@ -13,8 +13,18 @@ int main() {
 //    a += L"}\n";
 //    std::wstringbuf ss(a);
 
+    if (argc != 2) {
+        std::cout << "Specify file to interpret!" << std::endl;
+        return 0;
+    }
+
+    std::string filename = argv[1];
+
     std::wfilebuf ss;
-    ss.open("../Tests/parser_condition_tests.trisqr", std::ios_base::in);
+    if (!ss.open(filename, std::ios_base::in)) {
+        std::cout << "File " + filename + " can't be read or it doesn't exist." << std::endl;
+        return 0;
+    }
 
     ErrorHandler* eh = new ErrorHandler();
 

@@ -1,0 +1,28 @@
+func fibonacci(n) {
+    if (n <= 1) {
+        return n;
+    }
+    return fibonacci(n - 1) + fibonacci(n - 2);
+}
+
+func fib( n)
+{
+    vv a = 0;
+    vv b = 1;
+    vv c;
+    vv i;
+    if (n == 0) {
+        return a;
+    }
+    for i in range(2, n+1) {
+        c = a + b;
+        a = b;
+        b = c;
+    }
+    return b;
+}
+
+func main() {
+    print(fib(22) to str + '\n');
+    print(fibonacci(22));
+}

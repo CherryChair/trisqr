@@ -110,6 +110,7 @@ public:
 };
 
 struct PrintVisitor {
+    std::unordered_set<std::shared_ptr<ListValue>> visitedLists;
     std::wstring operator()(int & visited) {return std::to_wstring(visited);}
     std::wstring operator()(double & visited) {return std::to_wstring(visited);}
     std::wstring operator()(std::wstring & visited) {return visited;}
@@ -121,7 +122,11 @@ struct PrintVisitor {
         return result;
     }
     std::wstring operator()(std::shared_ptr<ListValue> & visited) {
+        if (visitedLists.find(visited) != visitedLists.end()) {
+            return L"[...]";
+        }
         std::wstring result = L"[";
+        visitedLists.insert(visited);
         for (auto & element : visited->getValues()) {
             std::wstring quotes = L"";
             if (std::holds_alternative<std::wstring>(*element.value)) {
@@ -129,7 +134,9 @@ struct PrintVisitor {
             }
             result += quotes + std::visit(*this, *(element.value)) + quotes + L", ";
         }
-        result.erase(result.end()-2, result.end());
+        if (!visited->getValues().empty()) {
+            result.erase(result.end()-2, result.end());
+        }
         result += L"]";
         return result;
     }
@@ -161,6 +168,10 @@ private:
                 }
                 std::wcout << std::visit(PrintVisitor{}, value);
                 this->lastResult = std::monostate();
+            }},
+            {L"printn", [this](){
+                this->internalFunctions.at(L"print")();
+                std::wcout << std::endl;
             }},
             {L"draw", [this](){
                 //rysuj listę figur za pomocą allegro
@@ -203,6 +214,7 @@ private:
                 if (listValue->len() <= removedIndex) {
                     this->handleRuntimeError(this->funcCallPosition, L"Removed index out of range");
                 }
+                listValue->remove(removedIndex);
                 this->lastResult = listValue->shared_from_this();
             }},
             {L"len", [this](ListValue * listValue){
@@ -435,7 +447,7 @@ inline static const std::unordered_map<variable_type, std::function<interpreter_
         {INT_VARIABLE, [](std::monostate value){ return std::monostate();}},
         {DOUBLE_VARIABLE, [](std::monostate value){ return std::monostate();}},
         {BOOL_VARIABLE, [](std::monostate value){ return std::monostate();}},
-        {STRING_VARIABLE, [](std::monostate value){ return std::monostate();}},
+        {STRING_VARIABLE, [](std::monostate value){ return PrintVisitor{}(value);}},
         {NONE_VARIABLE, [](std::monostate value){ return std::monostate();}},
         {POINT_VARIABLE, [](std::monostate value){ return std::monostate();}},
         {LIST_VARIABLE, [](std::monostate value){ return std::monostate();}},
@@ -446,7 +458,7 @@ inline static const std::unordered_map<variable_type, std::function<interpreter_
         {INT_VARIABLE, [](std::shared_ptr<PointValue> & value){ return std::monostate();}},
         {DOUBLE_VARIABLE, [](std::shared_ptr<PointValue> & value){ return std::monostate();}},
         {BOOL_VARIABLE, [](std::shared_ptr<PointValue> & value){ return std::monostate();}},
-        {STRING_VARIABLE, [](std::shared_ptr<PointValue> & value){ return std::monostate();}},
+        {STRING_VARIABLE, [](std::shared_ptr<PointValue> & value){ return PrintVisitor{}(value);}},
         {NONE_VARIABLE, [](std::shared_ptr<PointValue> & value){ return std::monostate();}},
         {POINT_VARIABLE, [](std::shared_ptr<PointValue> & value){ return std::monostate();}},
         {LIST_VARIABLE, [](std::shared_ptr<PointValue> & value){ return std::monostate();}},
@@ -457,7 +469,7 @@ inline static const std::unordered_map<variable_type, std::function<interpreter_
         {INT_VARIABLE, [](std::shared_ptr<ListValue> & value){ return std::monostate();}},
         {DOUBLE_VARIABLE, [](std::shared_ptr<ListValue> & value){ return std::monostate();}},
         {BOOL_VARIABLE, [](std::shared_ptr<ListValue> & value){ return std::monostate();}},
-        {STRING_VARIABLE, [](std::shared_ptr<ListValue> & value){ return std::monostate();}},
+        {STRING_VARIABLE, [](std::shared_ptr<ListValue> & value){ return PrintVisitor{}(value);}},
         {NONE_VARIABLE, [](std::shared_ptr<ListValue> & value){ return std::monostate();}},
         {POINT_VARIABLE, [](std::shared_ptr<ListValue> & value){ return std::monostate();}},
         {LIST_VARIABLE, [](std::shared_ptr<ListValue> & value){ return std::monostate();}},
@@ -468,7 +480,7 @@ inline static const std::unordered_map<variable_type, std::function<interpreter_
         {INT_VARIABLE, [](std::shared_ptr<FigureValue> & value){ return std::monostate();}},
         {DOUBLE_VARIABLE, [](std::shared_ptr<FigureValue> & value){ return std::monostate();}},
         {BOOL_VARIABLE, [](std::shared_ptr<FigureValue> & value){ return std::monostate();}},
-        {STRING_VARIABLE, [](std::shared_ptr<FigureValue> & value){ return std::monostate();}},
+        {STRING_VARIABLE, [](std::shared_ptr<FigureValue> & value){ return PrintVisitor{}(value);}},
         {NONE_VARIABLE, [](std::shared_ptr<FigureValue> & value){ return std::monostate();}},
         {POINT_VARIABLE, [](std::shared_ptr<FigureValue> & value){ return std::monostate();}},
         {LIST_VARIABLE, [](std::shared_ptr<FigureValue> & value){ return std::monostate();}},

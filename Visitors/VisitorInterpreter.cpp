@@ -244,6 +244,9 @@ void VisitorInterpreter::visit(IdentifierListIndexExpression * e) {
     }
     ListValue * listValue = std::get<std::shared_ptr<ListValue>>(leftExpressionValue).get();
     int index = std::get<int>(indexExpressionValue);
+    if (index >= listValue->len()) {
+        this->handleRuntimeError(e->position, L"Index out of range.");
+    }
     this->accessedObject = AssignableValue((*listValue)[index]);//3)//4)
 }
 void VisitorInterpreter::visit(IdentifierFunctionCallExpression * e) {

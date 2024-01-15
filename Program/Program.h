@@ -95,6 +95,7 @@ static const std::unordered_set<std::wstring> special_keywords = {
         L"append",
         L"delete",
         L"print",
+        L"printn",
         L"input",
         L"draw"
 };
