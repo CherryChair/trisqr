@@ -110,7 +110,7 @@ public:
     void checkFunctionOrFigure(const std::wstring &name, std::unordered_map<std::wstring, int> &multiplesSet,
                                std::unordered_map<std::wstring, int> &presenceSet,
                                const std::wstring &objectName, const std::wstring &comparedToObjectName,
-                               const Position &position position);
+                               const Position & position);
     void handleSemanticError(const Position & pos, const std::wstring & errorMsg);
     void handleDeclarationError(const Position &pos, const std::wstring & name, found_type foundType);
     void insertVariableNameToCurrentScope(const std::wstring & name);

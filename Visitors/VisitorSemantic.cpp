@@ -323,14 +323,6 @@ found_type VisitorSemantic::findVariable(const std::wstring & variableName) {
     return NOT_FOUND;
 }
 
-bool VisitorSemantic::checkIfInFigures(const std::wstring & variableName) {
-    return figuresDeclNum.find(variableName) != figuresDeclNum.find(variableName);
-}
-
-bool VisitorSemantic::checkIfInFunctions(const std::wstring & variableName) {
-    return functionsDeclNum.find(variableName) != functionsDeclNum.find(variableName);
-}
-
 bool VisitorSemantic::checkIfSpecialFunction(const std::wstring & variableName) {
     return special_function_keywords.find(variableName) != special_function_keywords.find(variableName);
 }
