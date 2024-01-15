@@ -8,6 +8,7 @@
 #include <vector>
 #include <variant>
 #include <unordered_map>
+#include <memory>
 #include <string>
 #include <optional>
 #include <unordered_set>

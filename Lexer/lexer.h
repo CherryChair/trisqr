@@ -48,7 +48,7 @@ private:
     std::wstring endline_char = L"";
     std::wistream is;
     ErrorHandler * errorHandler;
-    bool Lexer::tryMoveEndline();
+    bool tryMoveEndline();
     bool moveNewline();
     std::optional<Token> tryBuildIdentifierOrKeyword();
     std::optional<Token> tryBuildNumber();
