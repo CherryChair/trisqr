@@ -227,7 +227,7 @@ func sierpinsky(a, b, c, n, list){
   x_off = (b.x-a.x)/2.0;
   y_off = (c.y-a.y)/2.0;
   newTriangle.color = [255, 255, 255];
-  newTriangle.border = 0;
+  newTriangle.color = 0;
   list.append(newTriangle);
   sierpinsky((a.x-x_off, a.y-y_off), (b.x, b.y-y_off), (c.x-x_off, c.y), n_n, list);
   sierpinsky((a.x+x_off, a.y-y_off), (b.x, b.y-y_off), (c.x+x_off, c.y), n_n, list);
@@ -240,7 +240,7 @@ func main() {
   newTriangle.rotate(pi)
   newTriangle.scale(16.0)
   newTriangle.color = [0, 0, 0];
-  newTriangle.border = 0;
+  newTriangle.color = 0;
   sierpinsky((8.0, 8.0), (0.0, 8.0), (8.0, 0.0), 6, sierpinskyList)
   draw(sierpinskyList, (-1.0, -1.0), (17.0, 17.0));
 }

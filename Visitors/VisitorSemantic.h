@@ -6,11 +6,55 @@
 #define LEXER_VISITORSEMANTIC_H
 
 #include "Visitor.h"
+#include <stack>
 
 
+enum found_type {
+    LIST_METHOD_FOUND,
+    FIGURE_METHOD_FOUND,
+    COLOR_FOUND,
+    FIGURE_FOUND,
+    FUNCTION_FOUND,
+    IDENTIFIER_FOUND,
+    NOT_FOUND,
+};
+
+static const std::unordered_map<found_type, std::wstring> found_type_representation= {
+        {LIST_METHOD_FOUND,   L"list method"},
+        {FIGURE_METHOD_FOUND, L"figure method"},
+        {COLOR_FOUND,         L"figure color"},
+        {FIGURE_FOUND,        L"figure"},
+        {FUNCTION_FOUND,      L"function"},
+        {IDENTIFIER_FOUND,    L"variable"},
+        {NOT_FOUND,           L"not found"},
+};
+
+class ScopeSem {
+protected:
+    std::unordered_set<std::wstring> variables;
+public:
+    std::unordered_set<std::wstring> & getVariables() {return variables;};
+};
+
+class FunctionContextSem{
+private:
+    std::vector<ScopeSem> scopes;
+public:
+    std::vector<ScopeSem> & getScopes() {return scopes;};
+};
 
 class VisitorSemantic : public Visitor {
+private:
+    ScopeSem figureScope = ScopeSem();
+    std::stack<FunctionContextSem> functionContexts;
+    std::unordered_set<std::wstring> functions;
+    std::unordered_set<std::wstring> figures;
+    ErrorHandler * errorHandler;
+    bool semanticError = false;
+    bool objectAccess = false;
+    bool functionCall = false;
 public:
+    VisitorSemantic(ErrorHandler * eh): errorHandler(eh){};
     void visit(ExpressionOr * e);
     void visit(ExpressionAnd * e);
     void visit(ExpressionCompEq * e);
@@ -55,6 +99,13 @@ public:
     void visit(FigureDeclaration * fd);
     void visit(FuncDeclaration * fd);
     void visit(Program * p);
+
+    ScopeSem & addNewScope();
+    void popScope();
+    found_type findVariable(const std::wstring & variableName);
+    void handleSemanticError(const Position & pos, const std::wstring & errorMsg);
+    void handleDeclarationError(const Position &pos, const std::wstring & name, found_type foundType);
+    void insertVariableNameToCurrentScope(const std::wstring & name);
 };
 
 #endif //LEXER_VISITORSEMANTIC_H

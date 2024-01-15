@@ -117,8 +117,8 @@ static const std::unordered_set<std::wstring> special_figure_keywords = {
 };
 
 static const std::unordered_set<std::wstring> special_function_keywords = {
-        L"Circle",
         L"print",
+        L"printn",
         L"input",
         L"draw"
 };

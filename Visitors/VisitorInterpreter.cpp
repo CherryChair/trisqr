@@ -472,8 +472,6 @@ void VisitorInterpreter::visit(ConditionAndBlock * cb) {
 
 
 
-
-
 void VisitorInterpreter::visit(CodeBlock * cb) {
     for (auto & statement : cb->statements) {
         statement->accept(*this);
@@ -512,7 +510,7 @@ void VisitorInterpreter::visit(FigureDeclaration * fd) {
     this->currentlyAnalyzedFigure = L"";
 }
 void VisitorInterpreter::visit(FuncDeclaration * fd) {
-    this->functionContexts.push(FunctionCallContext());
+    this->functionContexts.push(FunctionContextSem());
     this->addNewScope();
     if (fd->params.size() < functionCallParams.size()) {
         this->handleRuntimeError(this->funcCallPosition, L"Too many params for function call");
@@ -541,8 +539,8 @@ void VisitorInterpreter::handleRuntimeError(const Position &pos, const std::wstr
     throw;
 }
 
-Scope &VisitorInterpreter::addNewScope() {
-    this->functionContexts.top().getScopes().push_back(Scope());
+ScopeSem &VisitorInterpreter::addNewScope() {
+    this->functionContexts.top().getScopes().push_back(ScopeSem());
     return this->functionContexts.top().getScopes().back();
 }
 

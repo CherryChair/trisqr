@@ -75,27 +75,6 @@ void VisitorSemantic::visit(ExpressionValuePoint * e) {
     e->yCoord->accept(*this);
 }
 void VisitorSemantic::visit(ExpressionValueLiteral * e) {
-    switch (e->value.index()){
-        case 0: {
-            int value = std::get<int>(e->value);
-            break;
-        }
-        case 1: {
-            double value = std::get<double>(e->value);
-            break;
-        }
-        case 2: {
-            std::wstring value = std::get<std::wstring>(e->value);
-            break;
-        }
-        case 3: {
-            bool value = std::get<bool>(e->value);
-            break;
-        }
-        case 4: {
-        }
-    }
-//    std::visit([](auto & x) -> void {std::wcout << x;}, e->value);
 }
 void VisitorSemantic::visit(ExpressionValueBrackets * e) {
     e->expression->accept(*this);
@@ -106,18 +85,26 @@ void VisitorSemantic::visit(ExpressionValueBrackets * e) {
 
 
 void VisitorSemantic::visit(WhileStatement * s) {
+    this->addNewScope();
     s->conditionAndBlock->accept(*this);
+    this->popScope();
 }
 void VisitorSemantic::visit(IfStatement * s) {
+    this->addNewScope();
     s->ifConditionAndBlock->accept(*this);
+    this->popScope();
+
     for (auto const & condAndBlock : s->elsifConditionsAndBlocks) {
+        this->addNewScope();
         condAndBlock->accept(*this);
+        this->popScope();
     }
 
+    this->addNewScope();
     if (auto & elseCodeBlock = s->elseCodeBlock) {
         elseCodeBlock->accept(*this);
-    } else {
     }
+    this->popScope();
 }
 void VisitorSemantic::visit(ForStatement * s) {
     s->expression->accept(*this);
@@ -129,9 +116,21 @@ void VisitorSemantic::visit(ForRangeStatement * s) {
     s->block->accept(*this);
 }
 void VisitorSemantic::visit(DeclarationStatement * s) {
+    found_type foundType = this->findVariable(s->identifierName);
+    if (foundType == NOT_FOUND) {
+        this->insertVariableNameToCurrentScope(s->identifierName);
+    } else {
+        this->handleDeclarationError(s->position, s->identifierName, foundType);
+    }
 }
 
 void VisitorSemantic::visit(DeclarationAssignStatement * s) {
+    found_type foundType = this->findVariable(s->identifierName);
+    if (foundType == NOT_FOUND) {
+        this->insertVariableNameToCurrentScope(s->identifierName);
+    } else {
+        this->handleDeclarationError(s->position, s->identifierName, foundType);
+    }
     s->expression->accept(*this);
 }
 
@@ -152,29 +151,44 @@ void VisitorSemantic::visit(IdentifierStatementAssign * s) {
     s->identifierExpression->accept(*this);
     s->expression->accept(*this);
 }
-void VisitorSemantic::visit(ObjectAccessExpression * s) {
-    s->leftExpression->accept(*this);
-
-    if (auto & rightStatement = s->rightExpression) {
-        rightStatement->accept(*this);
-    } else {
-    }
+void VisitorSemantic::visit(ObjectAccessExpression * e) {
+    e->leftExpression->accept(*this);
+    this->objectAccess = true;
+    e->rightExpression->accept(*this);
+    this->objectAccess = false;
 }
-void VisitorSemantic::visit(IdentifierListIndexExpression * s) {
-    s->leftExpression->accept(*this);
+void VisitorSemantic::visit(IdentifierListIndexExpression * e) {
+    e->leftExpression->accept(*this);
 
-    auto & expression = s->indexExpression;
+    auto & expression = e->indexExpression;
     expression->accept(*this);
 }
-void VisitorSemantic::visit(IdentifierFunctionCallExpression * s) {
-    s->identifierExpression->accept(*this);
+void VisitorSemantic::visit(IdentifierFunctionCallExpression * e) {
+    this->functionCall = true;
+    e->identifierExpression->accept(*this);
+    this->functionCall = false;
 
-    for (auto const & expression : s->expressions) {
+    for (auto const & expression : e->expressions) {
         expression->accept(*this);
     }
 }
-void VisitorSemantic::visit(IdentifierExpression * s) {
+void VisitorSemantic::visit(IdentifierExpression * e) {
+    found_type ft = this->findVariable(e->identifierName);
 
+    if (this->functionCall) {
+        if (ft != FIGURE_FOUND && ft != FUNCTION_FOUND && ft != LIST_METHOD_FOUND && ft != FIGURE_METHOD_FOUND) {
+            this->handleSemanticError(e->position, L"Identifier to function or method " + e->identifierName + L" not found");
+        }
+        if ((ft == LIST_METHOD_FOUND || ft == FIGURE_METHOD_FOUND) && !this->objectAccess) {
+            this->handleSemanticError(e->position, e->identifierName + L" is a method not a function.");
+        }
+    } else if (this->objectAccess) {
+        if (ft != IDENTIFIER_FOUND && ft != NOT_FOUND && ft != COLOR_FOUND) {//NOT_FOUND dla elementów figur, można też przeszukać wszysytkie parametry figur i odłożyć na mapę
+            this->handleSemanticError(e->position, L"Identifier " + e->identifierName + L" is not a method or member of figure or point.");
+        }
+    } else if (ft != IDENTIFIER_FOUND) {
+        this->handleSemanticError(e->position, L"Identifier " + e->identifierName + L" not found.");
+    }
 }
 
 
@@ -187,27 +201,111 @@ void VisitorSemantic::visit(CodeBlock * cb) {
 }
 
 void VisitorSemantic::visit(Parameter * p) {
+    found_type type = findVariable(p->name);
+    if (type != NOT_FOUND) {
+        this->handleDeclarationError(p->position, p->name, type);
+    } else {
+        this->insertVariableNameToCurrentScope(p->name);
+    }
 }
 
 void VisitorSemantic::visit(FigureParameter * p) {
+    found_type type = findVariable(p->name);
+    if (type == COLOR_FOUND) {
+    } else if (type != NOT_FOUND) {
+        this->handleDeclarationError(p->position, p->name, type);
+    }
+    if (figureScope.getVariables().find(p->name) != figureScope.getVariables().end()) {
+        this->handleSemanticError(p->position, L"Memeber of figure " + p->name + L" redefined.");
+    }
+    figureScope.getVariables().insert(p->name);
     p->valueExpression->accept(*this);
 }
+
 void VisitorSemantic::visit(FigureDeclaration * fd) {
     for (auto const & param : fd->params) {
         param->accept(*this);
     }
+    this->figureScope.getVariables().clear();
 }
+
 void VisitorSemantic::visit(FuncDeclaration * fd) {
+    this->addNewScope();
     for (auto const & param : fd->params) {
         param->accept(*this);
     }
     fd->codeBlock->accept(*this);
+    this->popScope();
 }
+
 void VisitorSemantic::visit(Program * p) {
+    for(auto const & figure: p->figures) {
+        this->figures.insert(figure.first);
+    }
+    for(auto const & function: p->functions) {
+        this->functions.insert(function.first);
+    }
     for(auto const & figure: p->figures) {
         figure.second->accept(*this);
     }
     for(auto const & function: p->functions) {
         function.second->accept(*this);
     }
+    if (semanticError) {
+        throw;
+    }
+}
+
+found_type VisitorSemantic::findVariable(const std::wstring & variableName) {
+    if (special_function_keywords.find(variableName) != special_function_keywords.find(variableName)) {
+        return FUNCTION_FOUND;
+    }
+    if (special_list_keywords.find(variableName) != special_list_keywords.find(variableName)) {
+        return LIST_METHOD_FOUND;
+    }
+    if (special_figure_keywords.find(variableName) != special_figure_keywords.find(variableName)) {
+        if (variableName == L"color") {
+            return COLOR_FOUND;
+        } else {
+            return FIGURE_METHOD_FOUND;
+        }
+    }
+    if (functions.find(variableName) != functions.end()) {
+        return FUNCTION_FOUND;
+    }
+    if (figures.find(variableName) != figures.end()) {
+        return FIGURE_FOUND;
+    }
+    auto & currentScopes = this->functionContexts.top().getScopes();
+    for (auto iter = currentScopes.rbegin(); iter != currentScopes.rend(); iter++) {
+        auto & currentScopeVariables = iter->getVariables();
+        if (currentScopeVariables.find(variableName) != currentScopeVariables.end()) {
+            return IDENTIFIER_FOUND;
+        }
+
+    }
+    return NOT_FOUND;
+}
+
+ScopeSem &VisitorSemantic::addNewScope() {
+    this->functionContexts.top().getScopes().push_back(ScopeSem());
+    return this->functionContexts.top().getScopes().back();
+}
+
+void VisitorSemantic::popScope() {
+    this->functionContexts.top().getScopes().pop_back();
+}
+
+void VisitorSemantic::handleDeclarationError(const Position &pos, const std::wstring & name, found_type foundType) {
+    this->errorHandler->onSemanticError(pos, L"Redeclaration of " + found_type_representation.at(foundType) + name + L".");
+    semanticError = true;
+}
+
+void VisitorSemantic::handleSemanticError(const Position &pos, const std::wstring &errorMsg) {
+    this->errorHandler->onSemanticError(pos, errorMsg);
+    semanticError = true;
+}
+
+void VisitorSemantic::insertVariableNameToCurrentScope(const std::wstring &name) {
+    this->functionContexts.top().getScopes().back().getVariables().insert(name);
 }
