@@ -54,5 +54,5 @@ func main() {
   print("Suma 1: " + sum1 to str);
   print("Suma 2: " + sum2 to str);
   list_to_draw = list1 + list2;
-  draw(list_to_draw, (list2[list2.len-1].a.x - 1.0, -1.0), (list1[list1.len-1].a.x + 1.0, max_sum + 1.0));
+  draw(list_to_draw, (list2[list2.len()-1].a.x - 1.0, -1.0), (list1[list1.len()-1].a.x + 1.0, max_sum + 1.0));
 }

@@ -1,0 +1,32 @@
+figure Tri {
+    a: (a, len),
+    b: (2.2, 1.1),
+    b: (2.2, 1.1),
+    c: (printn, a),
+    d: (printn(1.2), 2.3)
+}
+
+figure Tri {
+    len: (2.2, 1.1),
+    append: (2.2, 1.1),
+    append: (2.2, 1.1),
+    func1: (2.2, 1.1)
+}
+
+func main(a, b, c) {
+    vv a;
+    vv b = 12;
+    vv append = 123;
+    vv len;
+    vv d;
+    vv d;
+    e.demapples(j.func1, e.len());
+}
+
+func delete(p, p) {
+
+}
+
+func func1(func1, append, printn) {
+
+}

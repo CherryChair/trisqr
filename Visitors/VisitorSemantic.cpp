@@ -257,6 +257,9 @@ void VisitorSemantic::visit(Program * p) {
             functionsDeclNum[function.first] += 1;
         }
     }
+    if (functionsDeclNum.find(L"main") == functionsDeclNum.end()) {
+        this->handleSemanticError(Position({1,1}), L"Function main is not declared.");
+    }
     for(auto const & figure: p->figures) {
         figure.second->accept(*this);
         checkFunctionOrFigure(figure.first, figuresDeclNum, functionsDeclNum, L"figure", L"function", this->lastFigurePos);
@@ -349,7 +352,7 @@ void VisitorSemantic::popScope() {
 }
 
 void VisitorSemantic::handleDeclarationError(const Position &pos, const std::wstring & name, found_type foundType) {
-    this->errorHandler->onSemanticError(pos, L"Redeclaration of " + found_type_representation.at(foundType) + name + L".");
+    this->errorHandler->onSemanticError(pos, L"Redeclaration of " + found_type_representation.at(foundType) + L" " + name + L".");
     semanticError = true;
 }
 
