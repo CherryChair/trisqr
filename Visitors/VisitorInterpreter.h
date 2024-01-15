@@ -84,15 +84,15 @@ class FigureValue : public std::enable_shared_from_this<FigureValue>{
 private:
     const std::wstring name;
     std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points;
-    ListValue border = ListValue(std::vector<AssignableValue>({AssignableValue(0), AssignableValue(0), AssignableValue(0)}));
+    ListValue color = ListValue(std::vector<AssignableValue>({AssignableValue(0), AssignableValue(0), AssignableValue(0)}));
 public:
     FigureValue()=default;
     FigureValue(std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points): points(std::move(points)){};
     FigureValue(std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points, ListValue border)
-        : points(std::move(points)), border(std::move(border)){};
+        : points(std::move(points)), color(std::move(border)){};
     std::unordered_map<std::wstring, std::shared_ptr<PointValue>> & getPoints() {return points;};
-    ListValue & getBorder() {return border;};
-    void setBorder(ListValue border) {this->border = std::move(border);};
+    ListValue & getColor() {return color;};
+    void setColor(ListValue color) { this->color = std::move(color);};
 };
 
 class Scope {

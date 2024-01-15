@@ -310,7 +310,7 @@ void VisitorInterpreter::visit(IdentifierExpression * e) {
             } else if (special_figure_keywords.find(e->identifierName) != special_figure_keywords.end()) {
                 this->lastResult = e->identifierName;
             } else if (e->identifierName == L"color") {
-                this->accessedObject = AssignableValue(figure->getBorder().shared_from_this());
+                this->accessedObject = AssignableValue(figure->getColor().shared_from_this());
                 this->figureColorAssigned = true; // TODO to będzie zmieniane w innych funkcjach, trzeba wymyślić sposób, może umieszczać w scopie
             }
         } else if (std::holds_alternative<std::shared_ptr<PointValue>>(*accessedValue)) {
@@ -498,7 +498,7 @@ void VisitorInterpreter::visit(FigureParameter * p) {
     if(!std::holds_alternative<std::shared_ptr<PointValue>>(expressionValue)) {
         this->handleRuntimeError(p->position, L"Point does not have default value in form (double, double)");
     }
-    AssignableValue & lastFigure = this->getFigureScope().getVariables()[this->currentlyAnalyzedFigure.value()]; //todo co jak usuniemy coś i kopiujemy przez referencję interpreter_value &
+    AssignableValue & lastFigure = this->getFigureScope().getVariables()[this->currentlyAnalyzedFigure.value()];
     FigureValue * currentFigure = std::get<std::shared_ptr<FigureValue>>(*(lastFigure.value)).get();
     currentFigure->getPoints()[p->getName()] = std::get<std::shared_ptr<PointValue>>(expressionValue);
 }
