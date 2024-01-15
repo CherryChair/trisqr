@@ -223,36 +223,72 @@ void VisitorSemantic::visit(FigureParameter * p) {
 }
 
 void VisitorSemantic::visit(FigureDeclaration * fd) {
+    lastFigurePos = fd->position;
     for (auto const & param : fd->params) {
         param->accept(*this);
     }
     this->figureScope.getVariables().clear();
+    this->lastFigurePos = fd->position;
 }
 
 void VisitorSemantic::visit(FuncDeclaration * fd) {
+    lastFuncPos = fd->position;
     this->addNewScope();
     for (auto const & param : fd->params) {
         param->accept(*this);
     }
     fd->codeBlock->accept(*this);
     this->popScope();
+    this->lastFuncPos = fd->position;
 }
 
 void VisitorSemantic::visit(Program * p) {
     for(auto const & figure: p->figures) {
-        this->figures.insert(figure.first);
+        if (figuresDeclNum.find(figure.first) == figuresDeclNum.end()) {
+            figuresDeclNum[figure.first] = 1;
+        } else {
+            figuresDeclNum[figure.first] += 1;
+        }
     }
     for(auto const & function: p->functions) {
-        this->functions.insert(function.first);
+        if (functionsDeclNum.find(function.first) == functionsDeclNum.end()) {
+            functionsDeclNum[function.first] = 1;
+        } else {
+            functionsDeclNum[function.first] += 1;
+        }
     }
     for(auto const & figure: p->figures) {
         figure.second->accept(*this);
+        checkFunctionOrFigure(figure.first, figuresDeclNum, functionsDeclNum, L"figure", L"function", this->lastFigurePos);
     }
     for(auto const & function: p->functions) {
         function.second->accept(*this);
+        checkFunctionOrFigure(function.first, functionsDeclNum, figuresDeclNum, L"function", L"figure", this->lastFuncPos);
     }
     if (semanticError) {
         throw;
+    }
+}
+
+void
+VisitorSemantic::checkFunctionOrFigure(const std::wstring &name, std::unordered_map<std::wstring, int> &multiplesSet,
+                                       std::unordered_map<std::wstring, int> &presenceSet,
+                                       const std::wstring &objectName, const std::wstring &comparedToObjectName,
+                                       const Position & position)
+{
+    std::wstring uObjectName = name;
+    uObjectName[0] = std::toupper(uObjectName[0]);
+    if (multiplesSet[name] > 1) {
+        this->handleSemanticError(position, L"Multiple declarations of " + objectName + L" " + name);
+    }
+    if (presenceSet.find(name) != presenceSet.end()) {
+        this->handleSemanticError(position, uObjectName + L" name same as " + comparedToObjectName + L" " + name);
+    }
+    if (checkIfSpecialFunction(name)) {
+        this->handleSemanticError(position, uObjectName + L" name same as standard function " + name);
+    }
+    if (checkIfMethod(name)) {
+        this->handleSemanticError(position, uObjectName +L" name same as standard method " + name);
     }
 }
 
@@ -270,10 +306,10 @@ found_type VisitorSemantic::findVariable(const std::wstring & variableName) {
             return FIGURE_METHOD_FOUND;
         }
     }
-    if (functions.find(variableName) != functions.end()) {
+    if (functionsDeclNum.find(variableName) != functionsDeclNum.end()) {
         return FUNCTION_FOUND;
     }
-    if (figures.find(variableName) != figures.end()) {
+    if (figuresDeclNum.find(variableName) != figuresDeclNum.end()) {
         return FIGURE_FOUND;
     }
     auto & currentScopes = this->functionContexts.top().getScopes();
@@ -285,6 +321,30 @@ found_type VisitorSemantic::findVariable(const std::wstring & variableName) {
 
     }
     return NOT_FOUND;
+}
+
+bool VisitorSemantic::checkIfInFigures(const std::wstring & variableName) {
+    return figuresDeclNum.find(variableName) != figuresDeclNum.find(variableName);
+}
+
+bool VisitorSemantic::checkIfInFunctions(const std::wstring & variableName) {
+    return functionsDeclNum.find(variableName) != functionsDeclNum.find(variableName);
+}
+
+bool VisitorSemantic::checkIfSpecialFunction(const std::wstring & variableName) {
+    return special_function_keywords.find(variableName) != special_function_keywords.find(variableName);
+}
+
+bool VisitorSemantic::checkIfMethod(const std::wstring & variableName) {
+    if (special_list_keywords.find(variableName) != special_list_keywords.find(variableName)) {
+        return true;
+    }
+    if (special_figure_keywords.find(variableName) != special_figure_keywords.find(variableName)) {
+        if (variableName != L"color") {
+            return true;
+        }
+    }
+    return false;
 }
 
 ScopeSem &VisitorSemantic::addNewScope() {

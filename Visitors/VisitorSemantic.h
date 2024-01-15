@@ -45,10 +45,12 @@ public:
 
 class VisitorSemantic : public Visitor {
 private:
+    Position lastFigurePos = Position({1,1});
+    Position lastFuncPos = Position({1,1});
     ScopeSem figureScope = ScopeSem();
     std::stack<FunctionContextSem> functionContexts;
-    std::unordered_set<std::wstring> functions;
-    std::unordered_set<std::wstring> figures;
+    std::unordered_map<std::wstring, int> functionsDeclNum;
+    std::unordered_map<std::wstring, int> figuresDeclNum;
     ErrorHandler * errorHandler;
     bool semanticError = false;
     bool objectAccess = false;
@@ -103,6 +105,12 @@ public:
     ScopeSem & addNewScope();
     void popScope();
     found_type findVariable(const std::wstring & variableName);
+    bool checkIfMethod(const std::wstring & variableName);
+    bool checkIfSpecialFunction(const std::wstring & variableName);
+    void checkFunctionOrFigure(const std::wstring &name, std::unordered_map<std::wstring, int> &multiplesSet,
+                               std::unordered_map<std::wstring, int> &presenceSet,
+                               const std::wstring &objectName, const std::wstring &comparedToObjectName,
+                               const Position &position position);
     void handleSemanticError(const Position & pos, const std::wstring & errorMsg);
     void handleDeclarationError(const Position &pos, const std::wstring & name, found_type foundType);
     void insertVariableNameToCurrentScope(const std::wstring & name);
