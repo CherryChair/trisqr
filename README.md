@@ -58,6 +58,11 @@ Język do opisu figur geometrycznych i ich właściwości. Podstawowe typy figur
 
 Środowisko Linux.
 Wymagane narzędzia do budowania to cmake i make.
+GLFW
+- instalujemy glfw
+```bash
+sudo apt install libglfw3-dev
+```
 ### Budowanie z testami.
 - w folderze głównym repozytorium tworzymy folder googletest i przechodzimy do niego
 ```bash

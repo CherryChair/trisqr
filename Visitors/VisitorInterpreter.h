@@ -11,6 +11,8 @@
 #include <map>
 #include <functional>
 #include <queue>
+#include <cairomm-1.0/cairomm/cairomm.h>
+
 
 //figura i punkt
 class FunctionCallContext;
@@ -88,8 +90,8 @@ private:
 public:
     FigureValue()=default;
     FigureValue(std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points): points(std::move(points)){};
-    FigureValue(std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points, ListValue border)
-        : points(std::move(points)), color(std::move(border)){};
+    FigureValue(std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points, ListValue color)
+        : points(std::move(points)), color(std::move(color)){};
     std::unordered_map<std::wstring, std::shared_ptr<PointValue>> & getPoints() {return points;};
     ListValue & getColor() {return color;};
     void setColor(ListValue color) { this->color = std::move(color);};
@@ -174,13 +176,39 @@ private:
                 std::wcout << std::endl;
             }},
             {L"draw", [this](){
-                //rysuj listę figur za pomocą allegro
+                auto surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, 600, 400);
+                auto cr = Cairo::Context::create(surface);
+                cr->save(); // save the state of the context
+                cr->set_source_rgb(0.86, 0.85, 0.47);
+                cr->paint();    // fill image with the color
+                cr->restore();  // color is back to black now
+                cr->save();
+                // draw a border around the image
+                cr->set_line_width(20.0);    // make the line wider
+                cr->rectangle(0.0, 0.0, surface->get_width(), surface->get_height());
+                cr->stroke();
+                cr->set_source_rgba(0.0, 0.0, 0.0, 0.7);
+                // draw a circle in the center of the image
+                cr->arc(surface->get_width() / 2.0, surface->get_height() / 2.0, 
+                        surface->get_height() / 4.0, 0.0, 2.0 * M_PI);
+                cr->stroke();
+                // draw a diagonal line
+                cr->move_to(surface->get_width() / 4.0, surface->get_height() / 4.0);
+                cr->line_to(surface->get_width() * 3.0 / 4.0, surface->get_height() * 3.0 / 4.0);
+                cr->stroke();
+                cr->restore();
+                #ifdef CAIRO_HAS_PNG_FUNCTIONS
+                std::string filename = "image.png";
+                surface->write_to_png(filename);
+                std::cout << "Wrote png file \"" << filename << "\"" << std::endl;
+                #else
+                    std::cout << "You must compile cairo with PNG support for this example to work."<< std::endl;
+                #endif
+                this->lastResult = std::monostate();
             }},
             {L"input", [this](){
                 std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
-                if (!funcCallParams.empty()) {
-                    this->handleRuntimeError(this->funcCallPosition, L"Too many arguments input() requires no arguments.");
-                }
+                this->requireArgNum(L"input()", 0, L"no arguments");
                 std::wstring result;
                 std::wcin >> result;
                 this->lastResult = result;
@@ -199,17 +227,10 @@ private:
             }},
             {L"delete", [this](ListValue * listValue){
                 std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
-                if (funcCallParams.empty()) {
-                    this->handleRuntimeError(this->funcCallPosition, L"Too few arguments .delete() requires 1 int argument.");
-                }
+                this->requireArgNum(L".delete()", 1, L"(int index) argument");
                 interpreter_value value = funcCallParams.front();
                 funcCallParams.pop();
-                if (funcCallParams.size() > 1) {
-                    this->handleRuntimeError(this->funcCallPosition, L"Too many arguments .delete() requires 1 int argument.");
-                }
-                if (!std::holds_alternative<int>(value)) {
-                    this->handleRuntimeError(this->funcCallPosition, L"Removed element index is not int");
-                }
+                this->requireArgType(L"removed index", INT_VARIABLE);
                 int removedIndex = std::get<int>(value);
                 if (listValue->len() <= removedIndex) {
                     this->handleRuntimeError(this->funcCallPosition, L"Removed index out of range");
@@ -218,20 +239,166 @@ private:
                 this->lastResult = listValue->shared_from_this();
             }},
             {L"len", [this](ListValue * listValue){
-                if (!this->functionCallParams.empty()) {
-                    this->handleRuntimeError(this->funcCallPosition, L"Too many arguments .delete() requires 0 arguments.");
-                }
+                this->requireArgNum(L".len()", 0, L"no arguments");
                 this->lastResult = (int) listValue->len();
             }},
     };
 
     const std::unordered_map<std::wstring, std::function<void(FigureValue *)>> internalFigureFunctions= {
-            {L"circ", [this](FigureValue * figureValue){}},
-            {L"area", [this](FigureValue * figureValue){}},
-            {L"scale", [this](FigureValue * figureValue){}},
-            {L"rotate", [this](FigureValue * figureValue){}},
-            {L"transport", [this](FigureValue * figureValue){}},
-            {L"copy", [this](FigureValue * figureValue){}},
+            {L"circ", [this](FigureValue * figureValue){
+                //jeśli koło to 
+                this->requireArgNum(L".circ()", 0, L"no arguments");
+                auto & points = figureValue->getPoints();
+                if (points.size() == 1) {
+                    this->lastResult = 0.0;
+                    return;
+                }
+                std::vector<PointValue *> orderedPoints;
+                for (auto & namedPoint : points) {
+                    orderedPoints.push_back(namedPoint.second.get());
+                }
+                double circ = 0.0;
+                PointValue * prevPoint;
+                PointValue * currentPoint;
+                double p1_x;
+                double p1_y;
+                double p2_x;
+                double p2_y;
+                for (int i = 1; i<orderedPoints.size(); i++) {
+                    prevPoint = orderedPoints[i - 1];
+                    currentPoint = orderedPoints[i];
+                    p1_x = std::get<double>(*(currentPoint->getX().value));
+                    p1_y = std::get<double>(*(currentPoint->getY().value));
+                    p2_x = std::get<double>(*(prevPoint->getX().value));
+                    p2_y = std::get<double>(*(prevPoint->getY().value));
+                    circ += sqrt((p1_x - p2_x) * (p1_x - p2_x) + (p1_y - p2_y) * (p1_y - p2_y));
+                }
+                p1_x = std::get<double>(*(orderedPoints[0]->getX().value));
+                p1_y = std::get<double>(*(orderedPoints[0]->getY().value));
+                p2_x = std::get<double>(*(orderedPoints.back()->getX().value));
+                p2_y = std::get<double>(*(orderedPoints.back()->getY().value));
+                circ += sqrt((p1_x - p2_x) * (p1_x - p2_x) + (p1_y - p2_y) * (p1_y - p2_y));
+                this->lastResult = circ;
+            }},
+            {L"area", [this](FigureValue * figureValue){
+                //jeśli koło to 
+                this->requireArgNum(L".circ()", 0, L"no arguments");
+                auto & points = figureValue->getPoints();
+                if (points.size() == 1) {
+                    this->lastResult = 0.0;
+                    return;
+                }
+                std::vector<PointValue *> orderedPoints;
+                for (auto & namedPoint : points) {
+                    orderedPoints.push_back(namedPoint.second.get());
+                }
+                double area = 0.0;
+                PointValue * prevPoint;
+                PointValue * currentPoint;
+                double p1_x;
+                double p1_y;
+                double p2_x;
+                double p2_y;
+                for (int i = 1; i<orderedPoints.size(); i++) {
+                    prevPoint = orderedPoints[i - 1];
+                    currentPoint = orderedPoints[i];
+                    p1_x = std::get<double>(*(currentPoint->getX().value));
+                    p1_y = std::get<double>(*(currentPoint->getY().value));
+                    p2_x = std::get<double>(*(prevPoint->getX().value));
+                    p2_y = std::get<double>(*(prevPoint->getY().value));
+                    area += p1_x*p2_y - p1_y*p2_x;
+                }
+                p1_x = std::get<double>(*(orderedPoints[0]->getX().value));
+                p1_y = std::get<double>(*(orderedPoints[0]->getY().value));
+                p2_x = std::get<double>(*(orderedPoints.back()->getX().value));
+                p2_y = std::get<double>(*(orderedPoints.back()->getY().value));
+                area += p1_x*p2_y - p1_y*p2_x;
+                area /= 2.0;
+                this->lastResult = area;
+            }},
+            {L"scale", [this](FigureValue * figureValue){
+                //jeśli koło to 
+                this->requireArgNum(L".scale()", 1, L"(double scale) argument");
+                auto & points = figureValue->getPoints();
+                this->requireArgType(L"scale", DOUBLE_VARIABLE);
+                double scale = 2.0;
+                double p1_x;
+                double p1_y;
+
+                for (auto & namedPoint : points) {
+                    p1_x = std::get<double>(*(namedPoint.second->getX().value));
+                    p1_y = std::get<double>(*(namedPoint.second->getY().value));
+                    p1_x *= scale;
+                    p1_y *= scale;
+                    *(namedPoint.second->getX().value) = p1_x;
+                    *(namedPoint.second->getY().value) = p1_y;
+                }
+                this->lastResult = figureValue->shared_from_this();
+            }},
+            {L"rotate", [this](FigureValue * figureValue){
+                this->requireArgNum(L".rotate()", 2, L"(point rotationPoint, double angle) arguments");
+                auto & points = figureValue->getPoints();
+                this->requireArgType(L"rotation point", POINT_VARIABLE);
+                double rotation_point_x = 0.0;
+                double rotation_point_y = 0.0;
+                this->requireArgType(L"rotation angle", DOUBLE_VARIABLE);
+                double angle = 2.0;
+                double p1_x;
+                double p1_y;
+                double rot_x = sin(angle);
+                double rot_y = cos(angle);
+
+                for (auto & namedPoint : points) {
+                    p1_x = std::get<double>(*(namedPoint.second->getX().value));
+                    p1_y = std::get<double>(*(namedPoint.second->getY().value));
+                    p1_x -= rotation_point_x;
+                    p1_y -= rotation_point_y;
+                    p1_x = p1_x * rot_x - p1_y * rot_y;
+                    p1_y = p1_x * rot_y + p1_y * rot_x;
+                    p1_x += rotation_point_x;
+                    p1_y += rotation_point_y;
+                    *(namedPoint.second->getX().value) = p1_x;
+                    *(namedPoint.second->getY().value) = p1_y;
+                }
+                this->lastResult = figureValue->shared_from_this();
+            }},
+            {L"transport", [this](FigureValue * figureValue){
+                this->requireArgNum(L".transport()", 1, L"(point transportVector) argument");
+                auto & points = figureValue->getPoints();
+                double p1_x;
+                double p1_y;
+                this->requireArgType(L"transport vector", POINT_VARIABLE);
+                double transport_x = 0.0;
+                double transport_y = 0.0;
+
+                for (auto & namedPoint : points) {
+                    p1_x = std::get<double>(*(namedPoint.second->getX().value));
+                    p1_y = std::get<double>(*(namedPoint.second->getY().value));
+                    p1_x += transport_x;
+                    p1_y += transport_y;
+                    *(namedPoint.second->getX().value) = p1_x;
+                    *(namedPoint.second->getY().value) = p1_y;
+                }
+                this->lastResult = figureValue->shared_from_this();
+            }},
+            {L"copy", [this](FigureValue * figureValue){
+                this->requireArgNum(L".copy()", 0, L"no arguments");
+                auto & points = figureValue->getPoints();
+                std::unordered_map<std::wstring, std::shared_ptr<PointValue>> newFigurePoints;
+                auto & color = figureValue->getColor();
+                int r = std::get<int>(*(color[0].value));
+                int g = std::get<int>(*(color[1].value));
+                int b = std::get<int>(*(color[2].value));
+                ListValue newColor = ListValue(std::vector<AssignableValue>({AssignableValue(r), AssignableValue(g), AssignableValue(b)}));
+
+                for (auto & namedPoint : points) {
+                    double p1_x = std::get<double>(*(namedPoint.second->getX().value));
+                    double p1_y = std::get<double>(*(namedPoint.second->getY().value));
+                    std::shared_ptr<PointValue> newPoint = std::make_shared<PointValue>(p1_x, p1_y);
+                    newFigurePoints[namedPoint.first] = newPoint;
+                }
+                this->lastResult = FigureValue(newFigurePoints, newColor).shared_from_this();
+            }},
     };
     std::queue<interpreter_value> functionCallParams;
     ErrorHandler * errorHandler;
@@ -310,6 +477,8 @@ public:
     void operationLegalityCheck(interpreter_value &value1, const Position &position,
                                 AllowedInOperationVisitor &&allowedInOperationVisitor,
                                 const std::wstring &operation);
+    void requireArgNum(const std::wstring & name, int argNum, const std::wstring & argList);
+    void requireArgType(const std::wstring & name, variable_type vt);
 };
 
 struct TypeVisitor {

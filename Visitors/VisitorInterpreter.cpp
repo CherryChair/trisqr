@@ -765,3 +765,20 @@ interpreter_value operator*(const interpreter_value & value1, const interpreter_
         }
     }
 }
+
+void VisitorInterpreter::requireArgNum(const std::wstring & name, int argNum, const std::wstring & argList) {
+    std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
+    if (funcCallParams.size() < argNum) {
+        this->handleRuntimeError(this->funcCallPosition, L"Too few arguments " + name + L" requires " + argList + L".");
+    } else if (funcCallParams.size() > argNum) {
+        this->handleRuntimeError(this->funcCallPosition, L"Too many arguments " + name + L" requires " + argList + L".");
+    }
+}
+
+void VisitorInterpreter::requireArgType(const std::wstring & name, variable_type vt) {
+    std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
+    if (!std::visit(TypeMatchVisitor(vt), funcCallParams.front())) {
+        this->handleRuntimeError(this->funcCallPosition, L"Wrong argument type, " + name + L" must be " + variable_type_representation.at(vt) +
+            L" type but is " + std::visit(TypeVisitor{}, funcCallParams.front()) + L".");
+    }
+}
