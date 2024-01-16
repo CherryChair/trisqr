@@ -33,6 +33,6 @@ func main() {
     a.delete(0);
     printn(a);
     a.delete(0);
-    printn(a);
-    a[0]; #spodziewamy się błędu
+    printn(a); #
+    a[0]; #spodziewamy sie bledu
 }

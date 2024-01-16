@@ -54,6 +54,79 @@ Język do opisu figur geometrycznych i ich właściwości. Podstawowe typy figur
 - testowanie błędów
 - testowanie poprawności realizowania przykładów kodu
 
+## Budowanie projektu
+
+Środowisko Linux.
+Wymagane narzędzia do budowania to cmake i make.
+### Budowanie z testami.
+- w folderze głównym repozytorium tworzymy folder googletest i przechodzimy do niego
+```bash
+mkdir googletest
+cd googletest
+```
+- pobieramy repozytorium googletest
+```bash
+git clone https://github.com/google/googletest.git
+```
+- zmieniamy nazwę foleru zawierającego repozytorium
+```bash
+mv googletest lib
+```
+- tworzymy plik `CMakeLists.txt`
+```bash
+touch CMakeLists.txt
+```
+- wypełniamy go treścią
+```cmake
+# 'Google_test' is the subproject name
+project(Google_tests)
+
+# 'lib' is the folder with Google Test sources
+add_subdirectory(lib)
+include_directories(lib/googletest/include lib/googletest)
+
+# 'Google_Tests_run' is the target name
+# 'test1.cpp tests2.cpp' are source files with tests
+add_executable(Google_Tests_run ../Tests/interpreter_tests.cpp ../Tests/parser_tests.cpp ../Tests/lexer_tests.cpp ../Lexer/lexer.cpp ../Lexer/lexer.h ../Lexer/Token.cpp ../Lexer/Token.h ../ErrorHandler/ErrorHandler.cpp ../ErrorHandler/ErrorHandler.h ../Parser/Parser.cpp ../Parser/Parser.h ../Program/Program.cpp ../Program/Program.h ../Visitors/Visitor.cpp ../Visitors/Visitor.h ../Lexer/position.h ../Lexer/lexer_error_types.h ../Visitors/VisitorTree.cpp ../Visitors/VisitorTree.h ../Visitors/VisitorInterpreter.cpp ../Visitors/VisitorInterpreter.h)
+target_link_libraries(Google_Tests_run gtest gtest_main)
+```
+- wracamy do głównego folderu projektu, tworzymy katalog, gdzie projekt się zbuduje i go budujemy
+```bash
+cd ..
+mkdir cmake-build-debug
+cd cmake-build-debug
+cmake ..
+make
+```
+### Budowanie tylko pliku wykonywalnego interpretera
+- w pliku `CMakeLists.txt` zakomenujemy linijkę dotyczącą testów
+```cmake
+# add_subdirectory(googletest)
+```
+- tworzymy katalog, gdzie projekt się zbuduje i go budujemy
+```bash
+mkdir cmake-build-debug
+cd cmake-build-debug
+cmake ..
+make
+```
+## Uruchamianie programu
+
+Plik wykonywalny interpretera `trisqr` buduje się w foldere `cmake-build-debug`. Przyjmuje 1 arguemnt, który jest ścieżką do pliku tekstowego zawierającego kod źródłowy w języku **trisqr**. Niestety na niektórych środowiskach polskie znaki przeszkadzają lexerowi w budowaniu tokenów, więc zaleca się używanie 
+
+Plik wykonywalny testów to `cmake-build-debug/googletest/Google_Tests_run`.
+
+Przykładowe programy z kodem źródłowym **trisqr** w znajdują się w folderze `Examples` i `Tests`.
+
+W `Examples` znajdują się:
+- `parser_basic.trisqr` - zawiera testy podstawowych funkcjonalności języka
+- `test.trqisqr` - zawiera testy dostępów do list i usuwania ich elementów, kończy się błędem
+- `fibonacci.trisqr` - zawiera implementację rekurencyjną i z użyciem pętli for funkcji wyliczającej wartości ciągu Fibonacciego
+
+W `Tests` znajdują się:
+- `semantic_hell.trisqr` - plik zawierający dużo błędów semantycznych, testuje działanie analizatora semantycznego 
+- `parser_condition_tests.trisqr` - plik testujący ewaluację wyrażeń z `||` i `&&`, jest on wykorzystywany w interpreter_tests.cpp
+
 ## Konfiguracja
 
 W plikach konfiguracyjnych zdefiniujemy m.in. wartość PI, maksymalną długość wartości napisów w kodzie. 
@@ -71,9 +144,9 @@ Typy:
 - lista
 - figura
 - punkt 
-- pusta wartośc none
+- pusta wartość none
   
-Lista przyjmuje dowolne typy. Dwie listy można łączyć za pomocą "+", ta operacja zwraca nową listę będącą złączeniem 2 list. Poszeczególne elementy indeksowane sa od 0 i dostajemy się do nich za pomocą nawiasów kwadratowcyh ```list[i]```.
+Lista przyjmuje dowolne typy. Dwie listy można łączyć za pomocą "+", ta operacja zwraca nową listę będącą złączeniem 2 list. Poszeczególne elementy indeksowane sa od 0 i dostajemy się do nich za pomocą nawiasów kwadratowych ```list[i]```.
 Metody listy:
 - ```.append(el)``` - dodaje element na koniec listy
 - ```.delete(index)``` - usuwa element o indeksie ```index```
@@ -81,20 +154,27 @@ Metody listy:
 
 Zmienne typu str można konkatenować za pomocą "+".
 
+Zmienne typu:
+- `point`
+- `list`
+- `figure`
+
+są mutowalne.
+
 Przez silne typowanie wymagane jest wprowadzenie możliwości konwersji typów. Będziemy to robić za pomocą operatora ```to```, przy zmianie zmiennej *variable* na typ *type*: ```*variable* to *type*```.
 
 Możliwe konwersje typów:
 - ```int to double```
-- ```int to str```
-- ```str to double```
-- ```str to int```
+- ```int to bool```
 - ```double to int```
-- ```double to str```
+- ```double to bool```
+- ```bool to int```
+- ```bool to double```
+- ```str to int```
+- ```str to double```
+- wszystkie typy mają reprezentację w postać `str`
 
-Wprowadzimy też wygodne sprawdzanie typów zmiennych: ``` *variable* is *type*```. Będzie można też sprawdzić, czy zmienna ma pustą wartość typu ```none```.
-
-
-Jako, że w zastosowaniach języka mamy do czynienia z operacjami na figurach geometrycznych wprowadzimy stałą ```pi``` typu double. 
+Wprowadzimy też wygodne sprawdzanie typów zmiennych: ``` *variable* is *type*```.
 
 ## Komentarze
 
@@ -106,11 +186,11 @@ Deklaracja zmiennej:
 ```
 vv nazwa_zmiennej
 ```
-Zmienne będą przechowywane przez referencje. Listy i figury będą mutowalne. Pozostałe zmienne nie będą.
-Nie będzie zmiennych globalnych.
+Wartości zmiennych są przechowywane przez referencje.
+Nie ma możliwości tworzenia zmiennych globalnych.
 ## Instrukcja warunkowa
 
-Instrukcją warunkową będzie:
+Instrukcja warunkowa ma postać:
 ```
 if (wyrażenie bool) { 
   *kod*
@@ -122,7 +202,7 @@ if (wyrażenie bool) {
 ```
 
 ## Pętle
-Będzie pętla while:
+Pętla while:
 ```
 while (wyrażenie bool) {
     *kod*
@@ -150,20 +230,23 @@ func NazwaFunkcji(a, b, c){
     *kod*
 }
 ```
-Będzie możliwośc rekursji. Można zwracać pustą wartość za pomocą "return;". Nie trzeba podawać return na końcu funkcji, wtedy automatycznie zwraca pustą wartość. Argumenty funkcji są przechowywane poprzez referencje dla zmiennych figurowych i list, pozostałe przekazywane są poprzez wartość.
+Może istniejć tylko jedna funkcja o danej nazwie, a program wykonuje się od funkcji `main`.
 
-Poza tym będą wbudowane funkcje:
-- print(str) - wypisuje w konsoli tekst zawarty w str
-- input() - przyjmuje dane od użytkownika ze standardowego wejścia
-- draw(list, p1, p2) - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami, rysowana scena jest rozpięta w prostokącie, którego przeciwległe wierzchołki to p1 i p2. Można pominąć p1 i p2 przy wywoływaniu metody wtedy zostanie narysowana scena, która będzie zawierać wszystkie podane figury (poprzez analizę najmniejszych i największych wartości x i y punktów należacych do sceny)
+Jest możliwość rekursji. Nie trzeba podawać return na końcu funkcji, wtedy automatycznie zwraca wartość `none`, tak samo jak przy napisaniu `return;`. W przypadku odwołania się do funkcji można podać mniej argumentów niż jest w deklaracje, wtedy parametry bez podanych wartości przyjmują wartości `none`.
+
+Istnieją wbudowane funkcje:
+- `print(variable)` - przyjmuje 1 argument dowolnego typu, wysyła na standardowe wyjście reprezentacje `variable`
+- `printn(variable)` - print + `'\n'`
+- `input()` - przyjmuje podane przez użytkownika napisy ze standardowego wejścia, pobiera napis do najbliższego białego znaku
+- `draw(list, p1, p2)` - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami, rysowana scena jest rozpięta w prostokącie, którego przeciwległe wierzchołki to p1 i p2. Można pominąć p1 i p2 przy wywoływaniu metody wtedy zostanie narysowana scena, która będzie zawierać wszystkie podane figury (poprzez analizę najmniejszych i największych wartości x i y punktów należacych do sceny)
 
 ## Punkty
 
-Istnieje zmienna typu ```point```, punkt zawiera współrzędną ```x``` i ```y``` o wartościach double. Tworzymy go tak ```(x, y)```. Do jego wartości moża się dostać za pomocą ```.x``` i ```.y```. Można zmienić ich wartości.
+Istnieje zmienna typu ```point```, punkt zawiera współrzędną ```x``` i ```y``` o wartościach double. Tworzymy go tak ```(x, y)```. Do jego wartości moża się dostać za pomocą ```.x``` i ```.y```. Punkty można dodawać i odejmować.
 
 ## Tworzenie figur
 
-Typy figur będą tworzone za pomocą deklaracji 
+Typy figur są tworzone za pomocą deklaracji 
 ```figure <Identifier> {<point_name>:<default_point_value>, <point_name>:<default_point_value>, ..., <point_name>:<default_point_value>, color:<defalut_color_value>}```
 
 Np.
@@ -175,8 +258,8 @@ figure Triangle{
   color: [255,0,0]
 }
 ```
-
-Tak zadeklarowaną figurę tworzymy za pomocą ```vv triangle1 = Triangle((x1,y1), (x2,y2), (x3,y3), [r,g,b])``` lub za pomocą ```vv triangle2 = Triangle()```, wtedy jest tworzona z domylnymi wartościami punktów podanymi w deklaracji. Potem możemy dostawać się do punktów za pomocą nazw nadanych w deklaracji. Np. ```triangle1.a```. 
+Deklaracje podajemy poza funkcjami, punkty mogą zawierać w sobie wyrażenia, które są ewaluowane na początku działania programu przed funkcją main.
+Tak zadeklarowaną figurę tworzymy za pomocą ```vv triangle1 = Triangle((x1,y1), (x2,y2), (x3,y3), [r,g,b])``` lub za pomocą ```vv triangle2 = Triangle()```, wtedy jest tworzona z domylnymi wartościami punktów z deklaracji. Potem możemy dostawać się do punktów za pomocą nazw nadanych w deklaracji. Np. ```triangle1.a```. 
 
 Figury będą rysowane przez tworzenie linii między kolejno zadeklarowanymi punktami, np. w przykładowym ```Triangle```, rysujemy linie a->b, b->c, c->b.
 
@@ -197,7 +280,7 @@ Metody:
 - .copy() - zwraca kopię danej figury
 
 Parametry:
-- color - [int r, int g, int b] kolor wypełnienia figury w RGB, jeśli ma wartość ```none```, oznacza, że figura nie ma koloru wypełnienia
+- color - [int r, int g, int b] kolor linii figury w RGB, domyślnie ustawiane na [0,0,0]
 - border - (double) grubość linii
 
 ### Charakterystyczne
@@ -415,99 +498,103 @@ Im większa liczba, tym wyższy priorytet.
 |  &#124;  &#124;  | 1  |
 | &&  |  2  |
 | <,>,<=,>=,==,!=  |  3 |
-| +,-  |  4 |
-| *,/  |  5 |
-| is  |  6 |
+| is  |  4 |
+| +,-  |  5 |
+| *,/  |  6 |
 | to  |  7 |
 | !,-  |  8 |
-| ( )  |  9 |
+| .  |  9 |
 | [ ]  |  10 |
-| .  |  11 |
+| ( )  |  11 |
 
 ## Gramatyka
-```
-- program             :== {func_declaration | figure_declaration};
-- func_declaration    :== "func ", identifier, "(", decl_argument_list, ")", code_block;
-- decl_argument_list  :== [identifier, {", ", identifier}];
-- figure_declaration  :== "figure ", identifier, "{", point_list, "}";
-- point_list          :== point_declaration, {",", point_declaration};
-- point_declaration   :== identifier, ":", expression;
-- code_block          :== "{", {statement}, "}";
-- statement           :== while_stmnt
-                        | for_stmnt
-                        | if_stmnt
-                        | declaration
-                        | identifier_stmnt, ["=", expression], ";"
-                        | return;
-- while_stmnt         :== "while", "(",  expression, ")", code_block;
-- if_stmnt            :== "if", "(",  expression, ")", code_block, {"elsif", "(",  expression, ")", code_block }, ["else", code_block];
-- for_stmnt           :== "for ", identifier, " in ", expression_or_range, code_block;
-- expression_or_range :== expression
-                        | range;
-- range               :== "range" "(", expression, ",", expression, ")"
-- expression          :== bool_and, {"||",  bool_and};
-- bool_and            :== bool_comp , {"&&",  bool_comp};
-- bool_comp           :== expression_is, [comp_operator, expression_is];
-- declaration         :== "vv ", identifier, ["=", expression], ";";
-- identifier_stmnt    :== part, {".", part};
-- part                :== part_call, {"[", expression, "]"};
-- part_call           :== identifier, ["(", argument_list, ")"];
-- argument_list       :== [expression, {",", expression}];
-- expression_is       :== expression_add, [" is ",  type];
-- expression_add      :== expression_mul, {add_operator, expression_mul};
-- expression_mul      :== expression_to, {mul_operator, expression_to};
-- expression_to       :== nagated_value, [" to ",  type];
-- negated_value       :== [negation_operator], accessed_value;
-- accessed_value      :== value
-                        | list
-                        | point
-                        | identifier_stmnt
-                        | "(", expression, ")";
-- return              :== "return ", [expression], ";"
-- list                :== "[", expression, {", ", expression} "]";
-- point               :== "(", expression, ",", expression, ")";  
-- value               :== int_val
-                        | bool_val
-                        | double_val
-                        | string_val
-                        | "none";
-- identifier          :== [a-zA-Z][0-9a-zA-Z_]*
-- type                :== "none" 
-                        | "int" 
-                        | "bool" 
-                        | "str" 
-                        | "double" 
-                        | "figure" 
-                        | "point";
-- comp_operator       :== "<"
-                        | "=="
-                        | ">"
-                        | ">="
-                        | "<="
-                        | "!=";
-- mul_operator        :== "*"
-                        | "/";
-- add_operator        :== "+"
-                        | "-";
-- bool_val            :== "true"
-                        | "false"
-- negation_operator   :== "!"
-                        | "-";
-- double_val          :== int_val, ".", digit, {digit};
-- string_val          :== '"', {char | digit | special_char}, '"';
-- char                :== [a-zA-Z];
-- special_char        :== "\n" | "\\" | '\"' | "\r" |pozostałe normalnie;
-- int_val             :== digit_without_zero, {digit}
-                        | "0";
-- digit               :==  digit_without_zero | "0";
-- digit_without_zero  :== [1-9]
-```
+```   
+- Program                            :== {FuncDeclaration | FigureDeclaration};
+- FuncDeclaration                    :== "func ", identifier, "(", decl_argument_list, ")", CodeBlock;          
+- decl_argument_list                 :== [identifier, {", ", identifier}];
+- FigureDeclaration                  :== "figure ", identifier, "{", point_list, "}";   
+- point_list                         :== point_declaration, {",", point_declaration};   
+- point_declaration                  :== identifier, ":", Expression;
+- CodeBlock                          :== "{", {Statement}, "}";
+- Statement                          :== WhileStatement
+                                       | ForStatement
+                                       | IfStatement
+                                       | DeclarationStatement
+                                       | IdentiferAssignOrExpressionStatement
+                                       | IdentiferExpressionStatement
+                                       | ReturnStatement;
+- WhileStatement                     :== "while", ConditionAndBlock;
+- IfStatement                        :== "if", ConditionAndBlock  {"elsif", ConditionAndBlock }, ["else", CodeBlock];
+- ConditionAndBlock                  :== "(",  Expression, ")", CodeBlock;
+- ForStatement                       :== "for", identifier, "in", Expression | range, CodeBlock;           
+- range                              :== "range" "(", Expression, ",", Expression, ")";   
+- DeclarationStatement               :== "vv ", identifier, ["=", Expression], ";";
+- IdentiferAssignStatement           :== ObjectAccessExpression, "=", Expression, ";"
+- IdentiferExpressionStatement       :== ObjectAccessExpression, ";"
+- ReturnStatement                    :== "return ", [Expression], ";"
+- ObjectAccessExpression             :== IdentifierListIndexExpression, {".", IdentifierListIndexExpression};   
+- IdentifierListIndexExpression      :== IdentifierFunctionCallExpression, {"[", Expression, "]"};   
+- IdentifierFunctionCallExpression   :== identifier, ["(", argument_list, ")"];
+- argument_list                      :== [Expression, {",", Expression}];
+- Expression                         :== ExpressionAnd, {"||",  ExpressionAnd};
+- ExpressionAnd                      :== ExpressionComp , {"&&",  ExpressionComp};   
+- ExpressionComp                     :== ExpressionIs, [comp_operator, ExpressionIs];   
+- ExpressionIs                       :== ExpressionAdd, [" is ",  type];
+- ExpressionAdd                      :== ExpressionMul, {add_operator, ExpressionMul};
+- ExpressionMul                      :== ExpressionTo, {mul_operator, ExpressionTo};
+- ExpressionTo                       :== ExpressionNeg, [" to ",  type];
+- ExpressionNeg                      :== [negation_operator], ExpressionValue;
+- ExpressionValue                    :== value
+                                       | list
+                                       | point
+                                       | ObjectAccessExpression
+                                       | "(", Expression, ")";
+- list                               :== "[", Expression, {", ", Expression} "]";
+- point                              :== "(", Expression, ",", Expression, ")";  
+- value                              :== int_val
+                                       | bool_val
+                                       | double_val
+                                       | string_val
+                                       | "none";
+- identifier                         :== [a-zA-Z][0-9a-zA-Z_]*
+- type                               :== "none" 
+                                       | "int" 
+                                       | "bool" 
+                                       | "str" 
+                                       | "double" 
+                                       | "figure" 
+                                       | "point";
+- comp_operator                      :== "<"
+                                       | "=="
+                                       | ">"
+                                       | ">="
+                                       | "<="
+                                       | "!=";
+- mul_operator                       :== "*"
+                                       | "/";
+- add_operator                       :== "+"
+                                       | "-";
+- bool_val                           :== "true"
+                                       | "false"
+- negation_operator                  :== "!"
+                                       | "-";
+- double_val                         :== int_val, ".", digit, {digit};
+- string_val                         :== '"', {char | digit | special_char}, '"';
+- char                               :== [a-zA-Z];
+- special_char                       :== "\n" | "\\" | '\"' | "\r" |pozostałe normalnie;
+- int_val                            :== digit_without_zero, {digit}
+                                       | "0";
+- digit                              :==  digit_without_zero | "0";
+- digit_without_zero                 :== [1-9]
+```           
 ## Testowanie
 
-Testy jednostkowe zrealizowane będą w GTEST.
+Biblioteka użyta do testowania to w googletest. 
 
-Analizator leksykalny będzie testowany poprzez sprawdzanie, czy dane tekstowe wyprodukują spodziewaną sekwencję tokenów.
+Testy jednostkowe zostały zaimplementowane w dużym stopniu dla analizatora leksykalnego w `Tests/lexer_tests.cpp`. Sprawdzane są wartości tokenów, ich pozycje i komunikaty o błędach.
 
-W przypadku testowania analizatora składniowego będziemy sprawdzać, czy z przekazanych przez analizator leksykalny tokenów powstają odpowiednie drzewa składniowe, oczywiście testować też będziemy błędy.
+W przypadku analizatora składniowego zaimplementowane są odpowiednie funkcje do porównywania drzew rozbioru składniowego i jest zrobiony przykładowy test w `Tests/parser_tests.cpp`.
 
-Konieczne też będzie przetestowanie wykrywania błędów semantycznych i poprawne wykonywanie kodu, jak np. obroty i skalowanie figur.
+W przypadku analizatora semantycznego testy były przeprowadzane przez analizę komunikatów o błedach w pliku `Tests/semantic_hell.trisqr`.
+
+Istnieje możliwość tworzenia testów akceptacyjnych dla interpretera, w `interpreter_tests.cpp` jest jeden przykładowy test sprawdzający kolejność i wczesne akceptowanie wyniku podczas ewaluacji wyrażeń logicznych. Wykonuje on program, którego kod źródłowy jest w `Tests/parser_condition_tests.cpp`, testowane jest, czy program przekazuje na standadowe wyjście napisy PASS oddzielone nowymi linijkami.
