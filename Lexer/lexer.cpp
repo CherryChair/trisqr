@@ -176,22 +176,6 @@ std::optional<Token> Lexer::buildToken(unsigned int type, T value)
     return token;
 }
 
-std::optional<Token> Lexer::handleIdentiferError(std::wstring & identifier){
-    if(identifier.length() >= this->max_identifier_chars) {
-        int i = 0;
-        while (iswalnum(this->character) || this->character == '_' && i<max_analyzed_chars) {
-            moveToNextCharacter();
-            i++;
-        }
-        if (i<this->max_analyzed_chars) {
-            errorHandler->onLexerError(ERR_MAX_IDENTIFIER_LEN_EXCEEDED, this->token_position, identifier);
-        } else {
-            errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, identifier);
-            return buildToken(CRITICAL_ERR_TYPE);
-        }
-    }
-}
-
 std::optional<Token> Lexer::tryBuildIdentifierOrKeyword()
 {
     if (!iswalpha( this->character) && this->character != '_') {

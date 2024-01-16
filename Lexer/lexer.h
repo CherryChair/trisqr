@@ -60,7 +60,6 @@ private:
     std::optional<Token> tryBuildOther();
     std::optional<Token> handleIntegerError(int value_before_dot);
     std::optional<Token> handleDoubleError(int value_before_dot, int value_after_dot);
-    std::optional<Token> handleIdentiferError(std::wstring & identifier);
     unsigned int nextInCompEq(unsigned int type1, unsigned int type2);
     std::optional<Token> buildToken(unsigned int type);
 //    std::optional<Token> buildToken(unsigned int type, Position position, int value);
