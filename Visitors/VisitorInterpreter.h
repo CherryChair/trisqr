@@ -14,7 +14,6 @@
 #include <math.h>
 #include <cairomm-1.0/cairomm/cairomm.h>
 #include <gtk/gtk.h>
-#include <gtkmm-3.0/gtkmm.h>
 
 //figura i punkt
 class FunctionCallContext;
@@ -91,7 +90,7 @@ private:
     std::shared_ptr<ListValue> color;
     std::shared_ptr<double> radius = nullptr;
 public:
-    FigureValue()=default;
+    FigureValue() {color = std::make_shared<ListValue>(std::vector<AssignableValue>({AssignableValue(0), AssignableValue(0), AssignableValue(0)}));};
     FigureValue(std::map<std::wstring, std::shared_ptr<PointValue>> points): points(std::move(points)){
         color = std::make_shared<ListValue>(std::vector<AssignableValue>({AssignableValue(0), AssignableValue(0), AssignableValue(0)}));
     };

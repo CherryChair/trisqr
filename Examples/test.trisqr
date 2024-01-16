@@ -39,8 +39,12 @@ func main() {
     a.delete(0);
     printn(a);
     a.delete(0);
-    vv cir = Circle((0.0, 0.0), 0.5, [255, 0, 0]);
-    draw([cir], (-1.0, -1.0), (1.0, 1.0));
+    vv cir = Circle((10.0, 10.0), 1.2, [255, 0, 0]);
+    vv tr1 = Triangle();
+    vv tr2 = Triangle((-2.0, 10.0), (1.2, 3.2), (5.5, 5.5));
+    tr2.color = [0,255,0];
+    tr2.b = (10.0,10.0);
+    draw([cir, tr1, tr2], (-1.0, -1.0), (14.0, 14.0));
     printn(a); #
     #a[0]; #spodziewamy sie bledu
 }

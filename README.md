@@ -15,6 +15,10 @@ Język realizacji: **c++**
   - [Treść zadania](#treść-zadania)
   - [Wymagania funkcjonalne](#wymagania-funkcjonalne)
   - [Wymagania niefunkcjonalne](#wymagania-niefunkcjonalne)
+  - [Budowanie projektu](#budowanie-projektu)
+    - [Budowanie z testami.](#budowanie-z-testami)
+    - [Budowanie tylko pliku wykonywalnego interpretera](#budowanie-tylko-pliku-wykonywalnego-interpretera)
+  - [Uruchamianie programu](#uruchamianie-programu)
   - [Konfiguracja](#konfiguracja)
   - [Obsługiwane typy zmiennych](#obsługiwane-typy-zmiennych)
   - [Komentarze](#komentarze)
@@ -56,12 +60,13 @@ Język do opisu figur geometrycznych i ich właściwości. Podstawowe typy figur
 
 ## Budowanie projektu
 
-Środowisko Linux.
+Instrukcje na dystrybucje na podstawie Debiana (testowane na WSL2 z Ubuntu 22.04.1 LTS).
 Wymagane narzędzia do budowania to cmake i make.
-GLFW
-- instalujemy glfw
+Figury są rysowane w okienkach gtk przez cairo.
+- instalujemy gtk3 i cairomm-1.0
 ```bash
-sudo apt install libglfw3-dev
+sudo apt install libcairomm-1.0-dev
+sudo apt install libgtk-3-dev
 ```
 ### Budowanie z testami.
 - w folderze głównym repozytorium tworzymy folder googletest i przechodzimy do niego
@@ -89,11 +94,13 @@ project(Google_tests)
 # 'lib' is the folder with Google Test sources
 add_subdirectory(lib)
 include_directories(lib/googletest/include lib/googletest)
+pkg_check_modules(CAIROMM REQUIRED IMPORTED_TARGET cairomm-1.0)
+pkg_check_modules(GTK3 REQUIRED IMPORTED_TARGET gtk+-3.0)
 
 # 'Google_Tests_run' is the target name
 # 'test1.cpp tests2.cpp' are source files with tests
 add_executable(Google_Tests_run ../Tests/interpreter_tests.cpp ../Tests/parser_tests.cpp ../Tests/lexer_tests.cpp ../Lexer/lexer.cpp ../Lexer/lexer.h ../Lexer/Token.cpp ../Lexer/Token.h ../ErrorHandler/ErrorHandler.cpp ../ErrorHandler/ErrorHandler.h ../Parser/Parser.cpp ../Parser/Parser.h ../Program/Program.cpp ../Program/Program.h ../Visitors/Visitor.cpp ../Visitors/Visitor.h ../Lexer/position.h ../Lexer/lexer_error_types.h ../Visitors/VisitorTree.cpp ../Visitors/VisitorTree.h ../Visitors/VisitorInterpreter.cpp ../Visitors/VisitorInterpreter.h)
-target_link_libraries(Google_Tests_run gtest gtest_main)
+target_link_libraries(Google_Tests_run gtest gtest_main PkgConfig::CAIROMM PkgConfig::GTK3)
 ```
 - wracamy do głównego folderu projektu, tworzymy katalog, gdzie projekt się zbuduje i go budujemy
 ```bash

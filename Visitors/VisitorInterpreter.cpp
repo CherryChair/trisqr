@@ -280,7 +280,7 @@ void VisitorInterpreter::visit(IdentifierFunctionCallExpression * e) {
             expression->accept(*this);
             functionCallParams.push(this->consumeLastResultAndAccessedObject());
         }
-
+        this->createNewFigure(functionName);
     } else {
         this->consumeLastResultAndAccessedObject();
         FuncDeclaration * function = functionDeclarations[functionName];
@@ -311,10 +311,15 @@ void VisitorInterpreter::visit(IdentifierExpression * e) {
                 this->accessedObject = AssignableValue(point->second);
                 this->figurePointAssigned = true;
             } else if (special_figure_keywords.find(e->identifierName) != special_figure_keywords.end()) {
-                this->lastResult = e->identifierName;
-            } else if (e->identifierName == L"color") {
-                this->accessedObject = AssignableValue(figure->getColor());
-                this->figureColorAssigned = true; // TODO to będzie zmieniane w innych funkcjach, trzeba wymyślić sposób, może umieszczać w scopie
+                if (e->identifierName == L"color") {
+                    this->accessedObject = AssignableValue(figure->getColor());
+                    this->figureColorAssigned = true;
+                } else if (e->identifierName == L"r") {
+//                this->accessedObject = AssignableValue(figure->getRadius());
+//                this->figureColorAssigned = true;
+                } else {
+                    this->lastResult = e->identifierName;
+                }
             }
         } else if (std::holds_alternative<std::shared_ptr<PointValue>>(*accessedValue)) {
             this->pointCoordAssigned = true;
@@ -446,7 +451,7 @@ void VisitorInterpreter::visit(IdentifierStatementAssign * s) {
             this->handleRuntimeError(s->position, L"Assigning value of type " + std::visit(TypeVisitor{}, expressionValue) + L" to figure point.");
         }
     } else if (this->figureColorAssigned) {
-        if (!std::holds_alternative<std::shared_ptr<PointValue>>(expressionValue)){
+        if (!std::holds_alternative<std::shared_ptr<ListValue>>(expressionValue)){
             this->handleRuntimeError(s->position, L"Assigning value of type " + std::visit(TypeVisitor{}, expressionValue) + L" to figure point.");
         } // kolorem zajmę się później jak będzie czas
     }
@@ -804,7 +809,8 @@ void VisitorInterpreter::createNewFigure(const std::wstring &name) {
     interpreter_value createdFigureTemplate = *(this->getFigureScope().getVariables().at(name).value);
     FigureValue * createdFigure = std::get<std::shared_ptr<FigureValue>> (createdFigureTemplate).get();
     if (this->functionCallParams.empty()) {
-        internalFigureFunctions.at(L"copy()")(createdFigure);
+        internalFigureFunctions.at(L"copy")(createdFigure);
+        return;
     }
     int pointNumber = createdFigure->getPoints().size();
     this->requireArgNumBetween(name, pointNumber, pointNumber+1, std::to_wstring(pointNumber) +
