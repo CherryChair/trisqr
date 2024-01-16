@@ -121,7 +121,8 @@ static const std::unordered_set<std::wstring> special_function_keywords = {
         L"print",
         L"printn",
         L"input",
-        L"draw"
+        L"draw",
+        L"Circle",
 };
 
 template<typename T>

@@ -87,11 +87,16 @@ private:
     const std::wstring name;
     std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points;
     ListValue color = ListValue(std::vector<AssignableValue>({AssignableValue(0), AssignableValue(0), AssignableValue(0)}));
+    std::optional<double> radius = std::nullopt;
 public:
     FigureValue()=default;
     FigureValue(std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points): points(std::move(points)){};
     FigureValue(std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points, ListValue color)
         : points(std::move(points)), color(std::move(color)){};
+    FigureValue(std::shared_ptr<PointValue> centre, double radius)
+        : radius(radius) {points[L"c"] = centre;};
+    FigureValue(std::shared_ptr<PointValue> centre, double radius, ListValue color)
+        : radius(radius), color(std::move(color)){points[L"c"] = centre;};
     std::unordered_map<std::wstring, std::shared_ptr<PointValue>> & getPoints() {return points;};
     ListValue & getColor() {return color;};
     void setColor(ListValue color) { this->color = std::move(color);};
@@ -208,6 +213,48 @@ private:
                 std::wstring result;
                 std::wcin >> result;
                 this->lastResult = result;
+            }},
+            {L"Circle", [this](){
+                this->requireArgNumBetween(L"Circle()", 0, 3, L"(point centre, double radius, list color) arguments");
+                std::shared_ptr<PointValue> centrePoint = std::make_shared<PointValue>(0, 0);
+                double radius = 1.0;
+                ListValue color = ListValue(std::vector<AssignableValue>({AssignableValue(0), AssignableValue(0), AssignableValue(0)}));
+                if (!this->functionCallParams.empty()) {
+                    this->requireArgType(L"circle centre", POINT_VARIABLE);
+                    interpreter_value passedCentrePoint = this->functionCallParams.front();
+                    this->functionCallParams.pop();
+                    centrePoint = std::get<std::shared_ptr<PointValue>>(passedCentrePoint);
+
+                    if (!this->functionCallParams.empty()) {
+                        this->requireArgType(L"radius", DOUBLE_VARIABLE);
+                        interpreter_value passedRadius = this->functionCallParams.front();
+                        this->functionCallParams.pop();
+                        radius = std::get<double>(passedRadius);
+
+                        if (!this->functionCallParams.empty()) {
+                            this->requireArgType(L"color", LIST_VARIABLE);
+                            interpreter_value passedColor = this->functionCallParams.front();
+                            this->functionCallParams.pop();
+                            std::shared_ptr<ListValue> colorList = std::get<std::shared_ptr<ListValue>>(passedColor);
+                            if (colorList->len() != 3) {
+                                this->handleRuntimeError(this->funcCallPosition, L"Array of wrong size passed as color");
+                            }
+                            for (int i=0; i<3; i++) {
+                                interpreter_value colorValue = *((*colorList)[i].value);
+                                if (!std::holds_alternative<int>(colorValue)) {
+                                    this->handleRuntimeError(this->funcCallPosition, L"Argument " + std::to_wstring(i) + L" of color isn't of type int.");
+                                }
+                                int intVal = std::get<int>(colorValue);
+                                if (intVal < 0 || intVal > 255) {
+                                    this->handleRuntimeError(this->funcCallPosition, L"Argument " + std::to_wstring(i) + L" out of rgb values range." + 
+                                        L" It's value is " + std::to_wstring(intVal) + L".");
+                                }
+                            }
+                            color = *colorList;
+                        }
+                    }
+                }
+                this->lastResult = FigureValue(centrePoint, radius, color).shared_from_this();
             }},
     };
 
@@ -416,7 +463,7 @@ private:
     std::optional<interpreter_value> lastResult = std::nullopt;
     bool lastConditionTrue = false;
 
-    
+
     void handleRuntimeError(const Position & pos, const std::wstring & errorMsg);
     std::queue<interpreter_value> & getFunctionCallParams() {return this->functionCallParams;}
     Scope & getFigureScope() {return this->figureScope;}
@@ -437,6 +484,7 @@ private:
                                 const std::wstring &operation);
     void requireArgNum(const std::wstring & name, int argNum, const std::wstring & argList);
     void requireArgType(const std::wstring & name, variable_type vt);
+    void requireArgNumBetween(const std::wstring & name, int argNumLower, int argNumUpper, const std::wstring & argList); 
 public:
     VisitorInterpreter(ErrorHandler * eh): errorHandler(eh), funcCallPosition(Position({1, 1})){};
     void visit(ExpressionOr * e);
@@ -483,7 +531,6 @@ public:
     void visit(FigureDeclaration * fd);
     void visit(FuncDeclaration * fd);
     void visit(Program * p);
-
 };
 
 struct TypeVisitor {

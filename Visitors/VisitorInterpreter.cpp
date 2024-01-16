@@ -663,6 +663,7 @@ interpreter_value operator+(const interpreter_value & value1, const interpreter_
             throw;
         }
     }
+    return std::monostate();
 }
 
 interpreter_value operator-(const interpreter_value & value1, const interpreter_value & value2) {
@@ -700,6 +701,7 @@ interpreter_value operator-(const interpreter_value & value1, const interpreter_
             throw;
         }
     }
+    return std::monostate();
 }
 
 interpreter_value operator/(const interpreter_value & value1, const interpreter_value & value2) {
@@ -732,6 +734,7 @@ interpreter_value operator/(const interpreter_value & value1, const interpreter_
             throw;
         }
     }
+    return std::monostate();
 }
 
 interpreter_value operator*(const interpreter_value & value1, const interpreter_value & value2) {
@@ -764,6 +767,7 @@ interpreter_value operator*(const interpreter_value & value1, const interpreter_
             throw;
         }
     }
+    return std::monostate();
 }
 
 void VisitorInterpreter::requireArgNum(const std::wstring & name, int argNum, const std::wstring & argList) {
@@ -772,6 +776,15 @@ void VisitorInterpreter::requireArgNum(const std::wstring & name, int argNum, co
         this->handleRuntimeError(this->funcCallPosition, L"Too few arguments " + name + L" requires " + argList + L".");
     } else if (funcCallParams.size() > argNum) {
         this->handleRuntimeError(this->funcCallPosition, L"Too many arguments " + name + L" requires " + argList + L".");
+    }
+}
+
+void VisitorInterpreter::requireArgNumBetween(const std::wstring & name, int argNumLower, int argNumUpper, const std::wstring & argList) {
+    std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
+    if (funcCallParams.size() < argNumLower) {
+        this->handleRuntimeError(this->funcCallPosition, L"Too few arguments " + name + L" takes " + argList + L".");
+    } else if (funcCallParams.size() > argNumUpper) {
+        this->handleRuntimeError(this->funcCallPosition, L"Too many arguments " + name + L" takes " + argList + L".");
     }
 }
 
