@@ -11,8 +11,10 @@
 #include <map>
 #include <functional>
 #include <queue>
+#include <math.h>
 #include <cairomm-1.0/cairomm/cairomm.h>
-
+#include <gtk/gtk.h>
+#include <gtkmm-3.0/gtkmm.h>
 
 //figura i punkt
 class FunctionCallContext;
@@ -100,6 +102,8 @@ public:
     std::unordered_map<std::wstring, std::shared_ptr<PointValue>> & getPoints() {return points;};
     ListValue & getColor() {return color;};
     void setColor(ListValue color) { this->color = std::move(color);};
+    std::optional<double> getRadius() {return this->radius;};
+    void setRadius(double r) {this->radius = r;};
 };
 
 class Scope {
@@ -158,10 +162,38 @@ struct PrintVisitor {
     }
 };
 
+// static void do_drawing(cairo_t *);
+
+
+
 class VisitorInterpreter : public Visitor {
 private:
     Position funcCallPosition;
     std::unordered_map<std::wstring, FuncDeclaration *> functionDeclarations;
+    std::vector<FigureValue *> figuresToDraw;
+    std::vector<PointValue *> pointsToDraw;
+    std::pair<double, double> lbPaneCorner;
+    std::pair<double, double> ruPaneCorner;
+
+    static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr, 
+        gpointer user_data)
+    {      
+        do_drawing(cr);
+
+        return FALSE;
+    }
+
+    static void do_drawing(cairo_t *cr)
+    {
+        cairo_set_source_rgb(cr, 0, 0, 0);
+        cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
+            CAIRO_FONT_WEIGHT_NORMAL);
+        cairo_set_font_size(cr, 40.0);
+
+        cairo_move_to(cr, 10.0, 50.0);
+        cairo_show_text(cr, "Disziplin ist Macht.");    
+    }
+
     const std::unordered_map<std::wstring, std::function<void()>> internalFunctions = {
             {L"print", [this](){
                 this->requireArgNum(L"print()", 1, L"1 argument");
@@ -177,34 +209,96 @@ private:
                 std::wcout << std::endl;
             }},
             {L"draw", [this](){
-                auto surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, 600, 400);
-                auto cr = Cairo::Context::create(surface);
-                cr->save(); // save the state of the context
-                cr->set_source_rgb(0.86, 0.85, 0.47);
-                cr->paint();    // fill image with the color
-                cr->restore();  // color is back to black now
-                cr->save();
-                // draw a border around the image
-                cr->set_line_width(20.0);    // make the line wider
-                cr->rectangle(0.0, 0.0, surface->get_width(), surface->get_height());
-                cr->stroke();
-                cr->set_source_rgba(0.0, 0.0, 0.0, 0.7);
-                // draw a circle in the center of the image
-                cr->arc(surface->get_width() / 2.0, surface->get_height() / 2.0, 
-                        surface->get_height() / 4.0, 0.0, 2.0 * M_PI);
-                cr->stroke();
-                // draw a diagonal line
-                cr->move_to(surface->get_width() / 4.0, surface->get_height() / 4.0);
-                cr->line_to(surface->get_width() * 3.0 / 4.0, surface->get_height() * 3.0 / 4.0);
-                cr->stroke();
-                cr->restore();
-                #ifdef CAIRO_HAS_PNG_FUNCTIONS
-                std::string filename = "image.png";
-                surface->write_to_png(filename);
-                std::cout << "Wrote png file \"" << filename << "\"" << std::endl;
-                #else
-                    std::cout << "You must compile cairo with PNG support for this example to work."<< std::endl;
-                #endif
+                // auto surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, 600, 400);
+                // auto cr = Cairo::Context::create(surface);
+                // cr->save(); // save the state of the context
+                // cr->set_source_rgb(0.86, 0.85, 0.47);
+                // cr->paint();    // fill image with the color
+                // cr->restore();  // color is back to black now
+                // cr->save();
+                // // draw a border around the image
+                // cr->set_line_width(20.0);    // make the line wider
+                // cr->rectangle(0.0, 0.0, surface->get_width(), surface->get_height());
+                // cr->stroke();
+                // cr->set_source_rgba(0.0, 0.0, 0.0, 0.7);
+                // // draw a circle in the center of the image
+                // cr->arc(surface->get_width() / 2.0, surface->get_height() / 2.0, 
+                //         surface->get_height() / 4.0, 0.0, 2.0 * M_PI);
+                // cr->stroke();
+                // // draw a diagonal line
+                // cr->move_to(surface->get_width() / 4.0, surface->get_height() / 4.0);
+                // cr->line_to(surface->get_width() * 3.0 / 4.0, surface->get_height() * 3.0 / 4.0);
+                // cr->stroke();
+                // cr->restore();
+                // #ifdef CAIRO_HAS_PNG_FUNCTIONS
+                // std::string filename = "image.png";
+                // surface->write_to_png(filename);
+                // std::cout << "Wrote png file \"" << filename << "\"" << std::endl;
+                // #else
+                //     std::cout << "You must compile cairo with PNG support for this example to work."<< std::endl;
+                // #endif
+                this->requireArgNum(L"draw()", 3, L"(list figureList, point lbCorner, point ruCorner) arguments");
+                this->requireArgType(L"figure list", LIST_VARIABLE);
+                interpreter_value figureListParam = this->functionCallParams.front();
+                this->functionCallParams.pop();
+                ListValue * figureList = std::get<std::shared_ptr<ListValue>>(figureListParam).get();
+
+                this->requireArgType(L"left bottom corner", POINT_VARIABLE);
+                interpreter_value lbCornerParam = this->functionCallParams.front();
+                this->functionCallParams.pop();
+                PointValue * lbCorner = std::get<std::shared_ptr<PointValue>>(lbCornerParam).get();
+                double lb_x = std::get<double>(*(lbCorner->getX().value));
+                double lb_y = std::get<double>(*(lbCorner->getY().value));
+
+                this->requireArgType(L"right upper corner", POINT_VARIABLE);
+                interpreter_value ruCornerParam = this->functionCallParams.front();
+                this->functionCallParams.pop();
+                PointValue * ruCorner = std::get<std::shared_ptr<PointValue>>(ruCornerParam).get();
+                double ru_x = std::get<double>(*(ruCorner->getX().value));
+                double ru_y = std::get<double>(*(ruCorner->getY().value));
+
+                auto & valueList = figureList->getValues();
+
+                for (auto element : valueList) {
+                    interpreter_value value = *(element.value);
+                    if (std::holds_alternative<std::shared_ptr<PointValue>>(value)) {
+                        this->pointsToDraw.push_back(std::get<std::shared_ptr<PointValue>>(value).get());
+                    } else if (std::holds_alternative<std::shared_ptr<FigureValue>>(value)) {
+                        this->figuresToDraw.push_back(std::get<std::shared_ptr<FigureValue>>(value).get());
+                    } else {
+                        this->handleRuntimeError(this->funcCallPosition, L"List contains other elements than figures or points");
+                    }
+                }
+
+                this->lbPaneCorner = std::pair<double, double>(lb_x, lb_y);
+                this->ruPaneCorner = std::pair<double, double>(ru_x, ru_y);
+
+                GtkWidget *window;
+                GtkWidget *darea;
+
+
+                gtk_init(NULL, NULL);
+
+                window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+
+                darea = gtk_drawing_area_new();
+                gtk_container_add(GTK_CONTAINER(window), darea);
+
+                g_signal_connect(G_OBJECT(darea), "draw", 
+                    G_CALLBACK(on_draw_event), NULL); 
+                g_signal_connect(window, "destroy",
+                    G_CALLBACK(gtk_main_quit), NULL);
+
+                gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+                gtk_window_set_default_size(GTK_WINDOW(window), 1920, 1080); 
+                gtk_window_set_title(GTK_WINDOW(window), "GTK window");
+
+                gtk_widget_show_all(window);
+
+                gtk_main();
+
+                this->figuresToDraw.clear();
+                this->pointsToDraw.clear();
                 this->lastResult = std::monostate();
             }},
             {L"input", [this](){
@@ -291,6 +385,11 @@ private:
             {L"circ", [this](FigureValue * figureValue){
                 this->requireArgNum(L".circ()", 0, L"no arguments");
                 auto & points = figureValue->getPoints();
+                if (auto radius = figureValue->getRadius()) {
+                    double rVal = radius.value();
+                    this->lastResult = 2.0 * M_PI * rVal;
+                    return;
+                }
                 if (points.size() == 1) {
                     this->lastResult = 0.0;
                     return;
@@ -325,6 +424,11 @@ private:
             {L"area", [this](FigureValue * figureValue){
                 this->requireArgNum(L".area()", 0, L"no arguments");
                 auto & points = figureValue->getPoints();
+                if (auto radius = figureValue->getRadius()) {
+                    double rVal = radius.value();
+                    this->lastResult = M_PI_2 * rVal * rVal;
+                    return;
+                }
                 if (points.size() == 1) {
                     this->lastResult = 0.0;
                     return;
@@ -374,6 +478,9 @@ private:
                     p1_y *= scale;
                     *(namedPoint.second->getX().value) = p1_x;
                     *(namedPoint.second->getY().value) = p1_y;
+                }
+                if (auto radius = figureValue->getRadius()) {
+                    figureValue->setRadius(radius.value()*scale);
                 }
                 this->lastResult = figureValue->shared_from_this();
             }},
