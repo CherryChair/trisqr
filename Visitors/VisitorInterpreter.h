@@ -159,19 +159,15 @@ private:
     std::unordered_map<std::wstring, FuncDeclaration *> functionDeclarations;
     const std::unordered_map<std::wstring, std::function<void()>> internalFunctions = {
             {L"print", [this](){
+                this->requireArgNum(L"print()", 1, L"1 argument");
                 std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
-                if (funcCallParams.empty()) {
-                    this->handleRuntimeError(this->funcCallPosition, L"Too few arguments print() requires 1 string argument.");
-                }
                 interpreter_value value = funcCallParams.front();
                 funcCallParams.pop();
-                if (funcCallParams.size() > 1) {
-                    this->handleRuntimeError(this->funcCallPosition, L"Too many arguments print() requires 1 string argument.");
-                }
                 std::wcout << std::visit(PrintVisitor{}, value);
                 this->lastResult = std::monostate();
             }},
             {L"printn", [this](){
+                this->requireArgNum(L"printn()", 1, L"1 argument");
                 this->internalFunctions.at(L"print")();
                 std::wcout << std::endl;
             }},
@@ -207,8 +203,8 @@ private:
                 this->lastResult = std::monostate();
             }},
             {L"input", [this](){
-                std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
                 this->requireArgNum(L"input()", 0, L"no arguments");
+                std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
                 std::wstring result;
                 std::wcin >> result;
                 this->lastResult = result;
@@ -226,11 +222,11 @@ private:
                 this->lastResult = listValue->shared_from_this();
             }},
             {L"delete", [this](ListValue * listValue){
-                std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
                 this->requireArgNum(L".delete()", 1, L"(int index) argument");
+                this->requireArgType(L"removed index", INT_VARIABLE);
+                std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
                 interpreter_value value = funcCallParams.front();
                 funcCallParams.pop();
-                this->requireArgType(L"removed index", INT_VARIABLE);
                 int removedIndex = std::get<int>(value);
                 if (listValue->len() <= removedIndex) {
                     this->handleRuntimeError(this->funcCallPosition, L"Removed index out of range");
@@ -246,7 +242,6 @@ private:
 
     const std::unordered_map<std::wstring, std::function<void(FigureValue *)>> internalFigureFunctions= {
             {L"circ", [this](FigureValue * figureValue){
-                //jeśli koło to 
                 this->requireArgNum(L".circ()", 0, L"no arguments");
                 auto & points = figureValue->getPoints();
                 if (points.size() == 1) {
@@ -281,8 +276,7 @@ private:
                 this->lastResult = circ;
             }},
             {L"area", [this](FigureValue * figureValue){
-                //jeśli koło to 
-                this->requireArgNum(L".circ()", 0, L"no arguments");
+                this->requireArgNum(L".area()", 0, L"no arguments");
                 auto & points = figureValue->getPoints();
                 if (points.size() == 1) {
                     this->lastResult = 0.0;
@@ -317,11 +311,12 @@ private:
                 this->lastResult = area;
             }},
             {L"scale", [this](FigureValue * figureValue){
-                //jeśli koło to 
                 this->requireArgNum(L".scale()", 1, L"(double scale) argument");
-                auto & points = figureValue->getPoints();
                 this->requireArgType(L"scale", DOUBLE_VARIABLE);
-                double scale = 2.0;
+                auto & points = figureValue->getPoints();
+                interpreter_value scaleParam = this->functionCallParams.front();
+                this->functionCallParams.pop();
+                double scale = std::get<double>(scaleParam);
                 double p1_x;
                 double p1_y;
 
@@ -337,12 +332,17 @@ private:
             }},
             {L"rotate", [this](FigureValue * figureValue){
                 this->requireArgNum(L".rotate()", 2, L"(point rotationPoint, double angle) arguments");
-                auto & points = figureValue->getPoints();
                 this->requireArgType(L"rotation point", POINT_VARIABLE);
-                double rotation_point_x = 0.0;
-                double rotation_point_y = 0.0;
+                auto & points = figureValue->getPoints();
+                interpreter_value rotationPoint = this->functionCallParams.front();
+                this->functionCallParams.pop();
+                PointValue * rotationPointVal = std::get<std::shared_ptr<PointValue>>(rotationPoint).get();
+                double rotation_point_x = std::get<double>(*(rotationPointVal->getX().value));
+                double rotation_point_y = std::get<double>(*(rotationPointVal->getY().value));
                 this->requireArgType(L"rotation angle", DOUBLE_VARIABLE);
-                double angle = 2.0;
+                interpreter_value angleParam = this->functionCallParams.front();
+                this->functionCallParams.pop();
+                double angle = std::get<double>(angleParam);
                 double p1_x;
                 double p1_y;
                 double rot_x = sin(angle);
@@ -364,12 +364,15 @@ private:
             }},
             {L"transport", [this](FigureValue * figureValue){
                 this->requireArgNum(L".transport()", 1, L"(point transportVector) argument");
+                this->requireArgType(L"transport vector", POINT_VARIABLE);
+                interpreter_value transportVector = this->functionCallParams.front();
+                this->functionCallParams.pop();
+                PointValue * transportVectorVal = std::get<std::shared_ptr<PointValue>>(transportVector).get();
+                double transport_x = std::get<double>(*(transportVectorVal->getX().value));
+                double transport_y = std::get<double>(*(transportVectorVal->getY().value));
                 auto & points = figureValue->getPoints();
                 double p1_x;
                 double p1_y;
-                this->requireArgType(L"transport vector", POINT_VARIABLE);
-                double transport_x = 0.0;
-                double transport_y = 0.0;
 
                 for (auto & namedPoint : points) {
                     p1_x = std::get<double>(*(namedPoint.second->getX().value));
@@ -410,9 +413,31 @@ private:
     std::optional<interpreter_value> returnValue = std::nullopt;
     std::optional<AssignableValue> accessedObject = std::nullopt;
     std::optional<std::wstring> currentlyAnalyzedFigure = std::nullopt;
+    std::optional<interpreter_value> lastResult = std::nullopt;
     bool lastConditionTrue = false;
+
+    
+    void handleRuntimeError(const Position & pos, const std::wstring & errorMsg);
+    std::queue<interpreter_value> & getFunctionCallParams() {return this->functionCallParams;}
+    Scope & getFigureScope() {return this->figureScope;}
+    Scope & getCurrentScope() {return this->functionContexts.top().getScopes().back();}
+    Scope & addNewScope();
+    void popScope();
+    std::unordered_map<std::wstring, AssignableValue> & getCurrentScopeVariables();
+    AssignableValue & findVariableInScopes(const std::wstring & variableName);
+    interpreter_value consumeLastResultAndAccessedObject();
+    std::shared_ptr<interpreter_value> getAccessedObject();
+    void consumeReturnValue();
+    bool consumeConditionTrue();
+
+    bool ensureTypesMatch(interpreter_value & value1, interpreter_value & value2);
+    void operationTypeEqualityCheck(interpreter_value & value1, interpreter_value & value2, const Position & position, const std::wstring & operation);
+    void operationLegalityCheck(interpreter_value &value1, const Position &position,
+                                AllowedInOperationVisitor &&allowedInOperationVisitor,
+                                const std::wstring &operation);
+    void requireArgNum(const std::wstring & name, int argNum, const std::wstring & argList);
+    void requireArgType(const std::wstring & name, variable_type vt);
 public:
-    std::optional<interpreter_value> lastResult = std::nullopt; // private ale temp public
     VisitorInterpreter(ErrorHandler * eh): errorHandler(eh), funcCallPosition(Position({1, 1})){};
     void visit(ExpressionOr * e);
     void visit(ExpressionAnd * e);
@@ -459,26 +484,6 @@ public:
     void visit(FuncDeclaration * fd);
     void visit(Program * p);
 
-    void handleRuntimeError(const Position & pos, const std::wstring & errorMsg);
-    std::queue<interpreter_value> & getFunctionCallParams() {return this->functionCallParams;}
-    Scope & getFigureScope() {return this->figureScope;}
-    Scope & getCurrentScope() {return this->functionContexts.top().getScopes().back();}
-    Scope & addNewScope();
-    void popScope();
-    std::unordered_map<std::wstring, AssignableValue> & getCurrentScopeVariables();
-    AssignableValue & findVariableInScopes(const std::wstring & variableName);
-    interpreter_value consumeLastResultAndAccessedObject();
-    std::shared_ptr<interpreter_value> getAccessedObject();
-    void consumeReturnValue();
-    bool consumeConditionTrue();
-
-    bool ensureTypesMatch(interpreter_value & value1, interpreter_value & value2);
-    void operationTypeEqualityCheck(interpreter_value & value1, interpreter_value & value2, const Position & position, const std::wstring & operation);
-    void operationLegalityCheck(interpreter_value &value1, const Position &position,
-                                AllowedInOperationVisitor &&allowedInOperationVisitor,
-                                const std::wstring &operation);
-    void requireArgNum(const std::wstring & name, int argNum, const std::wstring & argList);
-    void requireArgType(const std::wstring & name, variable_type vt);
 };
 
 struct TypeVisitor {
