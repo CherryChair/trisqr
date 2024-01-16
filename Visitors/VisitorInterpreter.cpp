@@ -250,10 +250,7 @@ void VisitorInterpreter::visit(IdentifierListIndexExpression * e) {
     this->accessedObject = AssignableValue((*listValue)[index]);//3)//4)
 }
 void VisitorInterpreter::visit(IdentifierFunctionCallExpression * e) {
-    //getFunctionDeclAndGoToIt
     e->identifierExpression->accept(*this);
-//    if in special_function do ble ble
-//    if in nomalfucntiondo ble ble
     interpreter_value identifierExpression = this->lastResult.value();
     std::wstring functionName = std::get<std::wstring>(identifierExpression);
     if (internalListFunctions.find(functionName) != internalListFunctions.end()) {
@@ -277,6 +274,13 @@ void VisitorInterpreter::visit(IdentifierFunctionCallExpression * e) {
             functionCallParams.push(this->consumeLastResultAndAccessedObject());
         }
         internalFunctions.at(functionName)();
+    } else if (this->getFigureScope().getVariables().find(functionName) != this->getFigureScope().getVariables().end()){
+        this->consumeLastResultAndAccessedObject();
+        for (auto & expression : e->expressions) {
+            expression->accept(*this);
+            functionCallParams.push(this->consumeLastResultAndAccessedObject());
+        }
+
     } else {
         this->consumeLastResultAndAccessedObject();
         FuncDeclaration * function = functionDeclarations[functionName];
@@ -286,7 +290,6 @@ void VisitorInterpreter::visit(IdentifierFunctionCallExpression * e) {
         }
         function->accept(*this);
     }
-    //wynik funkcji, potencjalnie po lewej assignable, albo ciągniemy dalej kropką
     this->accessedObject = AssignableValue(this->consumeLastResultAndAccessedObject()); //2)//3)
 }
 
@@ -302,7 +305,7 @@ void VisitorInterpreter::visit(IdentifierExpression * e) {
             }
         } else if (std::holds_alternative<std::shared_ptr<FigureValue>>(*accessedValue)) {
             FigureValue * figure = std::get<std::shared_ptr<FigureValue>>(*accessedValue).get();
-            std::unordered_map<std::wstring, std::shared_ptr<PointValue>> & figurePoints = figure->getPoints();
+            std::map<std::wstring, std::shared_ptr<PointValue>> & figurePoints = figure->getPoints();
             auto point = figurePoints.find(e->identifierName);
             if (point != figure->getPoints().end()){
                 this->accessedObject = AssignableValue(point->second);
@@ -310,7 +313,7 @@ void VisitorInterpreter::visit(IdentifierExpression * e) {
             } else if (special_figure_keywords.find(e->identifierName) != special_figure_keywords.end()) {
                 this->lastResult = e->identifierName;
             } else if (e->identifierName == L"color") {
-                this->accessedObject = AssignableValue(figure->getColor().shared_from_this());
+                this->accessedObject = AssignableValue(figure->getColor());
                 this->figureColorAssigned = true; // TODO to będzie zmieniane w innych funkcjach, trzeba wymyślić sposób, może umieszczać w scopie
             }
         } else if (std::holds_alternative<std::shared_ptr<PointValue>>(*accessedValue)) {
@@ -324,7 +327,8 @@ void VisitorInterpreter::visit(IdentifierExpression * e) {
         } else {
             this->handleRuntimeError(e->position, L"Object" + std::visit(TypeVisitor{}, *accessedValue) + L" does not have member " + e->identifierName);
         }
-    } else if (this->functionDeclarations.find(e->identifierName) != this->functionDeclarations.end() || special_keywords.find(e->identifierName) != special_keywords.end()){
+    } else if (this->functionDeclarations.find(e->identifierName) != this->functionDeclarations.end() || special_keywords.find(e->identifierName) != special_keywords.end() ||
+                this->getFigureScope().getVariables().find(e->identifierName) != this->getFigureScope().getVariables().end()){
         this->lastResult = e->identifierName;
         //2) //3)
     } else {
@@ -657,7 +661,7 @@ interpreter_value operator+(const interpreter_value & value1, const interpreter_
         } case 6: {
             ListValue * list1 = std::get<std::shared_ptr<ListValue>>(value1).get();
             ListValue * list2 = std::get<std::shared_ptr<ListValue>>(value2).get();
-            return (*list1 + *list2).shared_from_this();
+            return std::make_shared<ListValue>(*list1 + *list2);
         } case 7: {
             std::wcerr << L"ERR: Addition between FigureValue illegal";
             throw;
@@ -794,4 +798,58 @@ void VisitorInterpreter::requireArgType(const std::wstring & name, variable_type
         this->handleRuntimeError(this->funcCallPosition, L"Wrong argument type, " + name + L" must be " + variable_type_representation.at(vt) +
             L" type but is " + std::visit(TypeVisitor{}, funcCallParams.front()) + L".");
     }
+}
+
+void VisitorInterpreter::createNewFigure(const std::wstring &name) {
+    interpreter_value createdFigureTemplate = *(this->getFigureScope().getVariables().at(name).value);
+    FigureValue * createdFigure = std::get<std::shared_ptr<FigureValue>> (createdFigureTemplate).get();
+    if (this->functionCallParams.empty()) {
+        internalFigureFunctions.at(L"copy()")(createdFigure);
+    }
+    int pointNumber = createdFigure->getPoints().size();
+    this->requireArgNumBetween(name, pointNumber, pointNumber+1, std::to_wstring(pointNumber) +
+        L" point arguments and optionally [int r, int g, int b] color argument.");
+    std::map<std::wstring, std::shared_ptr<PointValue>> newFigurePoints;
+    for (auto & point : createdFigure->getPoints()) {
+        this->requireArgType(L"point of figure", POINT_VARIABLE);
+        interpreter_value pointParam = this->functionCallParams.front();
+        auto & pointParamValue = std::get<std::shared_ptr<PointValue>>(pointParam);
+        double xCoord = std::get<double>(*(pointParamValue->getX().value));
+        double yCoord = std::get<double>(*(pointParamValue->getY().value));
+        newFigurePoints[point.first] = std::make_shared<PointValue>(xCoord, yCoord);
+        this->functionCallParams.pop();
+    }
+    std::shared_ptr<ListValue> color = this->consumeColorParam();
+    if (color) {
+        this->lastResult = std::make_shared<FigureValue>(std::move(newFigurePoints), std::move(color));
+    } else {
+        this->lastResult = std::make_shared<FigureValue>(std::move(newFigurePoints));
+    }
+}
+
+std::shared_ptr<ListValue> VisitorInterpreter::consumeColorParam() {
+    if (!functionCallParams.empty()) {
+        this->requireArgType(L"figure colors", LIST_VARIABLE);
+        interpreter_value passedColor = this->functionCallParams.front();
+        this->functionCallParams.pop();
+        std::shared_ptr<ListValue> colorList = std::get<std::shared_ptr<ListValue>>(passedColor);
+        if (colorList->len() != 3) {
+            this->handleRuntimeError(this->funcCallPosition, L"Array of wrong size passed as color");
+        }
+        std::vector<int> rgb = std::vector<int>(3);
+        for (int i=0; i<3; i++) {
+            interpreter_value colorValue = *((*colorList)[i].value);
+            if (!std::holds_alternative<int>(colorValue)) {
+                this->handleRuntimeError(this->funcCallPosition, L"Argument " + std::to_wstring(i) + L" of color isn't of type int.");
+            }
+            int intVal = std::get<int>(colorValue);
+            if (intVal < 0 || intVal > 255) {
+                this->handleRuntimeError(this->funcCallPosition, L"Argument " + std::to_wstring(i) + L" out of rgb values range." +
+                                                                 L" It's value is " + std::to_wstring(intVal) + L".");
+            }
+            rgb[i] = intVal;
+        }
+        return std::make_shared<ListValue>(std::vector<AssignableValue>({AssignableValue(rgb[0]), AssignableValue(rgb[1]), AssignableValue(rgb[2])}));
+    }
+    return nullptr;
 }

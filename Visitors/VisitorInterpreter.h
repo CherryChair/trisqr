@@ -87,23 +87,29 @@ public:
 class FigureValue : public std::enable_shared_from_this<FigureValue>{
 private:
     const std::wstring name;
-    std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points;
-    ListValue color = ListValue(std::vector<AssignableValue>({AssignableValue(0), AssignableValue(0), AssignableValue(0)}));
-    std::optional<double> radius = std::nullopt;
+    std::map<std::wstring, std::shared_ptr<PointValue>> points;
+    std::shared_ptr<ListValue> color;
+    std::shared_ptr<double> radius = nullptr;
 public:
     FigureValue()=default;
-    FigureValue(std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points): points(std::move(points)){};
-    FigureValue(std::unordered_map<std::wstring, std::shared_ptr<PointValue>> points, ListValue color)
+    FigureValue(std::map<std::wstring, std::shared_ptr<PointValue>> points): points(std::move(points)){
+        color = std::make_shared<ListValue>(std::vector<AssignableValue>({AssignableValue(0), AssignableValue(0), AssignableValue(0)}));
+    };
+    FigureValue(std::map<std::wstring, std::shared_ptr<PointValue>> points, std::shared_ptr<ListValue> color)
         : points(std::move(points)), color(std::move(color)){};
-    FigureValue(std::shared_ptr<PointValue> centre, double radius)
-        : radius(radius) {points[L"c"] = centre;};
-    FigureValue(std::shared_ptr<PointValue> centre, double radius, ListValue color)
-        : radius(radius), color(std::move(color)){points[L"c"] = centre;};
-    std::unordered_map<std::wstring, std::shared_ptr<PointValue>> & getPoints() {return points;};
-    ListValue & getColor() {return color;};
-    void setColor(ListValue color) { this->color = std::move(color);};
-    std::optional<double> getRadius() {return this->radius;};
-    void setRadius(double r) {this->radius = r;};
+    FigureValue(std::shared_ptr<PointValue> centre, double radius) : radius(std::make_shared<double>(radius)) {
+        points[L"c"] = centre;
+        color = std::make_shared<ListValue>(std::vector<AssignableValue>({AssignableValue(0), AssignableValue(0), AssignableValue(0)}));
+    };
+    FigureValue(std::shared_ptr<PointValue> centre, double radius, std::shared_ptr<ListValue> color)
+        : radius(std::make_shared<double>(radius)), color(std::move(color)){
+        points[L"c"] = centre;
+    };
+    std::map<std::wstring, std::shared_ptr<PointValue>> & getPoints() {return points;};
+    std::shared_ptr<ListValue> & getColor() {return color;};
+    void setColor(std::shared_ptr<ListValue> color) { this->color = std::move(color);};
+    std::shared_ptr<double> & getRadius() {return this->radius;};
+    void setRadius(double r) {this->radius = std::make_shared<double>(r);};
 };
 
 class Scope {
@@ -171,27 +177,77 @@ private:
     Position funcCallPosition;
     std::unordered_map<std::wstring, FuncDeclaration *> functionDeclarations;
     std::vector<FigureValue *> figuresToDraw;
-    std::vector<PointValue *> pointsToDraw;
+//    std::vector<PointValue *> pointsToDraw;
     std::pair<double, double> lbPaneCorner;
     std::pair<double, double> ruPaneCorner;
+    std::pair<int, int> actualPaneResolution;
+    int maxResolutionW = 1920;
+    int maxResolutionH = 1080;
+    double scalingFactor = 1.0;
 
-    static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr, 
+    static gboolean on_draw_event(GtkWidget *widget, cairo_t *cr,
         gpointer user_data)
     {      
-        do_drawing(cr);
+        do_drawing(cr, user_data);
 
         return FALSE;
     }
 
-    static void do_drawing(cairo_t *cr)
+    static void do_drawing(cairo_t *cr, gpointer user_data)
     {
-        cairo_set_source_rgb(cr, 0, 0, 0);
-        cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
-            CAIRO_FONT_WEIGHT_NORMAL);
-        cairo_set_font_size(cr, 40.0);
+        cairo_set_line_width(cr, 4.0);
+        VisitorInterpreter * visitor = (VisitorInterpreter *) user_data;
+        for (auto figure : visitor->figuresToDraw) {
+            auto & points = figure->getPoints();
+            auto &rgb = figure->getColor();
+            double r = (double)std::get<int>(*(rgb->getValues()[0].value));
+            double g = (double)std::get<int>(*(rgb->getValues()[1].value));
+            double b = (double)std::get<int>(*(rgb->getValues()[2].value));
+            cairo_set_source_rgb(cr, r/255.0, g/255.0, b/255.0);
+            PointValue * previousPoint = points.rbegin()->second.get();
+            double p_x;
+            double p_y;
+            if (auto radius = figure->getRadius()) {
+                p_x = std::get<double>(*(previousPoint->getX().value));
+                p_y = std::get<double>(*(previousPoint->getY().value));
+                auto centre = visitor->mapCoords(std::pair<double, double>(p_x, p_y));
+                cairo_arc(cr, centre.first, centre.second, *radius * visitor->scalingFactor, 0, 2 * M_PI);
+            } else {
+                PointValue * currentPoint;
+                double c_x;
+                double c_y;
+                for(auto point: points) {
+                    currentPoint = point.second.get();
+                    p_x = std::get<double>(*(previousPoint->getX().value));
+                    p_y = std::get<double>(*(previousPoint->getY().value));
+                    c_x = std::get<double>(*(currentPoint->getX().value));
+                    c_y = std::get<double>(*(currentPoint->getY().value));
+                    previousPoint = currentPoint;
+                    auto pointA = visitor->mapCoords(std::pair<double, double>(p_x, p_y));
+                    auto pointB = visitor->mapCoords(std::pair<double, double>(c_x, c_y));
+                    cairo_move_to(cr, pointA.first, pointA.second);
+                    cairo_line_to(cr, pointB.first, pointB.second);
 
-        cairo_move_to(cr, 10.0, 50.0);
-        cairo_show_text(cr, "Disziplin ist Macht.");    
+                }
+            }
+            cairo_stroke(cr);
+        }
+
+        cairo_set_source_rgb(cr, 0, 0, 0);
+//        cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL,
+//            CAIRO_FONT_WEIGHT_NORMAL);
+//        cairo_set_font_size(cr, 40.0);
+
+//        cairo_show_text(cr, "Disziplin ist Macht.");
+    }
+
+    std::pair<int, int> mapCoords(std::pair<double, double> coords){
+        coords.first -= lbPaneCorner.first;
+        coords.second -= lbPaneCorner.second;
+        coords.first *= scalingFactor;
+        coords.second *= scalingFactor;
+        coords.second = (double)(actualPaneResolution.second) - coords.second;
+        return std::pair<int, int>((int)coords.first, (int)coords.second);
     }
 
     const std::unordered_map<std::wstring, std::function<void()>> internalFunctions = {
@@ -209,34 +265,6 @@ private:
                 std::wcout << std::endl;
             }},
             {L"draw", [this](){
-                // auto surface = Cairo::ImageSurface::create(Cairo::FORMAT_ARGB32, 600, 400);
-                // auto cr = Cairo::Context::create(surface);
-                // cr->save(); // save the state of the context
-                // cr->set_source_rgb(0.86, 0.85, 0.47);
-                // cr->paint();    // fill image with the color
-                // cr->restore();  // color is back to black now
-                // cr->save();
-                // // draw a border around the image
-                // cr->set_line_width(20.0);    // make the line wider
-                // cr->rectangle(0.0, 0.0, surface->get_width(), surface->get_height());
-                // cr->stroke();
-                // cr->set_source_rgba(0.0, 0.0, 0.0, 0.7);
-                // // draw a circle in the center of the image
-                // cr->arc(surface->get_width() / 2.0, surface->get_height() / 2.0, 
-                //         surface->get_height() / 4.0, 0.0, 2.0 * M_PI);
-                // cr->stroke();
-                // // draw a diagonal line
-                // cr->move_to(surface->get_width() / 4.0, surface->get_height() / 4.0);
-                // cr->line_to(surface->get_width() * 3.0 / 4.0, surface->get_height() * 3.0 / 4.0);
-                // cr->stroke();
-                // cr->restore();
-                // #ifdef CAIRO_HAS_PNG_FUNCTIONS
-                // std::string filename = "image.png";
-                // surface->write_to_png(filename);
-                // std::cout << "Wrote png file \"" << filename << "\"" << std::endl;
-                // #else
-                //     std::cout << "You must compile cairo with PNG support for this example to work."<< std::endl;
-                // #endif
                 this->requireArgNum(L"draw()", 3, L"(list figureList, point lbCorner, point ruCorner) arguments");
                 this->requireArgType(L"figure list", LIST_VARIABLE);
                 interpreter_value figureListParam = this->functionCallParams.front();
@@ -257,21 +285,45 @@ private:
                 double ru_x = std::get<double>(*(ruCorner->getX().value));
                 double ru_y = std::get<double>(*(ruCorner->getY().value));
 
+                this->lbPaneCorner = std::pair<double, double>(lb_x, lb_y);
+                this->ruPaneCorner = std::pair<double, double>(ru_x, ru_y);
+                //potencjalnie cairo_rotate i cairo_transforma zamist tych rzeczy
+
+                if (lb_x >=  ru_x) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Wrong pane corner, left x must be less than right x");
+                }
+
+                if (lb_y >=  ru_y) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Wrong pane corner, left y must be less than right y");
+                }
+
+                double paneXSize = ruPaneCorner.first - lbPaneCorner.first;
+                double paneYSize = ruPaneCorner.second - lbPaneCorner.second;
+
+
+                if ((double)maxResolutionH/(double)maxResolutionW >= paneYSize/paneXSize) {
+                    actualPaneResolution.first = maxResolutionW;
+                    actualPaneResolution.second = (int)((double)maxResolutionW*((double)paneYSize/(double)paneXSize));
+                    scalingFactor = (double) actualPaneResolution.first/paneXSize;
+                } else {
+                    actualPaneResolution.first = (int)((double)maxResolutionH*((double)paneXSize/(double)paneYSize));
+                    actualPaneResolution.second = maxResolutionH;
+                    scalingFactor = (double) actualPaneResolution.second/paneYSize;
+                }
+
+
                 auto & valueList = figureList->getValues();
 
                 for (auto element : valueList) {
                     interpreter_value value = *(element.value);
                     if (std::holds_alternative<std::shared_ptr<PointValue>>(value)) {
-                        this->pointsToDraw.push_back(std::get<std::shared_ptr<PointValue>>(value).get());
+//                        this->pointsToDraw.push_back(std::get<std::shared_ptr<PointValue>>(value).get());
                     } else if (std::holds_alternative<std::shared_ptr<FigureValue>>(value)) {
                         this->figuresToDraw.push_back(std::get<std::shared_ptr<FigureValue>>(value).get());
                     } else {
                         this->handleRuntimeError(this->funcCallPosition, L"List contains other elements than figures or points");
                     }
                 }
-
-                this->lbPaneCorner = std::pair<double, double>(lb_x, lb_y);
-                this->ruPaneCorner = std::pair<double, double>(ru_x, ru_y);
 
                 GtkWidget *window;
                 GtkWidget *darea;
@@ -284,13 +336,13 @@ private:
                 darea = gtk_drawing_area_new();
                 gtk_container_add(GTK_CONTAINER(window), darea);
 
-                g_signal_connect(G_OBJECT(darea), "draw", 
-                    G_CALLBACK(on_draw_event), NULL); 
+                g_signal_connect(G_OBJECT(darea), "draw",
+                    G_CALLBACK(on_draw_event), this);
                 g_signal_connect(window, "destroy",
                     G_CALLBACK(gtk_main_quit), NULL);
 
                 gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-                gtk_window_set_default_size(GTK_WINDOW(window), 1920, 1080); 
+                gtk_window_set_default_size(GTK_WINDOW(window), this->actualPaneResolution.first, this->actualPaneResolution.second);
                 gtk_window_set_title(GTK_WINDOW(window), "GTK window");
 
                 gtk_widget_show_all(window);
@@ -298,7 +350,8 @@ private:
                 gtk_main();
 
                 this->figuresToDraw.clear();
-                this->pointsToDraw.clear();
+//                this->pointsToDraw.clear();
+
                 this->lastResult = std::monostate();
             }},
             {L"input", [this](){
@@ -312,43 +365,29 @@ private:
                 this->requireArgNumBetween(L"Circle()", 0, 3, L"(point centre, double radius, list color) arguments");
                 std::shared_ptr<PointValue> centrePoint = std::make_shared<PointValue>(0, 0);
                 double radius = 1.0;
-                ListValue color = ListValue(std::vector<AssignableValue>({AssignableValue(0), AssignableValue(0), AssignableValue(0)}));
                 if (!this->functionCallParams.empty()) {
                     this->requireArgType(L"circle centre", POINT_VARIABLE);
                     interpreter_value passedCentrePoint = this->functionCallParams.front();
                     this->functionCallParams.pop();
-                    centrePoint = std::get<std::shared_ptr<PointValue>>(passedCentrePoint);
-
+                    auto passedCentrePointValue = std::get<std::shared_ptr<PointValue>>(passedCentrePoint);
+                    double xCoord = std::get<double>(*(passedCentrePointValue->getX().value));
+                    double yCoord = std::get<double>(*(passedCentrePointValue->getY().value));
+                    centrePoint = std::make_shared<PointValue>(xCoord, yCoord);
                     if (!this->functionCallParams.empty()) {
                         this->requireArgType(L"radius", DOUBLE_VARIABLE);
                         interpreter_value passedRadius = this->functionCallParams.front();
                         this->functionCallParams.pop();
                         radius = std::get<double>(passedRadius);
 
-                        if (!this->functionCallParams.empty()) {
-                            this->requireArgType(L"color", LIST_VARIABLE);
-                            interpreter_value passedColor = this->functionCallParams.front();
-                            this->functionCallParams.pop();
-                            std::shared_ptr<ListValue> colorList = std::get<std::shared_ptr<ListValue>>(passedColor);
-                            if (colorList->len() != 3) {
-                                this->handleRuntimeError(this->funcCallPosition, L"Array of wrong size passed as color");
-                            }
-                            for (int i=0; i<3; i++) {
-                                interpreter_value colorValue = *((*colorList)[i].value);
-                                if (!std::holds_alternative<int>(colorValue)) {
-                                    this->handleRuntimeError(this->funcCallPosition, L"Argument " + std::to_wstring(i) + L" of color isn't of type int.");
-                                }
-                                int intVal = std::get<int>(colorValue);
-                                if (intVal < 0 || intVal > 255) {
-                                    this->handleRuntimeError(this->funcCallPosition, L"Argument " + std::to_wstring(i) + L" out of rgb values range." + 
-                                        L" It's value is " + std::to_wstring(intVal) + L".");
-                                }
-                            }
-                            color = *colorList;
+
+                        std::shared_ptr<ListValue> colorParam = this->consumeColorParam();
+                        if (colorParam) {
+                            this->lastResult = std::make_shared<FigureValue>(centrePoint, radius, std::move(colorParam));
                         }
+
                     }
                 }
-                this->lastResult = FigureValue(centrePoint, radius, color).shared_from_this();
+                this->lastResult = std::make_shared<FigureValue>(centrePoint, radius);
             }},
     };
 
@@ -386,7 +425,7 @@ private:
                 this->requireArgNum(L".circ()", 0, L"no arguments");
                 auto & points = figureValue->getPoints();
                 if (auto radius = figureValue->getRadius()) {
-                    double rVal = radius.value();
+                    double rVal = *radius;
                     this->lastResult = 2.0 * M_PI * rVal;
                     return;
                 }
@@ -425,7 +464,7 @@ private:
                 this->requireArgNum(L".area()", 0, L"no arguments");
                 auto & points = figureValue->getPoints();
                 if (auto radius = figureValue->getRadius()) {
-                    double rVal = radius.value();
+                    double rVal = *radius;
                     this->lastResult = M_PI_2 * rVal * rVal;
                     return;
                 }
@@ -480,7 +519,7 @@ private:
                     *(namedPoint.second->getY().value) = p1_y;
                 }
                 if (auto radius = figureValue->getRadius()) {
-                    figureValue->setRadius(radius.value()*scale);
+                    figureValue->setRadius(*radius*scale);
                 }
                 this->lastResult = figureValue->shared_from_this();
             }},
@@ -541,8 +580,8 @@ private:
             {L"copy", [this](FigureValue * figureValue){
                 this->requireArgNum(L".copy()", 0, L"no arguments");
                 auto & points = figureValue->getPoints();
-                std::unordered_map<std::wstring, std::shared_ptr<PointValue>> newFigurePoints;
-                auto & color = figureValue->getColor();
+                std::map<std::wstring, std::shared_ptr<PointValue>> newFigurePoints;
+                auto color = figureValue->getColor()->getValues();
                 int r = std::get<int>(*(color[0].value));
                 int g = std::get<int>(*(color[1].value));
                 int b = std::get<int>(*(color[2].value));
@@ -554,7 +593,7 @@ private:
                     std::shared_ptr<PointValue> newPoint = std::make_shared<PointValue>(p1_x, p1_y);
                     newFigurePoints[namedPoint.first] = newPoint;
                 }
-                this->lastResult = FigureValue(newFigurePoints, newColor).shared_from_this();
+                this->lastResult = std::make_shared<FigureValue>(newFigurePoints, std::make_shared<ListValue>(newColor));
             }},
     };
     std::queue<interpreter_value> functionCallParams;
@@ -591,7 +630,9 @@ private:
                                 const std::wstring &operation);
     void requireArgNum(const std::wstring & name, int argNum, const std::wstring & argList);
     void requireArgType(const std::wstring & name, variable_type vt);
-    void requireArgNumBetween(const std::wstring & name, int argNumLower, int argNumUpper, const std::wstring & argList); 
+    void requireArgNumBetween(const std::wstring & name, int argNumLower, int argNumUpper, const std::wstring & argList);
+    void createNewFigure(const std::wstring & name);
+    std::shared_ptr<ListValue> consumeColorParam();
 public:
     VisitorInterpreter(ErrorHandler * eh): errorHandler(eh), funcCallPosition(Position({1, 1})){};
     void visit(ExpressionOr * e);
