@@ -131,6 +131,8 @@ Plik wykonywalny testów to `cmake-build-debug/googletest/Google_Tests_run`.
 Przykładowe programy z kodem źródłowym **trisqr** w znajdują się w folderze `Examples` i `Tests`.
 
 W `Examples` znajdują się:
+- `example_program.trsqr` - program obrazujący kolejne wartości ciągów 1/n i 1/n^2 
+- `triangles.trsqr` - program rysujący coraz mniejsze trójkąty w różnych kolorach
 - `parser_basic.trisqr` - zawiera testy podstawowych funkcjonalności języka
 - `test.trqisqr` - zawiera testy dostępów do list i usuwania ich elementów, kończy się błędem
 - `fibonacci.trisqr` - zawiera implementację rekurencyjną i z użyciem pętli for funkcji wyliczającej wartości ciągu Fibonacciego
@@ -250,11 +252,11 @@ Istnieją wbudowane funkcje:
 - `print(variable)` - przyjmuje 1 argument dowolnego typu, wysyła na standardowe wyjście reprezentacje `variable`
 - `printn(variable)` - print + `'\n'`
 - `input()` - przyjmuje podane przez użytkownika napisy ze standardowego wejścia, pobiera napis do najbliższego białego znaku
-- `draw(list, p1, p2)` - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami, rysowana scena jest rozpięta w prostokącie, którego przeciwległe wierzchołki to p1 i p2. Można pominąć p1 i p2 przy wywoływaniu metody wtedy zostanie narysowana scena, która będzie zawierać wszystkie podane figury (poprzez analizę najmniejszych i największych wartości x i y punktów należacych do sceny)
+- `draw(list, p1, p2)` - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami, rysowana scena jest rozpięta w prostokącie, którego przeciwległe wierzchołki to p1 i p2, p1 lew dolny róg, p2 prawy górny.
 
 ## Punkty
 
-Istnieje zmienna typu ```point```, punkt zawiera współrzędną ```x``` i ```y``` o wartościach double. Tworzymy go tak ```(x, y)```. Do jego wartości moża się dostać za pomocą ```.x``` i ```.y```. Punkty można dodawać i odejmować.
+Istnieje zmienna typu ```point```, punkt zawiera współrzędną ```x``` i ```y``` o wartościach double. Tworzymy ją tak ```(x, y)```. Do jego wartości moża się dostać za pomocą ```.x``` i ```.y```. Punkty można dodawać i odejmować.
 
 ## Tworzenie figur
 
@@ -277,6 +279,15 @@ Figury będą rysowane przez tworzenie linii między kolejno zadeklarowanymi pun
 
 Dodatkowo wprowadzona jest figura ```Circle```. Nowe koło jest tworzone przez: ```Circle(<middle_point>, <radius>)``` lub ```Circle()```, które tworzy koło jednostkowe o środku w punkcie ```(0,0)```.
 
+## Wartości z ustalonym typem
+
+Istnieje 5 rodzajów wartości, które powodują wystąpienie wyjątku przy próbie zapisu do nich innej wartości nieodpowiedniego typu.
+- punkt - przechowuje tylko wartości double
+- punkt figury - przy próbie zapisu innej wartości niż punkt mamy wyjątek
+- promień - szczególny parametr Circle(), tylko wartość double
+- kolor figury - lista 3 int od 0 do 255
+- parametr koloru figury - int od 0 do 255
+
 ## Metody i atrybuty figur
 
 ### Współdzielone
@@ -284,223 +295,47 @@ Dodatkowo wprowadzona jest figura ```Circle```. Nowe koło jest tworzone przez: 
 Metody:
 - .<nazwa_punktu_z_deklaracji> - punkt 
 - .circ() - zwraca obwód
-- .area() - zwraca pole, w przypadku figur, których boki się przecinają zwracane jest ```-1```.
+- .area() - zwraca pole liczone metodą trapezów, dla figur samoprzecinających się wyniki będą niepoprawne
 - .scale(double scale) - skaluje figurę w stosunku do początku układu współrzędnych o skalę scale
-- .scale(double scale, (double x1, double y1)) - skaluje figurę o skalę scale w stosunku do wybranego punktu
-- .rotate(double angle) - obraca figurę wokół początku układu współrzędnych o kąt angle podawany w radianach
+- .rotate((double x1, double y1), double angle) - obraca figurę wokół początku układu współrzędnych o kąt angle podawany w radianach, ##nie zachachowuje kształtu figury
 - .transport(double x, double y) - przesuwa figurę o wektor (x, y)
 - .copy() - zwraca kopię danej figury
 
 Parametry:
 - color - [int r, int g, int b] kolor linii figury w RGB, domyślnie ustawiane na [0,0,0]
-- border - (double) grubość linii
 
 ### Charakterystyczne
 
 - koło:
   - .r - parametr oznaczający promień
-  - .cent - parametr oznaczający środek 
-
-## Złożone przykłady wykorzystania języka
-
-### Przykład nr 1
-Coś à la trójkąt Sierpińskiego:
-
-```
-figure Triangle {
-  a: (0.0, 0.0),
-  b: (1.0, 0.0),
-  c: (0.0, 1.0),
-}
-
-func sierpinsky(a, b, c, n, list){
-  if (n <= 0) {
-    return;
-  }
-  vv n_n = n-1;
-  vv newTriangle = Traingle(a, b, c);
-  x_off = (b.x-a.x)/2.0;
-  y_off = (c.y-a.y)/2.0;
-  newTriangle.color = [255, 255, 255];
-  newTriangle.color = 0;
-  list.append(newTriangle);
-  sierpinsky((a.x-x_off, a.y-y_off), (b.x, b.y-y_off), (c.x-x_off, c.y), n_n, list);
-  sierpinsky((a.x+x_off, a.y-y_off), (b.x, b.y-y_off), (c.x+x_off, c.y), n_n, list);
-  sierpinsky((a.x-x_off, a.y+y_off), (b.x, b.y+y_off), (c.x-x_off, c.y), n_n, list);
-}
-
-func main() {
-  vv sierpinskyList = [];
-  vv newTriangle = Triangle();
-  newTriangle.rotate(pi)
-  newTriangle.scale(16.0)
-  newTriangle.color = [0, 0, 0];
-  newTriangle.color = 0;
-  sierpinsky((8.0, 8.0), (0.0, 8.0), (8.0, 0.0), 6, sierpinskyList)
-  draw(sierpinskyList, (-1.0, -1.0), (17.0, 17.0));
-}
-
-```
-
-### Przykład nr 2
-Tworzymy coraz minejsze kwadraty obrazujące kolejne elementy ciągów 1/n^2 i 1/2^(2*n):
-```
-figure Square {
-  a: (0.0,0.0),
-  b: (0.0,1.0),
-  c: (1.0,0.0),
-  d: (1.0,1.0)
-}
-
-func power(base, n) {
-  if(n>0){
-    return base*power(base, n-1);
-  } elif (n < 0) {
-    return -1;
-  }
-  return 1;
-}
-
-func sumAreas(list) {
-  vv sum = 0;
-  for el in list{
-    if(el is Figure){
-      sum = sum + el.area();
-    }
-  }
-  return sum;
-}
-
-func main() {
-  vv list1 = [];
-  vv list2 = [];
-  vv n = 10;
-  vv sum_of_scale1 = 0.0;
-  vv sum_of_scale2 = 0.0;
-  vv base_sqr = Square();
-  fori i in (0, n){
-    vv scale1 = power(0.5, i);
-    vv scale2 = 1.0/(i to double);
-    vv sqr1 = base_sqr.copy().scale(scale1);
-    vv sqr2 = base_sqr.copy().scale(scale2);
-    sqr1.transport(sum_of_scale1 + scale1/2.0, scale1/2.0);
-    sqr2.transport(-sum_of_scale2 + -scale2/2.0, scale2/2.0);
-    sum_of_scale1 = sum_of_scale1 + scale1;
-    sum_of_scale2 = sum_of_scale2 + scale2;
-    list1.append(sqr1);
-    list2.append(sqr2);
-  }
-  vv sum1 = sumAreas(list1);
-  vv sum2 = sumAreas(list2);
-  vv max_sum = 0.0;
-  if (sum1 > sum2) {
-    max_sum = sum1;
-  } else {
-    max_sum = sum2;
-  }
-  print("Suma 1: " + sum1 to str);
-  print("Suma 2: " + sum2 to str);
-  list_to_draw = list1 + list2;
-  draw(list_to_draw, (list2[list2.len-1].a.x - 1.0, -1.0), (list1[list1.len-1].a.x + 1.0, max_sum + 1.0));
-}
-```
+  - .c - parametr oznaczający środek 
 
 ## Przykłady błędów
 
 ### Błędy leksykalne
-Dla kodu w rodzaju:
-```
-1.2 to str + '3 to int; \n\r\n \r vv a;  \r\n
-```
-Pojawi się błąd:
-```
-LEX_ERR: String is not closed.
-Line 1, character 14: '3 to int; \n\r\n \r vv a;  \r\n << error
-```
-Dla kodu w rodzaju:
-```
-1.2'3 to int; \n\r\n \r vv a;  \r\n
-```
-Pojawi się błąd:
-```
-LEX_ERR: String is not closed.
-Line 1, character 4: '3 to int; \n\r\n \r vv a;  \r\n << error
-```
-Dla kodu w rodzaju:
-```
-2.2147483648 2147483648.2147483648
-```
-Pojawi się błąd:
-```
-LEX_ERR: Number after . is too big.
-Line 1, character 1: 2.2147483648 << error
-LEX_ERR: Number is too big.
-Line 1, character 14: 2147483648 << error
-LEX_ERR: Number is too big.
-Line 1, character 25: 2147483648 << error
-```
-Dla kodu w rodzaju:
-```
-if (1.33 to int == 1 & true) {
-  a = a+1;
-}
-```
-Pojawi się błąd
-```
-LEX_ERR: Missing second & in && operator.
-Line 1, character 22: &  << error
-```
-### Błędy składniowe
-Dla kodu w rodzaju:
-```
-if 1.33 to int == 1 && true) {
-  a = a+1;
-}
-```
-Przerwie się dalsze sprawdzanie i pojawi się błąd
-```
-PARSE_ERR: Missing left bracket.
-Line 1, character 4: if 1.33  << error
-```
-Dla kodu w rodzaju:
-```
-if (1.33 to int == 1 && {}) {
-  a = a+1;
-}
-```
-Przerwie się dalsze sprawdzanie i pojawi się błąd
-```
-PARSE_ERR: Wrong character after and operator.
-Line 1, character 22: && {}  << error
-```
-### Błędy semantyczne
-Dla kodu w rodzaju:
-```
-vv a = 0;
-vv b = 0;
-if (1.33 to int == 1 & true) {
-  a = b();
-}
-```
-Pojawi się błąd
-```
-ERR: b is not a function or method.
-Line 4, character 7: b()  << error
-```
-Dla kodu w rodzaju:
-```
-figure Triangle {a:(0.0, 0.0), b:(0.0, 1.0), c:(1.0, 0.0)}
+Analiza
 
-func main() {
-  vv tr1 = Triangle();
-  vv d = tr1.d;
-}
-```
-Pojawi się błąd
-```
-ERR: Triangle does not have attribute d.
-Line 4, character 7: tr1.d  << error
-```
+### Błędy składniowe
+
+Po wykryciu błędu parser rzuca wyjątek.
+
+### Błędy semantyczne
+
+Sprawdzane są ponowne deklaracje identyfikatorów, braki deklaracji identyfikatorów i ustawianie nazwy identyfikatorów na nazwy funkcji i metod wewnętrznych. Analizator semantyczny rzuca wyjątek po przeanalizowaniu całego programu i wypisaniu wykrytych błędów.
+
+### Błędy semantyczne
+
+Sprawdzane są ponowne deklaracje identyfikatorów, braki deklaracji identyfikatorów i ustawianie nazwy identyfikatorów na nazwy funkcji i metod wewnętrznych. Analizator semantyczny rzuca wyjątek po przeanalizowaniu całego programu i wypisaniu wykrytych błędów.
+
+### Błędy wykryte podczas wykonania
+
+Błędy wykonania są zgłaszane, jeśli się odwołamy do nieistniejących elementów listy, porównamy, dodamy lub pomnożymy nieprawidłowe wartości. Pojawiają się też jeśli przypiszemy wartości niedozwolone odpowiednim zmiennym oraz w przypadku, gdy użyjemy nieodpowiednich argumentów we wbudowanych metodach i funkcjach. 
+
+
+### Błędy interpretera
+
+W przypadku braku wartości wyrażenia pomimo oczekiwania jej przez interpreter, jest sygnalizowany błąd interpretera, oznacza on bład w implementacji.
+
 ## Operatory
 
 Im większa liczba, tym wyższy priorytet.
