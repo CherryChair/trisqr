@@ -1,0 +1,46 @@
+figure Triangle {
+    a: (-12.0,0.0),
+    b: (0.0, 6.0*1.7320508),
+    c: (-12.0,0.0)
+}
+figure InvertedTriangle {
+    a: (-12.0,0.0),
+    b: (0.0, -6.0*1.7320508),
+    c: (12.0,0.0)
+}
+
+func moveAndScale(listToDraw, scaleFig, vector) {
+    vv currentTriangle = InvertedTriangle();
+    currentTriangle.scale(scaleFig);
+    currentTriangle.transport(vector);
+    listToDraw.append(currentTriangle);
+}
+
+func mod255(number) {
+    vv div = number/255;
+    return number - div * 255;
+}
+
+func main() {
+    vv baseTriangle = Triangle();
+    baseTriangle.color[2] = 255;
+    vv invertedTriangle = InvertedTriangle();
+    vv toDraw = [invertedTriangle];
+    invertedTriangle.color[0] = 255;
+    vv continue = 'y';
+    vv scaleFig = 1.0/1.25;
+    vv vector = (0.0, 6.0*1.7320508);
+    invertedTriangle.transport(vector);
+    vv rgb = [55,121,43];
+    while(continue == 'y') {
+        printn('Do you wish to continue? (y/n)');
+        moveAndScale(toDraw, scaleFig, vector);
+        toDraw[toDraw.len()-1].color = rgb;
+        draw(toDraw, (-13.0,-1.0), (13.0,6.0*1.7320508+1.0));
+        continue = input();
+        printn('');
+        scaleFig = scaleFig / 1.25;
+        rgb = [mod255(rgb[0]*3),mod255(rgb[1]*4),mod255(rgb[2]*7)];
+    }
+    printn('END');
+}
