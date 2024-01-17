@@ -19,7 +19,6 @@ Język realizacji: **c++**
     - [Budowanie z testami.](#budowanie-z-testami)
     - [Budowanie tylko pliku wykonywalnego interpretera](#budowanie-tylko-pliku-wykonywalnego-interpretera)
   - [Uruchamianie programu](#uruchamianie-programu)
-  - [Konfiguracja](#konfiguracja)
   - [Obsługiwane typy zmiennych](#obsługiwane-typy-zmiennych)
   - [Komentarze](#komentarze)
   - [Tworzenie zmiennych](#tworzenie-zmiennych)
@@ -28,19 +27,21 @@ Język realizacji: **c++**
   - [Funkcje](#funkcje)
   - [Punkty](#punkty)
   - [Tworzenie figur](#tworzenie-figur)
+  - [Wartości z ustalonym typem](#wartości-z-ustalonym-typem)
   - [Metody i atrybuty figur](#metody-i-atrybuty-figur)
     - [Współdzielone](#współdzielone)
     - [Charakterystyczne](#charakterystyczne)
-  - [Złożone przykłady wykorzystania języka](#złożone-przykłady-wykorzystania-języka)
-    - [Przykład nr 1](#przykład-nr-1)
-    - [Przykład nr 2](#przykład-nr-2)
-  - [Przykłady błędów](#przykłady-błędów)
+  - [Opis błędów](#opis-błędów)
     - [Błędy leksykalne](#błędy-leksykalne)
     - [Błędy składniowe](#błędy-składniowe)
     - [Błędy semantyczne](#błędy-semantyczne)
+    - [Błędy semantyczne](#błędy-semantyczne-1)
+    - [Błędy wykryte podczas wykonania](#błędy-wykryte-podczas-wykonania)
+    - [Błędy interpretera](#błędy-interpretera)
   - [Operatory](#operatory)
   - [Gramatyka](#gramatyka)
   - [Testowanie](#testowanie)
+  - [Znane błędy implementacji](#znane-błędy-implementacji)
 
 ## Treść zadania
 
@@ -141,10 +142,6 @@ W `Tests` znajdują się:
 - `semantic_hell.trisqr` - plik zawierający dużo błędów semantycznych, testuje działanie analizatora semantycznego 
 - `parser_condition_tests.trisqr` - plik testujący ewaluację wyrażeń z `||` i `&&`, jest on wykorzystywany w interpreter_tests.cpp
 
-## Konfiguracja
-
-W plikach konfiguracyjnych zdefiniujemy m.in. wartość PI, maksymalną długość wartości napisów w kodzie. 
-
 ## Obsługiwane typy zmiennych
 
 Wariant typowania: dynamiczne, silne.
@@ -202,6 +199,7 @@ vv nazwa_zmiennej
 ```
 Wartości zmiennych są przechowywane przez referencje.
 Nie ma możliwości tworzenia zmiennych globalnych.
+
 ## Instrukcja warunkowa
 
 Instrukcja warunkowa ma postać:
@@ -273,11 +271,11 @@ figure Triangle{
 }
 ```
 Deklaracje podajemy poza funkcjami, punkty mogą zawierać w sobie wyrażenia, które są ewaluowane na początku działania programu przed funkcją main.
-Tak zadeklarowaną figurę tworzymy za pomocą ```vv triangle1 = Triangle((x1,y1), (x2,y2), (x3,y3), [r,g,b])``` lub za pomocą ```vv triangle2 = Triangle()```, wtedy jest tworzona z domylnymi wartościami punktów z deklaracji. Potem możemy dostawać się do punktów za pomocą nazw nadanych w deklaracji. Np. ```triangle1.a```. 
+Tak zadeklarowaną figurę tworzymy za pomocą ```vv triangle1 = Triangle((x1,y1), (x2,y2), (x3,y3), [r,g,b])```, możemy pominąć kolor w parametrach albo wszystkie parametry ```vv triangle2 = Triangle()```, wtedy jest tworzona z domyślnymi wartościami punktów z deklaracji. Potem możemy dostawać się do punktów za pomocą nazw nadanych w deklaracji. Np. ```triangle1.a```. 
 
 Figury będą rysowane przez tworzenie linii między kolejno zadeklarowanymi punktami, np. w przykładowym ```Triangle```, rysujemy linie a->b, b->c, c->b.
 
-Dodatkowo wprowadzona jest figura ```Circle```. Nowe koło jest tworzone przez: ```Circle(<middle_point>, <radius>)``` lub ```Circle()```, które tworzy koło jednostkowe o środku w punkcie ```(0,0)```.
+Dodatkowo wprowadzona jest figura ```Circle```. Nowe koło jest tworzone przez: ```Circle(<middle_point>, <radius>)``` lub ```Circle()```, które tworzy koło jednostkowe o środku w punkcie ```(0,0)```. Można też podać kolor.
 
 ## Wartości z ustalonym typem
 
@@ -310,10 +308,10 @@ Parametry:
   - .r - parametr oznaczający promień
   - .c - parametr oznaczający środek 
 
-## Przykłady błędów
+## Opis błędów
 
 ### Błędy leksykalne
-Analiza
+Analiza leksykalna sprawdza, czy udało się poprawnie stworzyć token, w przypadku wystąpienia zbyt długiego napisu, komentarza lub liczby tworzy token z maksymalną dozwoloną liczbą analizowanych znaków, ostrzega o tworzeniu zbyt dużych liczb całkowitych lub zmiennoprzecinkowych.
 
 ### Błędy składniowe
 
@@ -445,3 +443,8 @@ W przypadku analizatora składniowego zaimplementowane są odpowiednie funkcje d
 W przypadku analizatora semantycznego testy były przeprowadzane przez analizę komunikatów o błedach w pliku `Tests/semantic_hell.trisqr`.
 
 Istnieje możliwość tworzenia testów akceptacyjnych dla interpretera, w `interpreter_tests.cpp` jest jeden przykładowy test sprawdzający kolejność i wczesne akceptowanie wyniku podczas ewaluacji wyrażeń logicznych. Wykonuje on program, którego kod źródłowy jest w `Tests/parser_condition_tests.cpp`, testowane jest, czy program przekazuje na standadowe wyjście napisy PASS oddzielone nowymi linijkami.
+
+## Znane błędy implementacji
+
+- w przypadku wystąpienia nierozpoznanego zanku, parser wykrywa koniec funkcji i kończy analize ogłaszając błąd składniowy
+- w przypadku tworzenia figury i natychmiastowego jej skalowania figura z przypisaną wartością `vv a = Trianlge().scale(2.0)` pojawia się błąd złego dostępu do wariantu, wartości przechowywane w punktach są niezaincjalizowane
