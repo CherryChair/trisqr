@@ -1,0 +1,99 @@
+func function_test(a, b, c) {
+    vv variable_list = [a, b, c];
+    vv variable_name_list = ['a', 'b', 'c'];
+    for i in range(0, variable_list.len()) {
+        print(variable_name_list[i] + ': ' + variable_list[i] to str + '\n');
+    }
+}
+
+func mutability_test(a_int, b_double, c_string, d_bool, e_none, f_list, g_figure, h_point) {
+    vv variable_list = [a_int, b_double, c_string, d_bool, e_none, f_list, g_figure, h_point];
+    print('BEFORE_CHANGE\n');
+    for i in variable_list {
+        print(i);
+        print('\n');
+    }
+    mutability_test_change(a_int, b_double, c_string, d_bool, e_none, f_list, g_figure, h_point);
+    print('AFTER_CHANGE\n');
+    for i in variable_list {
+        print(i);
+        print('\n');
+    }
+}
+
+func mutability_test_change(a_int, b_double, c_string, d_bool, e_none, f_list, g_figure, h_point) {
+    a_int = 999;
+    b_double = 999.99;
+    c_string = '999.99';
+    d_bool = false;
+    e_none = none;
+    f_list[0] = [123,['23213', a_int, [(2.3, 6.7)]], 5];
+    g_figure.y = 8787.87;
+    h_point.x = 8.8;
+}
+
+func main() {
+    vv a = 123;
+    vv b = 32;
+    vv c = [a, b, 32.3, 'apples', a];
+    a = 'oranges';
+    print('test1\n');
+    print('---------------------\n');
+    for i in c {
+        print(i to str + '\n');
+    }
+    print('---------------------\n');
+    vv list_test = [1,23,'ppp'];
+    vv list_test_2 = [1,23,'ppp'];
+    vv list_test_3 = list_test;
+    vv list_list_test = [list_test, list_test_2, [0,0,0]];
+    list_test[0] = 'nowa_wartosc';
+    list_test[1] = 'klan';
+    list_test_2[0] = 'nowa_wartosc';
+    list_test_2[1] = 'klan';
+    list_list_test[0] = ['zamiana_listy'];
+    print('test2\n');
+    print('---------------------\n');
+    for i in list_list_test {
+        print(i);
+        print('\n');
+    }
+    print('---------------------\n');
+    print('test3\n');
+    print('---------------------\n');
+    print(list_test);
+    print('\n');
+    print(list_test_3);
+    print('\n---------------------\n');
+    print('test4\n');
+    print('---------------------\n');
+    list_test_3 = 20;
+    print(list_test);
+    print('\n');
+    print(list_test_3);
+    print('\n---------------------\n');
+    print('test5\n');
+    print('---------------------\n');
+    if (list_test_3+1 == 20 + 1) {
+        print('yay\n');
+    } else {
+        print('nay\n');
+    }
+    print('---------------------\n');
+    print('test6\n');
+    print('---------------------\n');
+    function_test(123, 0.2389238, 'TEST');
+    print('---------------------\n');
+    print('test7\n');
+    print('---------------------\n');
+    mutability_test(123, 0.2, 'wart1', true, none, ['tobechanged', 'tostay'], (9.9,9.9), (0.0,0.0));
+    print('---------------------\n');
+    print('test8\n');
+    print('---------------------\n');
+    if (list_test_3+1 == 20 + 1) {
+        print('yay\n');
+    } elsif (list_test_3 is int) {
+        print('nay\n');
+    }
+    print('---------------------\n');
+}

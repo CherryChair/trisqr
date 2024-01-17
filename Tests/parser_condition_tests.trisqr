@@ -1,0 +1,92 @@
+func begin_function_test(list_with_test_index) {
+    #print('---------------------\n');
+    #print('test_' + list_with_test_index[0] to str + '\n');
+    #print('---------------------\n');
+    list_with_test_index[0] = list_with_test_index[0] + 1;
+}
+
+func condition_test(condition, list_with_test_index) {
+    begin_function_test(list_with_test_index);
+    if(condition) {
+        print('PASS\n');
+    } else {
+        print('FAIL!!!!!\n');
+    }
+}
+
+figure Triangle {
+    a: (0.0, 0.0),
+    b: (1.0, 0.0),
+    c: (0.0, 1.0)
+}
+
+func main() {
+    vv list_with_test_index = [99];
+    vv index = [1];
+    vv test_variable = 'aaaaa';
+    condition_test(test_variable is str, index);
+    test_variable = 1;
+    condition_test(test_variable is int, index);
+    test_variable = 1.0;
+    test_variable = condition_test(test_variable is double, index);
+    condition_test(test_variable is none, index);
+    test_variable = [123123, 0.123, [12.3, (1.1,2.1)]];
+    condition_test(test_variable is list, index);
+    test_variable = true;
+    condition_test(test_variable is bool, index);
+    test_variable = (1.2, 0.1283);
+    condition_test(test_variable is point, index);
+    #test_variable = Triangle();
+    #condition_test(test_variable is figure, index);
+    condition_test(true, index);
+    condition_test(true || true, index);
+    condition_test(true || false, index);
+    condition_test(false || true, index);
+    condition_test(!(false || false), index);
+    condition_test(true && true, index);
+    condition_test(!(true && false), index);
+    condition_test(!(false && false), index);
+    condition_test(!(false && true), index);
+    tests_of_evaluation_of_left_condition(index);
+}
+
+func fail_if_this_gets_evaluated() {
+    print('FAIL!!!!!\n');
+    return false;
+}
+
+func pass_if_this_gets_evaluated() {
+    print('PASS\n');
+    return true;
+}
+
+func tests_of_evaluation_of_left_condition(index) {
+    begin_function_test(index);
+    if(true || fail_if_this_gets_evaluated()) {
+        print('PASS\n');
+    }
+    begin_function_test(index);
+    if(!(false && fail_if_this_gets_evaluated())) {
+        print('PASS\n');
+    }
+    begin_function_test(index);
+    if(true || fail_if_this_gets_evaluated() || !fail_if_this_gets_evaluated() || !fail_if_this_gets_evaluated()) {
+        print('PASS\n');
+    }
+    begin_function_test(index);
+    if(!(false && fail_if_this_gets_evaluated() && fail_if_this_gets_evaluated() && fail_if_this_gets_evaluated())) {
+        print('PASS\n');
+    }
+    begin_function_test(index);
+    if(pass_if_this_gets_evaluated() && true || fail_if_this_gets_evaluated()){
+        print('PASS\n');
+    }
+    begin_function_test(index);
+    if(pass_if_this_gets_evaluated() || false && fail_if_this_gets_evaluated()){
+        print('PASS\n');
+    }
+    begin_function_test(index);
+    if(pass_if_this_gets_evaluated() && pass_if_this_gets_evaluated() && pass_if_this_gets_evaluated()){
+        print('PASS\n');
+    }
+}

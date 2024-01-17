@@ -1,0 +1,67 @@
+figure Square {
+  a: (0.0,0.0),
+  b: (0.0,1.0),
+  c: (1.0,1.0),
+  d: (1.0,0.0)
+}
+
+func power(base, n) {
+  vv value = 1.0;
+  if (n < 0) {
+    return -1;
+  }
+  for i in range(0, n) {
+    value = base * value;
+  }
+  return value;
+}
+
+func sumAreas(figureList) {
+  vv sum = 0.0;
+  for el in figureList{
+    if(el is figure){
+      printn('Suma figury: ' + el.area() to str);
+      sum = sum + el.area();
+    }
+  }
+  return sum;
+}
+
+func main() {
+  vv list1 = [];
+  vv list2 = [];
+  print('Choose how many sequence elements to visualise');
+  vv n = input() to int;
+  vv sum_of_scale1 = 0.0;
+  vv sum_of_scale2 = 0.0;
+  vv base_sqr = Square();
+  for i in range(1, n){
+    vv scale1 = power(0.5, i);
+    vv scale2 = 1.0/(i to double);
+    printn(scale2);
+    vv sqr1 = base_sqr.copy();
+    vv sqr2 = base_sqr.copy();
+    sqr1.color[0] = 255;
+    sqr2.color[2] = 255;
+    sqr1.scale(scale1);
+    sqr2.scale(scale2);
+    sum_of_scale1 = sum_of_scale1 + scale1;
+    sum_of_scale2 = sum_of_scale2 + scale2;
+    sqr1.transport((sum_of_scale1, 0.0));
+    sqr2.transport((-scale2, 0.0));
+    list1.append(sqr1);
+    list2.append(sqr2);
+  }
+  vv sum1 = sumAreas(list1);
+  vv sum2 = sumAreas(list2);
+  vv max_sum = 0.0;
+  if (sum1 > sum2) {
+    max_sum = sum1;
+  } else {
+    max_sum = sum2;
+  }
+  printn('Suma 1: ' + sum1 to str);
+  printn('Suma 2: ' + sum2 to str);
+  vv list_to_draw = list1 + list2;
+  draw(list_to_draw, (- 1.1, -1.1), (1.1, 1.1));
+}

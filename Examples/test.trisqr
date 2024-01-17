@@ -1,0 +1,57 @@
+figure Triangle {
+    a: (12.0, 12.0),
+    b: (0.0, 0.0),
+    c: (0.0, 32.0)
+}
+
+func main() {
+    vv a = [1, [23, 3.2], (2.3, 3.4)];
+    printn(a);
+    a.append(12, 32);
+    printn(a);
+    printn(a.len());
+    a[1].append(2.3, [6.6]);
+    printn(a);
+    a[2].x = 0.0;
+    a[2].y = 0.1;
+    a.append(a);
+    printn(a);
+    a[1][3][0] = 'changed';
+    printn(a);
+    vv b = a[1][3][0];
+    printn(b);
+    a[1][3].delete(0);
+    printn(a);
+    a[1].delete(0);
+    printn(a);
+    a[1].delete(0);
+    printn(a);
+    a[1].delete(0);
+    printn(a);
+    a.delete(0);
+    printn(a);
+    a.delete(0);
+    printn(a);
+    a.delete(0);
+    printn(a);
+    a.delete(0);
+    printn(a);
+    a.delete(0);
+    printn(a);
+    a.delete(0);
+    vv cir = Circle((10.0, 10.0), 1.2, [255, 0, 0]);
+    vv tr1 = Triangle();
+    vv tr2 = Triangle((-2.0, 10.0), (1.2, 3.2), (5.5, 5.5));
+    tr2.color = [0,255,0];
+    tr2.b = (10.0,10.0);
+    cir.r = 8.0;
+    #cir.color = [0,0,255];
+    tr1.c = (0.0, 13.0);
+    tr1.c.x = 15.0;
+    tr1.c.y = 0.0;
+    tr1.color = [255,0,0];
+    tr1.color[1] = 122;
+    draw([cir, tr1, tr2], (-1.0, -1.0), (14.0, 14.0));
+    printn(a); #
+    #a[0]; #spodziewamy sie bledu
+}
