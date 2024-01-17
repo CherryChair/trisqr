@@ -82,10 +82,12 @@ public:
     unsigned int len() {
         return values.size();
     }
-    ListValue operator+(const ListValue & lv) {
+    std::shared_ptr<ListValue> operator+(ListValue & lv) {
         std::vector<AssignableValue> copy_values = this->values;
-        copy_values.insert(values.end(), lv.values.begin(), lv.values.end());
-        return ListValue(std::move(copy_values));
+        for (auto el : lv.getValues()) {
+            copy_values.push_back(el);
+        }
+        return std::make_shared<ListValue>(copy_values);
     }
     void append(AssignableValue & value) {
         this->values.push_back(value);
@@ -498,8 +500,8 @@ private:
                 double angle = std::get<double>(angleParam);
                 double p1_x;
                 double p1_y;
-                double rot_x = sin(angle);
-                double rot_y = cos(angle);
+                double sin_rot = sin(angle);
+                double cos_rot = cos(angle);
 
                 for (auto & namedPoint : points) {
                     std::shared_ptr<PointValue> pointValue = std::get<std::shared_ptr<PointValue>>(*(namedPoint.second.value));
@@ -507,8 +509,8 @@ private:
                     p1_y = std::get<double>(*(pointValue->getY().value));
                     p1_x -= rotation_point_x;
                     p1_y -= rotation_point_y;
-                    p1_x = p1_x * rot_x - p1_y * rot_y;
-                    p1_y = p1_x * rot_y + p1_y * rot_x;
+                    p1_x = p1_x * cos_rot - p1_y * sin_rot;
+                    p1_y = p1_x * sin_rot + p1_y * cos_rot;
                     p1_x += rotation_point_x;
                     p1_y += rotation_point_y;
                     *(pointValue->getX().value) = p1_x;

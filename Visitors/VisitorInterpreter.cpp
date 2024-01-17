@@ -233,41 +233,47 @@ void VisitorInterpreter::visit(IdentifierFunctionCallExpression * e) {
     e->identifierExpression->accept(*this);
     interpreter_value identifierExpression = this->lastResult.value();
     std::wstring functionName = std::get<std::wstring>(identifierExpression);
+    std::queue<interpreter_value> fParams;
     if (internalListFunctions.find(functionName) != internalListFunctions.end()) {
         ListValue * listValue = std::get<std::shared_ptr<ListValue>>(this->consumeLastResultAndAccessedObject()).get();
         for (auto & expression : e->expressions) {
             expression->accept(*this);
-            functionCallParams.push(this->consumeLastResultAndAccessedObject());
+            fParams.push(this->consumeLastResultAndAccessedObject());
         }
+        functionCallParams = fParams;
         internalListFunctions.at(functionName)(listValue);
     } else if (internalFigureFunctions.find(functionName) != internalFigureFunctions.end()) {
         FigureValue * figureValue = std::get<std::shared_ptr<FigureValue>>(this->consumeLastResultAndAccessedObject()).get();
         for (auto & expression : e->expressions) {
             expression->accept(*this);
-            functionCallParams.push(this->consumeLastResultAndAccessedObject());
+            fParams.push(this->consumeLastResultAndAccessedObject());
         }
+        functionCallParams = fParams;
         internalFigureFunctions.at(functionName)(figureValue);
     } else if (internalFunctions.find(functionName) != internalFunctions.end()) {
         this->consumeLastResultAndAccessedObject();
         for (auto & expression : e->expressions) {
             expression->accept(*this);
-            functionCallParams.push(this->consumeLastResultAndAccessedObject());
+            fParams.push(this->consumeLastResultAndAccessedObject());
         }
+        functionCallParams = fParams;
         internalFunctions.at(functionName)();
     } else if (this->getFigureScope().getVariables().find(functionName) != this->getFigureScope().getVariables().end()){
         this->consumeLastResultAndAccessedObject();
         for (auto & expression : e->expressions) {
             expression->accept(*this);
-            functionCallParams.push(this->consumeLastResultAndAccessedObject());
+            fParams.push(this->consumeLastResultAndAccessedObject());
         }
+        functionCallParams = fParams;
         this->createNewFigure(functionName);
     } else {
         this->consumeLastResultAndAccessedObject();
         FuncDeclaration * function = functionDeclarations[functionName];
         for (auto & expression : e->expressions) {
             expression->accept(*this);
-            functionCallParams.push(this->consumeLastResultAndAccessedObject());
+            fParams.push(this->consumeLastResultAndAccessedObject());
         }
+        functionCallParams = fParams;
         function->accept(*this);
     }
     this->accessedObject = AssignableValue(this->consumeLastResultAndAccessedObject()); //2)//3)
@@ -334,6 +340,11 @@ void VisitorInterpreter::visit(WhileStatement * s) {
     this->addNewScope();
     s->conditionAndBlock->accept(*this);
     this->popScope();
+    while(this->consumeConditionTrue()) {
+        this->addNewScope();
+        s->conditionAndBlock->accept(*this);
+        this->popScope();
+    }
 }
 void VisitorInterpreter::visit(IfStatement * s) {
     this->addNewScope();
@@ -452,9 +463,7 @@ void VisitorInterpreter::visit(ConditionAndBlock * cb) {
 
     cb->condition->accept(*this);
     interpreter_value conditionValue = this->consumeLastResultAndAccessedObject();
-    if(!std::holds_alternative<bool>(conditionValue)) {
-        this->handleRuntimeError(cb->position, L"Condition evaluated to non boolean value.");
-    }
+    this->requireExpressionType(cb->position, conditionValue, BOOL_VARIABLE, L"Condition evaluated to non boolean value.");
     if(std::get<bool>(conditionValue)) {
         cb->block->accept(*this);
         this->lastConditionTrue = true;
@@ -648,7 +657,7 @@ interpreter_value operator+(const interpreter_value & value1, const interpreter_
         } case 6: {
             ListValue * list1 = std::get<std::shared_ptr<ListValue>>(value1).get();
             ListValue * list2 = std::get<std::shared_ptr<ListValue>>(value2).get();
-            return std::make_shared<ListValue>(*list1 + *list2);
+            return (*list1 + *list2);
         } case 7: {
             std::wcerr << L"ERR: Addition between FigureValue illegal";
             throw;

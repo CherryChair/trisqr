@@ -108,12 +108,18 @@ void VisitorSemantic::visit(IfStatement * s) {
 }
 void VisitorSemantic::visit(ForStatement * s) {
     s->expression->accept(*this);
+    this->addNewScope();
+    this->insertVariableNameToCurrentScope(s->identifier);
     s->block->accept(*this);
+    this->popScope();
 }
 void VisitorSemantic::visit(ForRangeStatement * s) {
     s->leftExpression->accept(*this);
     s->rightExpression->accept(*this);
+    this->addNewScope();
+    this->insertVariableNameToCurrentScope(s->identifier);
     s->block->accept(*this);
+    this->popScope();
 }
 void VisitorSemantic::visit(DeclarationStatement * s) {
     found_type foundType = this->findVariable(s->identifierName);
