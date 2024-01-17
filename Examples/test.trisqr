@@ -44,6 +44,13 @@ func main() {
     vv tr2 = Triangle((-2.0, 10.0), (1.2, 3.2), (5.5, 5.5));
     tr2.color = [0,255,0];
     tr2.b = (10.0,10.0);
+    cir.r = 8.0;
+    #cir.color = [0,0,255];
+    tr1.c = (0.0, 13.0);
+    tr1.c.x = 15.0;
+    tr1.c.y = 0.0;
+    tr1.color = [255,0,0];
+    tr1.color[1] = 122;
     draw([cir, tr1, tr2], (-1.0, -1.0), (14.0, 14.0));
     printn(a); #
     #a[0]; #spodziewamy sie bledu

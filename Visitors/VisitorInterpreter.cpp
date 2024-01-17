@@ -7,35 +7,27 @@
 void VisitorInterpreter::visit(ExpressionOr * e) {
     e->leftExpression->accept(*this);
     interpreter_value leftExpressionValue = this->consumeLastResultAndAccessedObject();
-    if (!std::holds_alternative<bool>(leftExpressionValue)) {
-        this->handleRuntimeError(e->position, L"Expression on left to 'or' evaluated to non boolean.");
-    }
+    this->requireExpressionType(e->position, leftExpressionValue, BOOL_VARIABLE, L"Expression on left to 'or' evaluated to non boolean.");
     if(std::get<bool>(leftExpressionValue)) {
         this->lastResult = true;
         return;
     }
     e->rightExpression->accept(*this);
     interpreter_value rightExpressionValue = this->consumeLastResultAndAccessedObject();
-    if (!std::holds_alternative<bool>(rightExpressionValue)) {
-        this->handleRuntimeError(e->position, L"Expression right to 'or' evaluated to non boolean.");
-    }
+    this->requireExpressionType(e->position, leftExpressionValue, BOOL_VARIABLE, L"Expression right to 'or' evaluated to non boolean.");
     this->lastResult = std::get<bool>(rightExpressionValue);
 }
 void VisitorInterpreter::visit(ExpressionAnd * e) {
     e->leftExpression->accept(*this);
     interpreter_value leftExpressionValue = this->consumeLastResultAndAccessedObject();
-    if (!std::holds_alternative<bool>(leftExpressionValue)) {
-        this->handleRuntimeError(e->position, L"Expression left to 'and' evaluated to non boolean.");
-    }
+    this->requireExpressionType(e->position, leftExpressionValue, BOOL_VARIABLE, L"Expression left to 'and' evaluated to non boolean.");
     if(!std::get<bool>(leftExpressionValue)) {
         this->lastResult = false;
         return;
     }
     e->rightExpression->accept(*this);
     interpreter_value rightExpressionValue = this->consumeLastResultAndAccessedObject();
-    if (!std::holds_alternative<bool>(rightExpressionValue)) {
-        this->handleRuntimeError(e->position, L"Expression right to 'and' evaluated to non boolean.");
-    }
+    this->requireExpressionType(e->position, leftExpressionValue, BOOL_VARIABLE, L"Expression right to 'and' evaluated to non boolean.");
     this->lastResult = std::get<bool>(rightExpressionValue);
 }
 void VisitorInterpreter::visit(ExpressionCompEq * e) {
@@ -172,14 +164,11 @@ void VisitorInterpreter::visit(ExpressionTo * e) {
 void VisitorInterpreter::visit(ExpressionNeg * e) {
     e->expression->accept(*this);
     interpreter_value expression = this->consumeLastResultAndAccessedObject();
-    if (std::holds_alternative<bool>(expression)) {
-        bool expressionValue = std::get<bool>(expression);
-        this->lastResult = !expressionValue;
-    } else {
-        auto expressionType = std::visit(TypeVisitor{}, expression);
-        expressionType[0] = std::towupper(expressionType[0]);
-        this->handleRuntimeError(e->position, expressionType + L" expression can't be negated with !.");
-    }
+    auto expressionType = std::visit(TypeVisitor{}, expression);
+    expressionType[0] = std::towupper(expressionType[0]);
+    this->requireExpressionType(e->position, expression, BOOL_VARIABLE, expressionType + L" expression can't be negated with !.");
+    bool expressionValue = std::get<bool>(expression);
+    this->lastResult = !expressionValue;
 }
 void VisitorInterpreter::visit(ExpressionNegMinus * e) {
     e->expression->accept(*this);
@@ -209,15 +198,10 @@ void VisitorInterpreter::visit(ExpressionValueList * e) {
 void VisitorInterpreter::visit(ExpressionValuePoint * e) {
     e->xCoord->accept(*this);
     interpreter_value xCoordExpressionValue = this->consumeLastResultAndAccessedObject();
-    if (!std::holds_alternative<double>(xCoordExpressionValue)) {
-        this->handleRuntimeError(e->position, L"Left coord of point is not double.");
-    }
-
+    this->requireExpressionType(e->position, xCoordExpressionValue, DOUBLE_VARIABLE, L"Left coord of point is not double.");
     e->yCoord->accept(*this);
     interpreter_value yCoordExpressionValue = this->consumeLastResultAndAccessedObject();
-    if (!std::holds_alternative<double>(yCoordExpressionValue)) {
-        this->handleRuntimeError(e->position, L"Right coord of point is not double.");
-    }
+    this->requireExpressionType(e->position, yCoordExpressionValue, DOUBLE_VARIABLE, L"Right coord of point is not double.");
     this->lastResult = std::make_shared<PointValue>(std::get<double>(xCoordExpressionValue), std::get<double>(yCoordExpressionValue));
 }
 void VisitorInterpreter::visit(ExpressionValueLiteral * e) {
@@ -234,14 +218,10 @@ void VisitorInterpreter::visit(ObjectAccessExpression * e) {
 void VisitorInterpreter::visit(IdentifierListIndexExpression * e) {
     e->leftExpression->accept(*this);
     interpreter_value leftExpressionValue = this->consumeLastResultAndAccessedObject();//3)//4)
-    if (!std::holds_alternative<std::shared_ptr<ListValue>>(leftExpressionValue)) {
-        this->handleRuntimeError(e->position, std::visit(TypeVisitor{}, leftExpressionValue) + L" is not subscriptable.");
-    }
+    this->requireExpressionType(e->position, leftExpressionValue, LIST_VARIABLE, std::visit(TypeVisitor{}, leftExpressionValue) + L" is not subscriptable.");
     e->indexExpression->accept(*this);
     interpreter_value indexExpressionValue = this->consumeLastResultAndAccessedObject();
-    if (!std::holds_alternative<int>(indexExpressionValue)) {
-        this->handleRuntimeError(e->position, std::visit(TypeVisitor{}, indexExpressionValue) + L" value in index. Index must be int.");
-    }
+    this->requireExpressionType(e->position, indexExpressionValue, INT_VARIABLE, std::visit(TypeVisitor{}, indexExpressionValue) + L" value in index. Index must be int.");
     ListValue * listValue = std::get<std::shared_ptr<ListValue>>(leftExpressionValue).get();
     int index = std::get<int>(indexExpressionValue);
     if (index >= listValue->len()) {
@@ -302,32 +282,36 @@ void VisitorInterpreter::visit(IdentifierExpression * e) {
         if (std::holds_alternative<std::shared_ptr<ListValue>>(*accessedValue)) {
             if (special_list_keywords.find(e->identifierName) != special_list_keywords.end()) {
                 this->lastResult = e->identifierName;
+            } else {
+                this->handleRuntimeError(e->position, L"List does not have method or member " + e->identifierName + L".");
             }
         } else if (std::holds_alternative<std::shared_ptr<FigureValue>>(*accessedValue)) {
             FigureValue * figure = std::get<std::shared_ptr<FigureValue>>(*accessedValue).get();
-            std::map<std::wstring, std::shared_ptr<PointValue>> & figurePoints = figure->getPoints();
+            std::map<std::wstring, AssignableValue> & figurePoints = figure->getPoints();
             auto point = figurePoints.find(e->identifierName);
             if (point != figure->getPoints().end()){
                 this->accessedObject = AssignableValue(point->second);
-                this->figurePointAssigned = true;
             } else if (special_figure_keywords.find(e->identifierName) != special_figure_keywords.end()) {
                 if (e->identifierName == L"color") {
-                    this->accessedObject = AssignableValue(figure->getColor());
-                    this->figureColorAssigned = true;
-                } else if (e->identifierName == L"r") {
-//                this->accessedObject = AssignableValue(figure->getRadius());
-//                this->figureColorAssigned = true;
+                    this->accessedObject = figure->getColor();
                 } else {
                     this->lastResult = e->identifierName;
                 }
+            } else if (e->identifierName == L"r") {
+                if (std::holds_alternative<std::monostate>(*(figure->getRadius().value))) {
+                    this->handleRuntimeError(e->position, L"Figure is not a circle and does not have point 'r'.");
+                }
+                this->accessedObject = figure->getRadius();
+            } else {
+                this->handleRuntimeError(e->position, L"Figure does not have point " + e->identifierName + L".");
             }
         } else if (std::holds_alternative<std::shared_ptr<PointValue>>(*accessedValue)) {
-            this->pointCoordAssigned = true;
             if (e->identifierName == L"x") {
                 this->accessedObject = std::get<std::shared_ptr<PointValue>>(*accessedValue)->getX();
-            }
-            if (e->identifierName == L"y") {
+            } else if (e->identifierName == L"y") {
                 this->accessedObject = std::get<std::shared_ptr<PointValue>>(*accessedValue)->getY();
+            } else {
+                this->handleRuntimeError(e->position, L"Point coordinates can only be accesed by x or y.");
             }
         } else {
             this->handleRuntimeError(e->position, L"Object" + std::visit(TypeVisitor{}, *accessedValue) + L" does not have member " + e->identifierName);
@@ -338,7 +322,7 @@ void VisitorInterpreter::visit(IdentifierExpression * e) {
         //2) //3)
     } else {
         this->accessedObject = this->findVariableInScopes(e->identifierName); //1) //4)
-        this->lastResult = e->identifierName; // może niekonieczne zapisywanie lastResult, będziemy przezrzucać wyżej z assignable value do lastResult
+        this->lastResult = e->identifierName;
     }
 }
 
@@ -378,9 +362,7 @@ void VisitorInterpreter::visit(IfStatement * s) {
 void VisitorInterpreter::visit(ForStatement * s) {
     s->expression->accept(*this);
     interpreter_value expressionValue = this->consumeLastResultAndAccessedObject();
-    if(!std::holds_alternative<std::shared_ptr<ListValue>>(expressionValue)) {
-        this->handleRuntimeError(s->position, L"Iterated variable is not list");
-    }
+    this->requireExpressionType(s->position, expressionValue, LIST_VARIABLE, L"Iterated variable is not list");
     ListValue* iteratedList = std::get<std::shared_ptr<ListValue>>(expressionValue).get();
     for(size_t i=0; i<iteratedList->len(); i++) {
         this->addNewScope();
@@ -395,15 +377,11 @@ void VisitorInterpreter::visit(ForStatement * s) {
 void VisitorInterpreter::visit(ForRangeStatement * s) {
     s->leftExpression->accept(*this);
     interpreter_value leftExpressionValue = this->consumeLastResultAndAccessedObject();
-    if(!std::holds_alternative<int>(leftExpressionValue)) {
-        this->handleRuntimeError(s->position, L"Left range parameter is not int");
-    }
+    this->requireExpressionType(s->position, leftExpressionValue, INT_VARIABLE, L"Left range parameter is not int");
     int startOfRange = std::get<int>(leftExpressionValue);
     s->rightExpression->accept(*this);
     interpreter_value rightExpressionValue = this->consumeLastResultAndAccessedObject();
-    if(!std::holds_alternative<int>(rightExpressionValue)) {
-        this->handleRuntimeError(s->position, L"Left range parameter is not int");
-    }
+    this->requireExpressionType(s->position, leftExpressionValue, INT_VARIABLE, L"Right range parameter is not int");
     int endOfRange = std::get<int>(rightExpressionValue);
     for(int i=startOfRange; i<endOfRange; i++) {
         this->addNewScope();
@@ -442,27 +420,31 @@ void VisitorInterpreter::visit(IdentifierStatementAssign * s) {
     s->identifierExpression->accept(*this);
     std::shared_ptr<interpreter_value> assignableValue = this->getAccessedObject();
     this->consumeLastResultAndAccessedObject();
-    if (this->pointCoordAssigned) {
-        if (!std::holds_alternative<double>(expressionValue)){
-            this->handleRuntimeError(s->position, L"Assigning value of type " + std::visit(TypeVisitor{}, expressionValue) + L" to point coordinate.");
+    if (accessedObject->type == NORMAL_VALUE){
+    } else if (accessedObject->type == POINT_COORD_VALUE) {
+        this->requireExpressionType(s->position, expressionValue, DOUBLE_VARIABLE, L"Assigning value of type " +
+                std::visit(TypeVisitor{}, expressionValue) + L" to point coordinate.");
+    } else if (accessedObject->type == FIGURE_POINT_VALUE) {
+        this->requireExpressionType(s->position, expressionValue, POINT_VARIABLE, L"Assigning value of type " +
+                std::visit(TypeVisitor{}, expressionValue) + L" to figure point.");
+    } else if (accessedObject->type == COLOR_VALUE) {
+        this->requireExpressionType(s->position, expressionValue, LIST_VARIABLE, L"Assigning value of type " +
+                std::visit(TypeVisitor{}, expressionValue) + L" to figure color.");
+        for (auto & el : std::get<std::shared_ptr<ListValue>>(expressionValue)->getValues()) {
+            this->requireExpressionType(s->position, *(el.value), INT_VARIABLE, L"Assigned color list element is not integer.");
+            int elementValue = std::get<int>(*(el.value));
+            if (elementValue < 0 || elementValue > 255) {
+                this->handleRuntimeError(s->position, L"Assigned rgb value is out of range (0,255).");
+            }
         }
-    } else if (this->figurePointAssigned) {
-        if (!std::holds_alternative<std::shared_ptr<PointValue>>(expressionValue)){
-            this->handleRuntimeError(s->position, L"Assigning value of type " + std::visit(TypeVisitor{}, expressionValue) + L" to figure point.");
-        }
-    } else if (this->figureColorAssigned) {
-        if (!std::holds_alternative<std::shared_ptr<ListValue>>(expressionValue)){
-            this->handleRuntimeError(s->position, L"Assigning value of type " + std::visit(TypeVisitor{}, expressionValue) + L" to figure point.");
-        } // kolorem zajmę się później jak będzie czas
+    } else if (accessedObject->type == RADIUS_VALUE) {
+        this->requireExpressionType(s->position, expressionValue, DOUBLE_VARIABLE, L"Assigning value of type " +
+                std::visit(TypeVisitor{}, expressionValue) + L" to figure radius.");
+    } else {
+            this->requireExpressionType(s->position, expressionValue, INT_VARIABLE, L"Assigning value of type " +
+                    std::visit(TypeVisitor{}, expressionValue) + L" to color parameter.");
     }
     *assignableValue = expressionValue;
-//    this->consumeLastResultAndAccessedObject();
-    //logika z przypisywaniem punktowi złej wartości itd.
- // problem ze zmiennymi zagnieżdżonymi . albo elemet listy
-    //pierwsze liczymy wartośc po prawej, potem otrzymujemy obiekt po lewej
-    this->pointCoordAssigned = false;
-    this->figurePointAssigned = false;
-    this->figureColorAssigned = false;
 }
 
 
@@ -507,7 +489,7 @@ void VisitorInterpreter::visit(FigureParameter * p) {
     }
     AssignableValue & lastFigure = this->getFigureScope().getVariables()[this->currentlyAnalyzedFigure.value()];
     FigureValue * currentFigure = std::get<std::shared_ptr<FigureValue>>(*(lastFigure.value)).get();
-    currentFigure->getPoints()[p->getName()] = std::get<std::shared_ptr<PointValue>>(expressionValue);
+    currentFigure->getPoints()[p->getName()] = AssignableValue(expressionValue);
 }
 void VisitorInterpreter::visit(FigureDeclaration * fd) {
     std::shared_ptr<FigureValue> figureDecl = std::make_shared<FigureValue>(FigureValue());
@@ -815,19 +797,19 @@ void VisitorInterpreter::createNewFigure(const std::wstring &name) {
     int pointNumber = createdFigure->getPoints().size();
     this->requireArgNumBetween(name, pointNumber, pointNumber+1, std::to_wstring(pointNumber) +
         L" point arguments and optionally [int r, int g, int b] color argument.");
-    std::map<std::wstring, std::shared_ptr<PointValue>> newFigurePoints;
+    std::map<std::wstring, AssignableValue> newFigurePoints;
     for (auto & point : createdFigure->getPoints()) {
         this->requireArgType(L"point of figure", POINT_VARIABLE);
         interpreter_value pointParam = this->functionCallParams.front();
         auto & pointParamValue = std::get<std::shared_ptr<PointValue>>(pointParam);
         double xCoord = std::get<double>(*(pointParamValue->getX().value));
         double yCoord = std::get<double>(*(pointParamValue->getY().value));
-        newFigurePoints[point.first] = std::make_shared<PointValue>(xCoord, yCoord);
+        newFigurePoints[point.first] = AssignableValue(std::make_shared<PointValue>(xCoord, yCoord));
         this->functionCallParams.pop();
     }
     std::shared_ptr<ListValue> color = this->consumeColorParam();
     if (color) {
-        this->lastResult = std::make_shared<FigureValue>(std::move(newFigurePoints), std::move(color));
+        this->lastResult = std::make_shared<FigureValue>(std::move(newFigurePoints), AssignableValue(color));
     } else {
         this->lastResult = std::make_shared<FigureValue>(std::move(newFigurePoints));
     }
@@ -858,4 +840,67 @@ std::shared_ptr<ListValue> VisitorInterpreter::consumeColorParam() {
         return std::make_shared<ListValue>(std::vector<AssignableValue>({AssignableValue(rgb[0]), AssignableValue(rgb[1]), AssignableValue(rgb[2])}));
     }
     return nullptr;
+}
+
+void VisitorInterpreter::do_drawing(cairo_t *cr, gpointer user_data) {
+    cairo_set_line_width(cr, 4.0);
+    VisitorInterpreter * visitor = (VisitorInterpreter *) user_data;
+    for (auto figure : visitor->figuresToDraw) {
+        auto & points = figure->getPoints();
+        interpreter_value rgbValue = *(figure->getColor().value);
+        std::shared_ptr<ListValue> rgb = std::get<std::shared_ptr<ListValue>>(rgbValue);
+        double r = (double)std::get<int>(*(rgb->getValues()[0].value));
+        double g = (double)std::get<int>(*(rgb->getValues()[1].value));
+        double b = (double)std::get<int>(*(rgb->getValues()[2].value));
+        cairo_set_source_rgb(cr, r/255.0, g/255.0, b/255.0);
+        PointValue * previousPoint = std::get<std::shared_ptr<PointValue>>(*(points.rbegin()->second.value)).get();
+        double p_x;
+        double p_y;
+        auto radius = figure->getRadius().value;
+        if (!std::holds_alternative<std::monostate>(*radius)) {
+            p_x = std::get<double>(*(previousPoint->getX().value));
+            p_y = std::get<double>(*(previousPoint->getY().value));
+            auto centre = visitor->mapCoords(std::pair<double, double>(p_x, p_y));
+            cairo_arc(cr, centre.first, centre.second, std::get<double>(*radius) * visitor->scalingFactor, 0, 2 * M_PI);
+        } else {
+            PointValue * currentPoint;
+            double c_x;
+            double c_y;
+            for(auto point: points) {
+                currentPoint = std::get<std::shared_ptr<PointValue>>(*(point.second.value)).get();
+                p_x = std::get<double>(*(previousPoint->getX().value));
+                p_y = std::get<double>(*(previousPoint->getY().value));
+                c_x = std::get<double>(*(currentPoint->getX().value));
+                c_y = std::get<double>(*(currentPoint->getY().value));
+                previousPoint = currentPoint;
+                auto pointA = visitor->mapCoords(std::pair<double, double>(p_x, p_y));
+                auto pointB = visitor->mapCoords(std::pair<double, double>(c_x, c_y));
+                cairo_move_to(cr, pointA.first, pointA.second);
+                cairo_line_to(cr, pointB.first, pointB.second);
+            }
+        }
+        cairo_stroke(cr);
+    }
+
+    cairo_set_source_rgb(cr, 0, 0, 0);
+}
+
+gboolean VisitorInterpreter::on_draw_event(GtkWidget *widget, cairo_t *cr, gpointer user_data) {
+    do_drawing(cr, user_data);
+
+    return FALSE;
+}
+
+std::pair<int, int> VisitorInterpreter::mapCoords(std::pair<double, double> coords) {
+    coords.first -= lbPaneCorner.first;
+    coords.second -= lbPaneCorner.second;
+    coords.first *= scalingFactor;
+    coords.second *= scalingFactor;
+    coords.second = (double)(actualPaneResolution.second) - coords.second;
+    return std::pair<int, int>((int)coords.first, (int)coords.second);
+}
+
+void VisitorInterpreter::requireExpressionType(const Position &position, const interpreter_value &expressionValue, variable_type vt,
+                           const std::wstring &errorMessage) {
+    requiredTypeErrorMap.at(vt)(position, expressionValue, errorMessage);
 }
