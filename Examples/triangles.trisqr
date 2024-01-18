@@ -21,6 +21,14 @@ func mod255(number) {
     return number - div * 255;
 }
 
+func rec(a) {
+    a = a+1;
+    printn(a);
+    if ( a < 1000) {
+        rec(a);
+    }
+}
+
 func main() {
     vv baseTriangle = Triangle();
     baseTriangle.color[2] = 255;

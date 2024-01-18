@@ -130,6 +130,7 @@ bool operator==(const std::vector<std::unique_ptr<T>> &v1, const std::vector<std
     if (v1.size() != v2.size()){
         return false;
     }
+    // algorithm all ==
     for (int i=0; i<v1.size(); i++) {
         if (*(v1[i]) != *(v2[i])) {
             return false;
@@ -700,7 +701,7 @@ bool operator!=(const FuncDeclaration & lhs, const FuncDeclaration & rhs);
 
 class FigureDeclaration : public Visitable {
 public:
-    std::wstring name;
+    std::wstring name; //const gettery
     std::vector<std::unique_ptr<Parameter>> params;
     FigureDeclaration(const std::wstring &name, std::vector<std::unique_ptr<Parameter>> params, const Position & position) : name(
             name), params(std::move(params))  {this->position = position;}
@@ -709,7 +710,7 @@ public:
 
     void accept(Visitor& visitor);
     bool operator==(const FigureDeclaration & rhs) const {
-        return name == rhs.name && params == rhs.params;
+        return name == rhs.name && params == rhs.params; // przyrównywanie
     }
     bool operator!=(const FigureDeclaration & rhs) const {
         return !(*this == rhs);

@@ -366,6 +366,7 @@ std::optional<Token> Lexer::tryBuildString()
             }
             if (i >= this->max_analyzed_chars) {
                 errorHandler->onLexerError(ERR_MAX_ANALYZED_CHARS_EXCEEDED, this->token_position, L"'" + str);
+//                throw;
                 return buildToken(CRITICAL_ERR_TYPE);
             }
             moveToNextCharacter();

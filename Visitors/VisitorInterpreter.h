@@ -27,6 +27,7 @@ class FigureValue;
 class PointValue;
 
 using interpreter_value = std::variant<int, double, std::wstring, bool, std::monostate, std::shared_ptr<PointValue>, std::shared_ptr<ListValue>, std::shared_ptr<FigureValue>>;
+//bez shared_ptr, sprawdzać mutowalność w AssignableValue
 
 struct AllowedInComparisonVisitor;
 struct AllowedInAdditionVisitor;
@@ -50,7 +51,7 @@ enum assignable_value_type {
 class AssignableValue {
 public:
     assignable_value_type type = NORMAL_VALUE;
-    std::shared_ptr<interpreter_value> value = nullptr;
+    std::shared_ptr<interpreter_value> value = nullptr;//raw_pointer
     AssignableValue() : value(std::make_shared<interpreter_value>(std::monostate())){};
     AssignableValue(interpreter_value && value) : value(std::make_shared<interpreter_value>(value)){};
     AssignableValue(interpreter_value & value) : value(std::make_shared<interpreter_value>(value)){};
@@ -211,7 +212,7 @@ struct PrintVisitor {
 
 class VisitorInterpreter : public Visitor {
 private:
-    const std::unordered_map<std::wstring, std::function<void()>> internalFunctions = {
+    const std::unordered_map<std::wstring, std::function<void()>> internalFunctions = {//nie const, jeśli const to na liście incjalizacyjnej konstruktora
             {L"print", [this](){
                 this->requireArgNum(L"print()", 1, L"1 argument");
                 std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
@@ -723,6 +724,18 @@ struct AllowedInComparisonVisitor {
     bool operator()(std::shared_ptr<ListValue> & visited) {return false;}
     bool operator()(std::shared_ptr<FigureValue> & visited) {return false;}
 };
+
+//struct Operatacje {
+//    interpreter_value operator()(int & visited, int & rightVisited) {return true;}
+//    bool operator()(double & visited) {return true;}
+//    bool operator()(std::wstring & visited) {return true;}
+//    bool operator()(bool & visited) {return true;}
+//    bool operator()(std::monostate & visited) {return true;}
+//    bool operator()(std::shared_ptr<PointValue> & visited) {return true;}
+//    bool operator()(std::shared_ptr<ListValue> & visited) {return false;}
+//    bool operator()(std::shared_ptr<FigureValue> & visited) {return false;}
+//    //template auto typy
+//};
 
 struct AllowedInAdditionVisitor {
     bool operator()(int & visited) {return true;}

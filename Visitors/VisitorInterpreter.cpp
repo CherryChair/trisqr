@@ -229,7 +229,7 @@ void VisitorInterpreter::visit(IdentifierListIndexExpression * e) {
     }
     this->accessedObject = AssignableValue((*listValue)[index]);//3)//4)
 }
-void VisitorInterpreter::visit(IdentifierFunctionCallExpression * e) {
+void VisitorInterpreter::visit(IdentifierFunctionCallExpression * e) {//parsowanie różnych struktur metod, wywaołań funkcji albo metody, context
     e->identifierExpression->accept(*this);
     interpreter_value identifierExpression = this->lastResult.value();
     std::wstring functionName = std::get<std::wstring>(identifierExpression);
@@ -473,6 +473,7 @@ void VisitorInterpreter::visit(ConditionAndBlock * cb) {
 
 
 void VisitorInterpreter::visit(CodeBlock * cb) {
+    // addNewScope()
     for (auto & statement : cb->statements) {
         statement->accept(*this);
         if(this->returnValue) {
@@ -671,7 +672,7 @@ interpreter_value operator-(const interpreter_value & value1, const interpreter_
         std::wcerr << L"ERR: Subtraction between two different types";
         throw;
     }
-    switch (value1.index()){
+    switch (value1.index()){// wizytator int  int
         case 0: {
             return std::get<int>(value1) - std::get<int>(value2);
         } case 1: {

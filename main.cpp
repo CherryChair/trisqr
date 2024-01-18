@@ -33,7 +33,10 @@ int main(int argc, char *argv[]) {
 
     Parser * parser = new Parser(l, eh);
     auto program = parser->parse();
+    //zamykanie pliku w lexerze albo parserze
+    //zwalnianie parsera, errorHandlera unique_ptr
 
+    //try catche
     VisitorSemantic vs = VisitorSemantic(eh);
     program->accept(vs);
 

@@ -176,7 +176,7 @@ void VisitorSemantic::visit(IdentifierFunctionCallExpression * e) {
 
     for (auto const & expression : e->expressions) {
         expression->accept(*this);
-    }
+    } //jak wiecej parametrow to blad
 }
 void VisitorSemantic::visit(IdentifierExpression * e) {
     found_type ft = this->findVariable(e->identifierName);
@@ -185,7 +185,7 @@ void VisitorSemantic::visit(IdentifierExpression * e) {
         if (ft != FIGURE_FOUND && ft != FUNCTION_FOUND && ft != LIST_METHOD_FOUND && ft != FIGURE_METHOD_FOUND) {
             this->handleSemanticError(e->position, L"Identifier to function or method " + e->identifierName + L" not found");
         }
-        if ((ft == LIST_METHOD_FOUND || ft == FIGURE_METHOD_FOUND) && !this->objectAccess) {
+        if ((ft == LIST_METHOD_FOUND || ft == FIGURE_METHOD_FOUND) && !this->objectAccess) {// b.apple()
             this->handleSemanticError(e->position, e->identifierName + L" is a method not a function.");
         }
     } else if (this->objectAccess) {
@@ -203,6 +203,7 @@ void VisitorSemantic::visit(IdentifierExpression * e) {
 void VisitorSemantic::visit(CodeBlock * cb) {
     for (auto const & statement : cb->statements) {
         statement->accept(*this);
+        //wykrywamy returna
     }
 }
 
@@ -216,7 +217,7 @@ void VisitorSemantic::visit(Parameter * p) {
 }
 
 void VisitorSemantic::visit(FigureParameter * p) {
-    found_type type = findVariable(p->name);
+    found_type type = findVariable(p->name);//inna nazwa findVariable
     if (type == COLOR_FOUND) {
     } else if (type != NOT_FOUND) {
         this->handleDeclarationError(p->position, p->name, type);
@@ -244,7 +245,7 @@ void VisitorSemantic::visit(FuncDeclaration * fd) {
         param->accept(*this);
     }
     fd->codeBlock->accept(*this);
-    this->popScope();
+    this->popScope(); //czyścić pojedynczy
     this->lastFuncPos = fd->position;
 }
 
@@ -301,7 +302,7 @@ VisitorSemantic::checkFunctionOrFigure(const std::wstring &name, std::unordered_
     }
 }
 
-found_type VisitorSemantic::findVariable(const std::wstring & variableName) {
+found_type VisitorSemantic::findVariable(const std::wstring & variableName) {//verifyVariable
     if (special_function_keywords.find(variableName) != special_function_keywords.end()) {
         return FUNCTION_FOUND;
     }
