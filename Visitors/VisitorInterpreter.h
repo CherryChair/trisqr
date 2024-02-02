@@ -27,7 +27,7 @@ class FigureValue;
 class PointValue;
 
 using interpreter_value = std::variant<int, double, std::wstring, bool, std::monostate, std::shared_ptr<PointValue>, std::shared_ptr<ListValue>, std::shared_ptr<FigureValue>>;
-//bez shared_ptr, sprawdzać mutowalność w AssignableValue
+//TODO bez shared_ptr, sprawdzać mutowalność w AssignableValue
 
 struct AllowedInComparisonVisitor;
 struct AllowedInAdditionVisitor;
@@ -51,10 +51,10 @@ enum assignable_value_type {
 class AssignableValue {
 public:
     assignable_value_type type = NORMAL_VALUE;
-    std::shared_ptr<interpreter_value> value = nullptr;//raw_pointer
+    std::shared_ptr<interpreter_value> value = nullptr;//TODO raw_pointer
     AssignableValue() : value(std::make_shared<interpreter_value>(std::monostate())){};
-    AssignableValue(interpreter_value && value) : value(std::make_shared<interpreter_value>(value)){};
-    AssignableValue(interpreter_value & value) : value(std::make_shared<interpreter_value>(value)){};
+    explicit AssignableValue(interpreter_value && value) : value(std::make_shared<interpreter_value>(value)){};
+    explicit AssignableValue(interpreter_value & value) : value(std::make_shared<interpreter_value>(value)){};
     AssignableValue(interpreter_value && value, assignable_value_type type) : value(std::make_shared<interpreter_value>(value)), type(type){};
     AssignableValue(interpreter_value & value, assignable_value_type type) : value(std::make_shared<interpreter_value>(value)), type(type){};
 };
@@ -73,7 +73,7 @@ class ListValue : public std::enable_shared_from_this<ListValue>{
 private:
     std::vector<AssignableValue> values;
 public:
-    ListValue(std::vector<AssignableValue> values): values(std::move(values)) {}
+    explicit ListValue(std::vector<AssignableValue> values): values(std::move(values)) {}
     AssignableValue & operator[](size_t index) {
         return values[index];
     }
@@ -106,7 +106,7 @@ private:
     AssignableValue radius;
 public:
     FigureValue() {initColor();};
-    FigureValue(std::map<std::wstring, AssignableValue> points): points(std::move(points)){
+    explicit FigureValue(std::map<std::wstring, AssignableValue> points): points(std::move(points)){
         markPoints();
         initColor();
     };
@@ -145,7 +145,7 @@ public:
         }
     }
     AssignableValue & getColor() {return color;};
-    void setColor(std::shared_ptr<ListValue> color) { this->color = AssignableValue(color, COLOR_VALUE);};
+    void setColor(std::shared_ptr<ListValue> newColor) { this->color = AssignableValue(newColor, COLOR_VALUE);};
     AssignableValue & getRadius() {return this->radius;};
     void setRadius(double r) {this->radius = AssignableValue(r, RADIUS_VALUE);};
 };
@@ -172,8 +172,8 @@ struct PrintVisitor {
     std::wstring operator()(bool & visited) { if (visited) return L"true"; return L"false";}
     std::wstring operator()(std::monostate & visited) {return L"None";}
     std::wstring operator()(std::shared_ptr<PointValue> & visited) {
-        std::wstring result = L"(" + std::to_wstring(std::get<double>(*(visited.get()->getX().value)));
-        result += L", " + std::to_wstring(std::get<double>(*(visited.get()->getY().value))) + L")";
+        std::wstring result = L"(" + std::to_wstring(std::get<double>(*(visited->getX().value)));
+        result += L", " + std::to_wstring(std::get<double>(*(visited->getY().value))) + L")";
         return result;
     }
     std::wstring operator()(std::shared_ptr<ListValue> & visited) {
@@ -270,51 +270,51 @@ private:
     void createNewFigure(const std::wstring & name);
     std::shared_ptr<ListValue> consumeColorParam();
 public:
-    VisitorInterpreter(ErrorHandler * eh);
-    void visit(ExpressionOr * e);
-    void visit(ExpressionAnd * e);
-    void visit(ExpressionCompEq * e);
-    void visit(ExpressionCompNeq * e);
-    void visit(ExpressionCompLeq * e);
-    void visit(ExpressionCompGeq * e);
-    void visit(ExpressionCompGreater * e);
-    void visit(ExpressionCompLess * e);
-    void visit(ExpressionAdd * e);
-    void visit(ExpressionSub * e);
-    void visit(ExpressionMul * e);
-    void visit(ExpressionDiv * e);
-    void visit(ExpressionIs * e);
-    void visit(ExpressionTo * e);
-    void visit(ExpressionNeg * e);
-    void visit(ExpressionNegMinus * e);
-    void visit(ExpressionValueList * e);
-    void visit(ExpressionValuePoint * e);
-    void visit(ExpressionValueLiteral * e);
-    void visit(ExpressionValueBrackets * e);
+    explicit VisitorInterpreter(ErrorHandler * eh);
+    void visit(ExpressionOr * e) override;
+    void visit(ExpressionAnd * e) override;
+    void visit(ExpressionCompEq * e) override;
+    void visit(ExpressionCompNeq * e) override;
+    void visit(ExpressionCompLeq * e) override;
+    void visit(ExpressionCompGeq * e) override;
+    void visit(ExpressionCompGreater * e) override;
+    void visit(ExpressionCompLess * e) override;
+    void visit(ExpressionAdd * e) override;
+    void visit(ExpressionSub * e) override;
+    void visit(ExpressionMul * e) override;
+    void visit(ExpressionDiv * e) override;
+    void visit(ExpressionIs * e) override;
+    void visit(ExpressionTo * e) override;
+    void visit(ExpressionNeg * e) override;
+    void visit(ExpressionNegMinus * e) override;
+    void visit(ExpressionValueList * e) override;
+    void visit(ExpressionValuePoint * e) override;
+    void visit(ExpressionValueLiteral * e) override;
+    void visit(ExpressionValueBrackets * e) override;
 
-    void visit(WhileStatement * s);
-    void visit(IfStatement * s);
-    void visit(ForStatement * s);
-    void visit(ForRangeStatement * s);
-    void visit(DeclarationStatement * s);
-    void visit(DeclarationAssignStatement * s);
-    void visit(ReturnStatement * s);
+    void visit(WhileStatement * s) override;
+    void visit(IfStatement * s) override;
+    void visit(ForStatement * s) override;
+    void visit(ForRangeStatement * s) override;
+    void visit(DeclarationStatement * s) override;
+    void visit(DeclarationAssignStatement * s) override;
+    void visit(ReturnStatement * s) override;
 
-    void visit(ConditionAndBlock * cb);
+    void visit(ConditionAndBlock * cb) override;
 
-    void visit(ObjectAccessExpression * s);
-    void visit(IdentifierExpressionStatement * s);
-    void visit(IdentifierStatementAssign * s);
-    void visit(IdentifierListIndexExpression * s);
-    void visit(IdentifierFunctionCallExpression * e);
-    void visit(IdentifierExpression * s);
+    void visit(ObjectAccessExpression * s) override;
+    void visit(IdentifierExpressionStatement * s) override;
+    void visit(IdentifierStatementAssign * s) override;
+    void visit(IdentifierListIndexExpression * s) override;
+    void visit(IdentifierFunctionCallExpression * e) override;
+    void visit(IdentifierExpression * s) override;
 
-    void visit(CodeBlock * cb);
-    void visit(Parameter * p);
-    void visit(FigureParameter * p);
-    void visit(FigureDeclaration * fd);
-    void visit(FuncDeclaration * fd);
-    void visit(Program * p);
+    void visit(CodeBlock * cb) override;
+    void visit(Parameter * p) override;
+    void visit(FigureParameter * p) override;
+    void visit(FigureDeclaration * fd) override;
+    void visit(FuncDeclaration * fd) override;
+    void visit(Program * p) override;
 };
 
 struct TypeVisitor {
@@ -397,15 +397,15 @@ struct AllowedInDivisionVisitor {
 
 struct TypeMatchVisitor {
     variable_type type;
-    TypeMatchVisitor(variable_type type) : type(type) {};
-    bool operator()(int & visited) {return type == INT_VARIABLE;}
-    bool operator()(double & visited) {return type == DOUBLE_VARIABLE;}
-    bool operator()(std::wstring & visited) {return type == STRING_VARIABLE;}
-    bool operator()(bool & visited) {return type == BOOL_VARIABLE;}
-    bool operator()(std::monostate & visited) {return type == NONE_VARIABLE;}
-    bool operator()(std::shared_ptr<PointValue> & visited) {return type == POINT_VARIABLE;}
-    bool operator()(std::shared_ptr<ListValue> & visited) {return type == LIST_VARIABLE;}
-    bool operator()(std::shared_ptr<FigureValue> & visited) {return type == FIGURE_VARIABLE;}
+    explicit TypeMatchVisitor(variable_type type) : type(type) {};
+    bool operator()(int &) const {return type == INT_VARIABLE;}
+    bool operator()(double & visited) const {return type == DOUBLE_VARIABLE;}
+    bool operator()(std::wstring & visited) const {return type == STRING_VARIABLE;}
+    bool operator()(bool & visited) const {return type == BOOL_VARIABLE;}
+    bool operator()(std::monostate & visited) const {return type == NONE_VARIABLE;}
+    bool operator()(std::shared_ptr<PointValue> & visited) const {return type == POINT_VARIABLE;}
+    bool operator()(std::shared_ptr<ListValue> & visited) const {return type == LIST_VARIABLE;}
+    bool operator()(std::shared_ptr<FigureValue> & visited) const {return type == FIGURE_VARIABLE;}
 };
 
 interpreter_value operator+(const interpreter_value & value1, const interpreter_value & value2);
@@ -506,15 +506,15 @@ inline static const std::unordered_map<variable_type, std::function<interpreter_
 
 struct ConversionVisitor {
     variable_type type;
-    ConversionVisitor(variable_type & type) : type(type) {};
-    interpreter_value operator()(int & visited) {return int_conversion_map.at(this->type)(visited);};
-    interpreter_value operator()(double & visited) {return double_conversion_map.at(this->type)(visited);};
-    interpreter_value operator()(std::wstring & visited) {return string_conversion_map.at(this->type)(visited);};
-    interpreter_value operator()(bool & visited) {return bool_conversion_map.at(this->type)(visited);};
-    interpreter_value operator()(std::monostate & visited) {return none_conversion_map.at(this->type)(visited);};
-    interpreter_value operator()(std::shared_ptr<PointValue> & visited) {return point_conversion_map.at(this->type)(visited);};
-    interpreter_value operator()(std::shared_ptr<ListValue> & visited) {return list_conversion_map.at(this->type)(visited);};
-    interpreter_value operator()(std::shared_ptr<FigureValue> & visited) {return figure_conversion_map.at(this->type)(visited);};
+    explicit ConversionVisitor(variable_type & type) : type(type) {};
+    interpreter_value operator()(int & visited) const {return int_conversion_map.at(this->type)(visited);};
+    interpreter_value operator()(double & visited) const {return double_conversion_map.at(this->type)(visited);};
+    interpreter_value operator()(std::wstring & visited) const {return string_conversion_map.at(this->type)(visited);};
+    interpreter_value operator()(bool & visited) const {return bool_conversion_map.at(this->type)(visited);};
+    interpreter_value operator()(std::monostate & visited) const {return none_conversion_map.at(this->type)(visited);};
+    interpreter_value operator()(std::shared_ptr<PointValue> & visited) const {return point_conversion_map.at(this->type)(visited);};
+    interpreter_value operator()(std::shared_ptr<ListValue> & visited) const {return list_conversion_map.at(this->type)(visited);};
+    interpreter_value operator()(std::shared_ptr<FigureValue> & visited) const {return figure_conversion_map.at(this->type)(visited);};
 };
 
 #endif //LEXER_VISITORINTERPTER_H

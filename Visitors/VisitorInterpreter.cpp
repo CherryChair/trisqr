@@ -396,7 +396,7 @@ void VisitorInterpreter::visit(ForRangeStatement * s) {
     int endOfRange = std::get<int>(rightExpressionValue);
     for(int i=startOfRange; i<endOfRange; i++) {
         this->addNewScope();
-        this->getCurrentScopeVariables()[s->identifier] = interpreter_value(i);
+        this->getCurrentScopeVariables()[s->identifier] = AssignableValue(interpreter_value(i));
         s->block->accept(*this);
         this->popScope();
         if (this->returnValue) {
@@ -411,7 +411,7 @@ void VisitorInterpreter::visit(DeclarationStatement * s) {
 void VisitorInterpreter::visit(DeclarationAssignStatement * s) {
     s->expression->accept(*this);
     interpreter_value expressionValue = this->consumeLastResultAndAccessedObject();
-    this->getCurrentScopeVariables()[s->identifierName] = expressionValue;
+    this->getCurrentScopeVariables()[s->identifierName] = AssignableValue(expressionValue);
 }
 
 void VisitorInterpreter::visit(ReturnStatement * s) {
