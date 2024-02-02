@@ -86,6 +86,14 @@ bool operator!=(const CodeBlock &lhs, const CodeBlock &rhs) {
     return !(lhs == rhs);
 }
 
+bool operator==(const FigureDeclaration &lhs, const FigureDeclaration &rhs) {
+    return lhs.name == rhs.name && lhs.params == rhs.params;
+}
+
+bool operator!=(const FigureDeclaration &lhs, const FigureDeclaration &rhs) {
+    return !(lhs == rhs);
+}
+
 bool operator==(const FuncDeclaration &lhs, const FuncDeclaration &rhs) {
     return lhs.name == rhs.name && lhs.params == rhs.params && *(lhs.codeBlock) == *(rhs.codeBlock);
 }

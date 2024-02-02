@@ -709,13 +709,10 @@ public:
     FigureDeclaration() {}
 
     void accept(Visitor& visitor);
-    bool operator==(const FigureDeclaration & rhs) const {
-        return name == rhs.name && params == rhs.params; // przyrównywanie
-    }
-    bool operator!=(const FigureDeclaration & rhs) const {
-        return !(*this == rhs);
-    }
 };
+
+bool operator==(const FigureDeclaration & lhs, const FigureDeclaration & rhs);
+bool operator!=(const FigureDeclaration & lhs, const FigureDeclaration & rhs);
 
 class Program : public Visitable {
 public:
