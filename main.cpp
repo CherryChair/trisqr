@@ -27,20 +27,28 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    ErrorHandler* eh = new ErrorHandler();
+    std::unique_ptr<ErrorHandler> eh = std::make_unique<ErrorHandler>();
 
-    Lexer * l = new Lexer(ss, eh, 1024, 1000, 1111, 1111);
+    std::unique_ptr<Lexer> l = std::make_unique<Lexer>(ss, eh.get(), 1024, 1000, 1111, 1111);
 
-    Parser * parser = new Parser(l, eh);
-    auto program = parser->parse();
+    std::unique_ptr<Parser> parser = std::make_unique<Parser>(l.get(), eh.get());
+
+    std::unique_ptr<Program> program;
+    try {
+        program = parser->parse();
+    } catch (ErrorHandler e) {
+
+    }
+
+    ss.close();
     //zamykanie pliku w lexerze albo parserze
     //zwalnianie parsera, errorHandlera unique_ptr
 
     //try catche
-    VisitorSemantic vs = VisitorSemantic(eh);
+    VisitorSemantic vs = VisitorSemantic(eh.get());
     program->accept(vs);
 
-    VisitorInterpreter vi = VisitorInterpreter(eh);
+    VisitorInterpreter vi = VisitorInterpreter(eh.get());
     program->accept(vi);
 
     return 0;
