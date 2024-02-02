@@ -914,3 +914,405 @@ void VisitorInterpreter::requireExpressionType(const Position &position, const i
                            const std::wstring &errorMessage) {
     requiredTypeErrorMap.at(vt)(position, expressionValue, errorMessage);
 }
+
+VisitorInterpreter::VisitorInterpreter(ErrorHandler * eh): errorHandler(eh), funcCallPosition(Position({1, 1})),
+    internalFunctions(
+    {
+            {L"print", [this](){
+                this->requireArgNum(L"print()", 1, L"1 argument");
+                std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
+                interpreter_value value = funcCallParams.front();
+                funcCallParams.pop();
+                std::wcout << std::visit(PrintVisitor{}, value);
+                this->lastResult = std::monostate();
+            }},
+            {L"printn", [this](){
+                this->requireArgNum(L"printn()", 1, L"1 argument");
+                this->internalFunctions.at(L"print")();
+                std::wcout << std::endl;
+            }},
+            {L"draw", [this](){
+                this->requireArgNum(L"draw()", 3, L"(list figureList, point lbCorner, point ruCorner) arguments");
+                this->requireArgType(L"figure list", LIST_VARIABLE);
+                interpreter_value figureListParam = this->functionCallParams.front();
+                this->functionCallParams.pop();
+                ListValue * figureList = std::get<std::shared_ptr<ListValue>>(figureListParam).get();
+
+                this->requireArgType(L"left bottom corner", POINT_VARIABLE);
+                interpreter_value lbCornerParam = this->functionCallParams.front();
+                this->functionCallParams.pop();
+                PointValue * lbCorner = std::get<std::shared_ptr<PointValue>>(lbCornerParam).get();
+                double lb_x = std::get<double>(*(lbCorner->getX().value));
+                double lb_y = std::get<double>(*(lbCorner->getY().value));
+
+                this->requireArgType(L"right upper corner", POINT_VARIABLE);
+                interpreter_value ruCornerParam = this->functionCallParams.front();
+                this->functionCallParams.pop();
+                PointValue * ruCorner = std::get<std::shared_ptr<PointValue>>(ruCornerParam).get();
+                double ru_x = std::get<double>(*(ruCorner->getX().value));
+                double ru_y = std::get<double>(*(ruCorner->getY().value));
+
+                this->lbPaneCorner = std::pair<double, double>(lb_x, lb_y);
+                this->ruPaneCorner = std::pair<double, double>(ru_x, ru_y);
+                //potencjalnie cairo_rotate i cairo_transforma zamist tych rzeczy
+
+                if (lb_x >=  ru_x) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Wrong pane corner, left x must be less than right x");
+                }
+
+                if (lb_y >=  ru_y) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Wrong pane corner, left y must be less than right y");
+                }
+
+                double paneXSize = ruPaneCorner.first - lbPaneCorner.first;
+                double paneYSize = ruPaneCorner.second - lbPaneCorner.second;
+
+
+                if ((double)maxResolutionH/(double)maxResolutionW >= paneYSize/paneXSize) {
+                    actualPaneResolution.first = maxResolutionW;
+                    actualPaneResolution.second = (int)((double)maxResolutionW*((double)paneYSize/(double)paneXSize));
+                    scalingFactor = (double) actualPaneResolution.first/paneXSize;
+                } else {
+                    actualPaneResolution.first = (int)((double)maxResolutionH*((double)paneXSize/(double)paneYSize));
+                    actualPaneResolution.second = maxResolutionH;
+                    scalingFactor = (double) actualPaneResolution.second/paneYSize;
+                }
+
+
+                auto & valueList = figureList->getValues();
+
+                for (auto element : valueList) {
+                    interpreter_value value = *(element.value);
+                    if (std::holds_alternative<std::shared_ptr<FigureValue>>(value)) {
+                        this->figuresToDraw.push_back(std::get<std::shared_ptr<FigureValue>>(value).get());
+                    } else {
+                        this->handleRuntimeError(this->funcCallPosition, L"List contains other elements than figures.");
+                    }
+                }
+
+                GtkWidget *window;
+                GtkWidget *darea;
+
+
+                gtk_init(NULL, NULL);
+
+                window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+
+                darea = gtk_drawing_area_new();
+                gtk_container_add(GTK_CONTAINER(window), darea);
+
+                g_signal_connect(G_OBJECT(darea), "draw",
+                                 G_CALLBACK(on_draw_event), this);
+                g_signal_connect(window, "destroy",
+                                 G_CALLBACK(gtk_main_quit), NULL);
+
+                gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+                gtk_window_set_default_size(GTK_WINDOW(window), this->actualPaneResolution.first, this->actualPaneResolution.second);
+                gtk_window_set_title(GTK_WINDOW(window), "GTK window");
+
+                gtk_widget_show_all(window);
+
+                gtk_main();
+
+                this->figuresToDraw.clear();
+
+                this->lastResult = std::monostate();
+            }},
+            {L"input", [this](){
+                this->requireArgNum(L"input()", 0, L"no arguments");
+                std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
+                std::wstring result;
+                std::wcin >> result;
+                this->lastResult = result;
+            }},
+            {L"Circle", [this](){
+                this->requireArgNumBetween(L"Circle()", 0, 3, L"(point centre, double radius, list color) arguments");
+                std::shared_ptr<PointValue> centrePoint = std::make_shared<PointValue>(0, 0);
+                double radius = 1.0;
+                if (!this->functionCallParams.empty()) {
+                    this->requireArgType(L"circle centre", POINT_VARIABLE);
+                    interpreter_value passedCentrePoint = this->functionCallParams.front();
+                    this->functionCallParams.pop();
+                    auto passedCentrePointValue = std::get<std::shared_ptr<PointValue>>(passedCentrePoint);
+                    double xCoord = std::get<double>(*(passedCentrePointValue->getX().value));
+                    double yCoord = std::get<double>(*(passedCentrePointValue->getY().value));
+                    centrePoint = std::make_shared<PointValue>(xCoord, yCoord);
+                    if (!this->functionCallParams.empty()) {
+                        this->requireArgType(L"radius", DOUBLE_VARIABLE);
+                        interpreter_value passedRadius = this->functionCallParams.front();
+                        this->functionCallParams.pop();
+                        radius = std::get<double>(passedRadius);
+
+
+                        std::shared_ptr<ListValue> colorParam = this->consumeColorParam();
+                        if (colorParam) {
+                            this->lastResult = std::make_shared<FigureValue>(AssignableValue(centrePoint), radius, AssignableValue(colorParam));
+                            return;
+                        }
+                    }
+                }
+                this->lastResult = std::make_shared<FigureValue>(AssignableValue(centrePoint), radius);
+            }},
+        }
+    ),
+    internalListFunctions(
+        {
+            {L"append", [this](ListValue * listValue){
+                std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
+                while(!(funcCallParams.empty())) {
+                    AssignableValue value = AssignableValue(funcCallParams.front());
+                    listValue->append(value);
+                    funcCallParams.pop();
+                }
+                this->lastResult = listValue->shared_from_this();
+            }},
+            {L"delete", [this](ListValue * listValue){
+                this->requireArgNum(L".delete()", 1, L"(int index) argument");
+                this->requireArgType(L"removed index", INT_VARIABLE);
+                std::queue<interpreter_value> & funcCallParams = this->getFunctionCallParams();
+                interpreter_value value = funcCallParams.front();
+                funcCallParams.pop();
+                int removedIndex = std::get<int>(value);
+                if (listValue->len() <= removedIndex) {
+                    this->handleRuntimeError(this->funcCallPosition, L"Removed index out of range");
+                }
+                listValue->remove(removedIndex);
+                this->lastResult = listValue->shared_from_this();
+            }},
+            {L"len", [this](ListValue * listValue){
+                this->requireArgNum(L".len()", 0, L"no arguments");
+                this->lastResult = (int) listValue->len();
+            }},
+        }
+    ),
+    internalFigureFunctions(
+            {
+                {L"circ", [this](FigureValue * figureValue){
+                    this->requireArgNum(L".circ()", 0, L"no arguments");
+                    auto & points = figureValue->getPoints();
+                    auto radius = figureValue->getRadius().value;
+                    if (!std::holds_alternative<std::monostate>(*radius)) {
+                        double rVal = std::get<double>(*radius);
+                        this->lastResult = 2.0 * M_PI * rVal;
+                        return;
+                    }
+                    if (points.size() == 1) {
+                        this->lastResult = 0.0;
+                        return;
+                    }
+                    std::vector<PointValue *> orderedPoints;
+                    for (auto & namedPoint : points) {
+                        orderedPoints.push_back(std::get<std::shared_ptr<PointValue>>(*(namedPoint.second.value)).get());
+                    }
+                    double circ = 0.0;
+                    PointValue * prevPoint;
+                    PointValue * currentPoint;
+                    double p1_x;
+                    double p1_y;
+                    double p2_x;
+                    double p2_y;
+                    for (int i = 1; i<orderedPoints.size(); i++) {
+                        prevPoint = orderedPoints[i - 1];
+                        currentPoint = orderedPoints[i];
+                        p1_x = std::get<double>(*(currentPoint->getX().value));
+                        p1_y = std::get<double>(*(currentPoint->getY().value));
+                        p2_x = std::get<double>(*(prevPoint->getX().value));
+                        p2_y = std::get<double>(*(prevPoint->getY().value));
+                        circ += sqrt((p1_x - p2_x) * (p1_x - p2_x) + (p1_y - p2_y) * (p1_y - p2_y));
+                    }
+                    p1_x = std::get<double>(*(orderedPoints[0]->getX().value));
+                    p1_y = std::get<double>(*(orderedPoints[0]->getY().value));
+                    p2_x = std::get<double>(*(orderedPoints.back()->getX().value));
+                    p2_y = std::get<double>(*(orderedPoints.back()->getY().value));
+                    circ += sqrt((p1_x - p2_x) * (p1_x - p2_x) + (p1_y - p2_y) * (p1_y - p2_y));
+                    this->lastResult = circ;
+                }},
+                {L"area", [this](FigureValue * figureValue){
+                    this->requireArgNum(L".area()", 0, L"no arguments");
+                    auto & points = figureValue->getPoints();
+                    auto radius = figureValue->getRadius().value;
+                    if (!std::holds_alternative<std::monostate>(*radius)) {
+                        double rVal = std::get<double>(*radius);
+                        this->lastResult = M_PI_2 * rVal * rVal;
+                        return;
+                    }
+                    if (points.size() == 1) {
+                        this->lastResult = 0.0;
+                        return;
+                    }
+                    std::vector<PointValue *> orderedPoints;
+                    for (auto & namedPoint : points) {
+                        orderedPoints.push_back(std::get<std::shared_ptr<PointValue>>(*(namedPoint.second.value)).get());
+                    }
+                    double area = 0.0;
+                    PointValue * prevPoint;
+                    PointValue * currentPoint;
+                    double p1_x;
+                    double p1_y;
+                    double p2_x;
+                    double p2_y;
+                    for (int i = 1; i<orderedPoints.size(); i++) {
+                        prevPoint = orderedPoints[i - 1];
+                        currentPoint = orderedPoints[i];
+                        p1_x = std::get<double>(*(currentPoint->getX().value));
+                        p1_y = std::get<double>(*(currentPoint->getY().value));
+                        p2_x = std::get<double>(*(prevPoint->getX().value));
+                        p2_y = std::get<double>(*(prevPoint->getY().value));
+                        area += p1_x*p2_y - p1_y*p2_x;
+                    }
+                    p1_x = std::get<double>(*(orderedPoints[0]->getX().value));
+                    p1_y = std::get<double>(*(orderedPoints[0]->getY().value));
+                    p2_x = std::get<double>(*(orderedPoints.back()->getX().value));
+                    p2_y = std::get<double>(*(orderedPoints.back()->getY().value));
+                    area += p1_x*p2_y - p1_y*p2_x;
+                    area /= 2.0;
+                    this->lastResult = area;
+                }},
+                {L"scale", [this](FigureValue * figureValue){
+                    this->requireArgNum(L".scale()", 1, L"(double scale) argument");
+                    this->requireArgType(L"scale", DOUBLE_VARIABLE);
+                    auto & points = figureValue->getPoints();
+                    interpreter_value scaleParam = this->functionCallParams.front();
+                    this->functionCallParams.pop();
+                    double scale = std::get<double>(scaleParam);
+                    double p1_x;
+                    double p1_y;
+
+                    for (auto & namedPoint : points) {
+                        std::shared_ptr<PointValue> pointValue = std::get<std::shared_ptr<PointValue>>(*(namedPoint.second.value));
+                        p1_x = std::get<double>(*(pointValue->getX().value));
+                        p1_y = std::get<double>(*(pointValue->getY().value));
+                        p1_x *= scale;
+                        p1_y *= scale;
+                        *(pointValue->getX().value) = p1_x;
+                        *(pointValue->getY().value) = p1_y;
+                    }
+                    auto radius = figureValue->getRadius().value;
+                    if (!std::holds_alternative<std::monostate>(*radius)) {
+                        figureValue->setRadius(std::get<double>(*radius)*scale);
+                    }
+                    this->lastResult = figureValue->shared_from_this();
+                }},
+                {L"rotate", [this](FigureValue * figureValue){
+                    this->requireArgNum(L".rotate()", 2, L"(point rotationPoint, double angle) arguments");
+                    this->requireArgType(L"rotation point", POINT_VARIABLE);
+                    auto & points = figureValue->getPoints();
+                    interpreter_value rotationPoint = this->functionCallParams.front();
+                    this->functionCallParams.pop();
+                    PointValue * rotationPointVal = std::get<std::shared_ptr<PointValue>>(rotationPoint).get();
+                    double rotation_point_x = std::get<double>(*(rotationPointVal->getX().value));
+                    double rotation_point_y = std::get<double>(*(rotationPointVal->getY().value));
+                    this->requireArgType(L"rotation angle", DOUBLE_VARIABLE);
+                    interpreter_value angleParam = this->functionCallParams.front();
+                    this->functionCallParams.pop();
+                    double angle = std::get<double>(angleParam);
+                    double p1_x;
+                    double p1_y;
+                    double sin_rot = sin(angle);
+                    double cos_rot = cos(angle);
+
+                    for (auto & namedPoint : points) {
+                        std::shared_ptr<PointValue> pointValue = std::get<std::shared_ptr<PointValue>>(*(namedPoint.second.value));
+                        p1_x = std::get<double>(*(pointValue->getX().value));
+                        p1_y = std::get<double>(*(pointValue->getY().value));
+                        p1_x -= rotation_point_x;
+                        p1_y -= rotation_point_y;
+                        p1_x = p1_x * cos_rot - p1_y * sin_rot;
+                        p1_y = p1_x * sin_rot + p1_y * cos_rot;
+                        p1_x += rotation_point_x;
+                        p1_y += rotation_point_y;
+                        *(pointValue->getX().value) = p1_x;
+                        *(pointValue->getY().value) = p1_y;
+                    }
+                    this->lastResult = figureValue->shared_from_this();
+                }},
+                {L"transport", [this](FigureValue * figureValue){
+                    this->requireArgNum(L".transport()", 1, L"(point transportVector) argument");
+                    this->requireArgType(L"transport vector", POINT_VARIABLE);
+                    interpreter_value transportVector = this->functionCallParams.front();
+                    this->functionCallParams.pop();
+                    PointValue * transportVectorVal = std::get<std::shared_ptr<PointValue>>(transportVector).get();
+                    double transport_x = std::get<double>(*(transportVectorVal->getX().value));
+                    double transport_y = std::get<double>(*(transportVectorVal->getY().value));
+                    auto & points = figureValue->getPoints();
+                    double p1_x;
+                    double p1_y;
+
+                    for (auto & namedPoint : points) {
+                        std::shared_ptr<PointValue> pointValue = std::get<std::shared_ptr<PointValue>>(*(namedPoint.second.value));
+                        p1_x = std::get<double>(*(pointValue->getX().value));
+                        p1_y = std::get<double>(*(pointValue->getY().value));
+                        p1_x += transport_x;
+                        p1_y += transport_y;
+                        *(pointValue->getX().value) = p1_x;
+                        *(pointValue->getY().value) = p1_y;
+                    }
+                    this->lastResult = figureValue->shared_from_this();
+                }},
+                {L"copy", [this](FigureValue * figureValue){
+                    this->requireArgNum(L".copy()", 0, L"no arguments");
+                    auto & points = figureValue->getPoints();
+                    std::map<std::wstring, AssignableValue> newFigurePoints;
+                    auto color = std::get<std::shared_ptr<ListValue>>(*(figureValue->getColor().value))->getValues();
+                    int r = std::get<int>(*(color[0].value));
+                    int g = std::get<int>(*(color[1].value));
+                    int b = std::get<int>(*(color[2].value));
+                    ListValue newColor = ListValue(std::vector<AssignableValue>({AssignableValue(r), AssignableValue(g), AssignableValue(b)}));
+
+                    for (auto & namedPoint : points) {
+                        std::shared_ptr<PointValue> pointValue = std::get<std::shared_ptr<PointValue>>(*(namedPoint.second.value));
+                        double p1_x = std::get<double>(*(pointValue->getX().value));
+                        double p1_y = std::get<double>(*(pointValue->getY().value));
+                        std::shared_ptr<PointValue> newPoint = std::make_shared<PointValue>(p1_x, p1_y);
+                        newFigurePoints[namedPoint.first] = AssignableValue(newPoint);
+                    }
+                    this->lastResult = std::make_shared<FigureValue>(newFigurePoints, AssignableValue(std::make_shared<ListValue>(newColor)));
+                }},
+            }
+        ),
+        requiredTypeErrorMap(
+            {
+                    {INT_VARIABLE, [this](const Position &position, const interpreter_value &expressionValue,const std::wstring &errorMessage) {
+                        if (!std::holds_alternative<int>(expressionValue)) {
+                            this->handleRuntimeError(position, errorMessage);
+                        }
+                    }},
+                    {DOUBLE_VARIABLE, [this](const Position &position, const interpreter_value &expressionValue,const std::wstring &errorMessage) {
+                        if (!std::holds_alternative<double>(expressionValue)) {
+                            this->handleRuntimeError(position, errorMessage);
+                        }
+                    }},
+                    {BOOL_VARIABLE, [this](const Position &position, const interpreter_value &expressionValue,const std::wstring &errorMessage) {
+                        if (!std::holds_alternative<bool>(expressionValue)) {
+                            this->handleRuntimeError(position, errorMessage);
+                        }
+                    }},
+                    {NONE_VARIABLE, [this](const Position &position, const interpreter_value &expressionValue,const std::wstring &errorMessage) {
+                        if (!std::holds_alternative<std::monostate>(expressionValue)) {
+                            this->handleRuntimeError(position, errorMessage);
+                        }
+                    }},
+                    {STRING_VARIABLE, [this](const Position &position, const interpreter_value &expressionValue,const std::wstring &errorMessage) {
+                        if (!std::holds_alternative<std::wstring>(expressionValue)) {
+                            this->handleRuntimeError(position, errorMessage);
+                        }
+                    }},
+                    {POINT_VARIABLE, [this](const Position &position, const interpreter_value &expressionValue,const std::wstring &errorMessage) {
+                        if (!std::holds_alternative<std::shared_ptr<PointValue>>(expressionValue)) {
+                            this->handleRuntimeError(position, errorMessage);
+                        }
+                    }},
+                    {FIGURE_VARIABLE, [this](const Position &position, const interpreter_value &expressionValue,const std::wstring &errorMessage) {
+                        if (!std::holds_alternative<std::shared_ptr<FigureValue>>(expressionValue)) {
+                            this->handleRuntimeError(position, errorMessage);
+                        }
+                    }},
+                    {LIST_VARIABLE, [this](const Position &position, const interpreter_value &expressionValue,const std::wstring &errorMessage) {
+                        if (!std::holds_alternative<std::shared_ptr<ListValue>>(expressionValue)) {
+                            this->handleRuntimeError(position, errorMessage);
+                        }
+                    }},
+            }
+        )
+{
+};
