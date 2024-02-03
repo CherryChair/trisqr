@@ -1,93 +1,71 @@
-# Projekt TKOM
+# TriSqr language
 
-## Informacje wstępne
-Autor: **Michał Kowalczyk**
+## Description
 
-Nazwa języka: **TriSqr**
+TriSqr is interpreted dynamically and strongly typed langnuage created during TKOM classes at WUT. In addition to offering standard types it offers point type and figure type. Figures can be drawn in GTK window.
 
-Język realizacji: **c++**
+## Table of contents
 
-## Spis treści
-
-- [Projekt TKOM](#projekt-tkom)
-  - [Informacje wstępne](#informacje-wstępne)
-  - [Spis treści](#spis-treści)
-  - [Treść zadania](#treść-zadania)
-  - [Wymagania funkcjonalne](#wymagania-funkcjonalne)
-  - [Wymagania niefunkcjonalne](#wymagania-niefunkcjonalne)
-  - [Budowanie projektu](#budowanie-projektu)
-    - [Budowanie z testami.](#budowanie-z-testami)
-    - [Budowanie tylko pliku wykonywalnego interpretera](#budowanie-tylko-pliku-wykonywalnego-interpretera)
-  - [Uruchamianie programu](#uruchamianie-programu)
-  - [Obsługiwane typy zmiennych](#obsługiwane-typy-zmiennych)
-  - [Komentarze](#komentarze)
-  - [Tworzenie zmiennych](#tworzenie-zmiennych)
-  - [Instrukcja warunkowa](#instrukcja-warunkowa)
-  - [Pętle](#pętle)
+- [TriSqr language](#trisqr-language)
+  - [Description](#description)
+  - [Table of contents](#table-of-contents)
+  - [Building project](#building-project)
+    - [Building with tests](#building-with-tests)
+    - [Building without tests](#building-without-tests)
+  - [Running interpretes](#running-interpretes)
+  - [Variable types](#variable-types)
+  - [Comments](#comments)
+  - [Declaring variables](#declaring-variables)
+  - [Conditional statement](#conditional-statement)
+  - [loops](#loops)
   - [Funkcje](#funkcje)
-  - [Punkty](#punkty)
-  - [Tworzenie figur](#tworzenie-figur)
-  - [Wartości z ustalonym typem](#wartości-z-ustalonym-typem)
-  - [Metody i atrybuty figur](#metody-i-atrybuty-figur)
-    - [Współdzielone](#współdzielone)
-    - [Charakterystyczne](#charakterystyczne)
-  - [Opis błędów](#opis-błędów)
-    - [Błędy leksykalne](#błędy-leksykalne)
-    - [Błędy składniowe](#błędy-składniowe)
-    - [Błędy semantyczne](#błędy-semantyczne)
-    - [Błędy semantyczne](#błędy-semantyczne-1)
-    - [Błędy wykryte podczas wykonania](#błędy-wykryte-podczas-wykonania)
-    - [Błędy interpretera](#błędy-interpretera)
-  - [Operatory](#operatory)
-  - [Gramatyka](#gramatyka)
-  - [Testowanie](#testowanie)
-  - [Znane błędy implementacji](#znane-błędy-implementacji)
+  - [Points](#points)
+  - [Figures](#figures)
+  - [Values with fixed type](#values-with-fixed-type)
+  - [Figure attributes and methods](#figure-attributes-and-methods)
+    - [Shared](#shared)
+    - [Special](#special)
+  - [Error types](#error-types)
+    - [Lexical errors](#lexical-errors)
+    - [Syntax errors](#syntax-errors)
+    - [Semantic errors](#semantic-errors)
+    - [Runtime errors](#runtime-errors)
+    - [Intepreter errors](#intepreter-errors)
+  - [Operators](#operators)
+  - [Syntax EBNF](#syntax-ebnf)
+  - [Tests](#tests)
+  - [Known implementation errors](#known-implementation-errors)
+  - [TODO](#todo)
 
-## Treść zadania
+## Building project
 
-Język do opisu figur geometrycznych i ich właściwości. Podstawowe typy figur geometrycznych (trójkąt, prostokąt, romb, trapez, koło itd.) są wbudowanymi typami języka. Każdy typ posiada wbudowane metody służące do wyznaczania charakterystycznych dla niego wielkości, np. obwód, pole powierzchni, wysokość, średnica itp. Kolekcja figur tworzy scenę wyświetlaną na ekranie.
-
-## Wymagania funkcjonalne
-
-- możliwość rysowania wielu scen
-- możliwość rysowania figur w różnych kolorach 
-- możliwość wykonania kodu z pliku
-- komunikaty o błędach wyświetlają numer linii i znaku miejsca wystąpienia błędu
-
-## Wymagania niefunkcjonalne
-- leniwe odczytywanie strumienia danych
-- testowanie błędów
-- testowanie poprawności realizowania przykładów kodu
-
-## Budowanie projektu
-
-Instrukcje na dystrybucje na podstawie Debiana (testowane na WSL2 z Ubuntu 22.04.1 LTS).
-Wymagane narzędzia do budowania to cmake i make.
-Figury są rysowane w okienkach gtk przez cairo.
-- instalujemy gtk3 i cairomm-1.0
+Project was built on WSL2 with Ubuntu 22.0.1 LTS and instructions below are considering using same environment.
+Project is built using cmake.
+Figures are drawn in gtk windows using cairo.
+- install gtk3 and cairomm-1.0
 ```bash
 sudo apt install libcairomm-1.0-dev
 sudo apt install libgtk-3-dev
 ```
-### Budowanie z testami.
-- w folderze głównym repozytorium tworzymy folder googletest i przechodzimy do niego
+### Building with tests
+- in main project direcotry create googletest directry and enter it
 ```bash
 mkdir googletest
 cd googletest
 ```
-- pobieramy repozytorium googletest
+- clone googletest repository
 ```bash
 git clone https://github.com/google/googletest.git
 ```
-- zmieniamy nazwę foleru zawierającego repozytorium
+- change downloaded repository dir name to lib 
 ```bash
 mv googletest lib
 ```
-- tworzymy plik `CMakeLists.txt`
+- create `CMakeLists.txt`
 ```bash
 touch CMakeLists.txt
 ```
-- wypełniamy go treścią
+- copy text below to newly created `CMakeLists.txt`
 ```cmake
 # 'Google_test' is the subproject name
 project(Google_tests)
@@ -103,7 +81,7 @@ pkg_check_modules(GTK3 REQUIRED IMPORTED_TARGET gtk+-3.0)
 add_executable(Google_Tests_run ../Tests/interpreter_tests.cpp ../Tests/parser_tests.cpp ../Tests/lexer_tests.cpp ../Lexer/lexer.cpp ../Lexer/lexer.h ../Lexer/Token.cpp ../Lexer/Token.h ../ErrorHandler/ErrorHandler.cpp ../ErrorHandler/ErrorHandler.h ../Parser/Parser.cpp ../Parser/Parser.h ../Program/Program.cpp ../Program/Program.h ../Visitors/Visitor.cpp ../Visitors/Visitor.h ../Lexer/position.h ../Lexer/lexer_error_types.h ../Visitors/VisitorTree.cpp ../Visitors/VisitorTree.h ../Visitors/VisitorInterpreter.cpp ../Visitors/VisitorInterpreter.h)
 target_link_libraries(Google_Tests_run gtest gtest_main PkgConfig::CAIROMM PkgConfig::GTK3)
 ```
-- wracamy do głównego folderu projektu, tworzymy katalog, gdzie projekt się zbuduje i go budujemy
+- return to main project direcotry, create build directory and build project
 ```bash
 cd ..
 mkdir cmake-build-debug
@@ -111,70 +89,70 @@ cd cmake-build-debug
 cmake ..
 make
 ```
-### Budowanie tylko pliku wykonywalnego interpretera
-- w pliku `CMakeLists.txt` zakomenujemy linijkę dotyczącą testów
+### Building without tests
+- in file `CMakeLists.txt` comment out line adding test subdirectory
 ```cmake
 # add_subdirectory(googletest)
 ```
-- tworzymy katalog, gdzie projekt się zbuduje i go budujemy
+- create build directory and build project
 ```bash
 mkdir cmake-build-debug
 cd cmake-build-debug
 cmake ..
 make
 ```
-## Uruchamianie programu
+## Running interpretes
 
-Plik wykonywalny interpretera `trisqr` buduje się w foldere `cmake-build-debug`. Przyjmuje 1 arguemnt, który jest ścieżką do pliku tekstowego zawierającego kod źródłowy w języku **trisqr**. Niestety na niektórych środowiskach polskie znaki przeszkadzają lexerowi w budowaniu tokenów, więc zaleca się używanie 
+Interpreter executable file `trisqr` is built inside directory `cmake-build-debug`. When executing it we pass 1 argument, which is path to text file containing source code in **TriSqr** language. On some environments there is a problem with recognition of UTF-8 signs, so it is recommended to use only ASCII signs.  
 
-Plik wykonywalny testów to `cmake-build-debug/googletest/Google_Tests_run`.
+Test executable path is `cmake-build-debug/googletest/Google_Tests_run`.
 
-Przykładowe programy z kodem źródłowym **trisqr** w znajdują się w folderze `Examples` i `Tests`.
+Inside `Examples` and `Tests` subdirectories, there are examples of source code of **TriSqr**.
 
-W `Examples` znajdują się:
-- `example_program.trsqr` - program obrazujący kolejne wartości ciągów 1/n i 1/n^2 
-- `triangles.trsqr` - program rysujący coraz mniejsze trójkąty w różnych kolorach
-- `parser_basic.trisqr` - zawiera testy podstawowych funkcjonalności języka
-- `test.trqisqr` - zawiera testy dostępów do list i usuwania ich elementów, kończy się błędem
-- `fibonacci.trisqr` - zawiera implementację rekurencyjną i z użyciem pętli for funkcji wyliczającej wartości ciągu Fibonacciego
+`Examples` contains:
+- `example_program.trisqr` - program visualising values of 1/n and 1/n^2 
+- `triangles.trisqr` - program drawing smaller and smaller triangles in different colors
+- `parser_basic.trisqr` - testing basic functionality of language like assignements, mutability etc.
+- `test.trisqr` - contatins test of access and manipulation of list elements
+- `fibonacci.trisqr` - contains implementation of fibonacci sequence elements calculation using for loop and recursion
 
-W `Tests` znajdują się:
-- `semantic_hell.trisqr` - plik zawierający dużo błędów semantycznych, testuje działanie analizatora semantycznego 
-- `parser_condition_tests.trisqr` - plik testujący ewaluację wyrażeń z `||` i `&&`, jest on wykorzystywany w interpreter_tests.cpp
+`Tests` contains:
+- `semantic_hell.trisqr` - file containing multitude of semantic errors, temporarily used to test semantic analysis
+- `parser_condition_tests.trisqr` - file testing evaluation of `||` and `&&` expression, used in interpreter_tests.cpp
 
-## Obsługiwane typy zmiennych
+## Variable types
 
-Wariant typowania: dynamiczne, silne.
+**TriSqr** variables can change type during runtime, but comparisons, additions and simliar operations can only be performed between variables of same type.
 
-Typy:
-- liczbowe:
-  - całkowita
-  - zmiennoprzecinkowa
-- boolowska
-- napis
-- lista
-- figura
-- punkt 
-- pusta wartość none
+Types:
+- number types:
+  - int
+  - double
+- bool
+- string
+- list
+- figure
+- point 
+- none
   
-Lista przyjmuje dowolne typy. Dwie listy można łączyć za pomocą "+", ta operacja zwraca nową listę będącą złączeniem 2 list. Poszeczególne elementy indeksowane sa od 0 i dostajemy się do nich za pomocą nawiasów kwadratowych ```list[i]```.
-Metody listy:
-- ```.append(el)``` - dodaje element na koniec listy
-- ```.delete(index)``` - usuwa element o indeksie ```index```
-- ```.len()``` - zwraca ilość elementów listy
+Lists can store any type, even itself. Two lists can be concatenated with "+", which returns new list with elements of second list after elements of first. Elements are indexed from 0 and can be accessed using square brackets ```list[i]```.
+List methods:
+- ```.append(el1, el2, ...)``` - puts elements in function call at the end of the list 
+- ```.delete(index)``` - deletes element on ```index``` position
+- ```.len()``` - returns number of elements in list
 
-Zmienne typu str można konkatenować za pomocą "+".
+Strings can be concatenated using "+".
 
-Zmienne typu:
+Variables of type:
 - `point`
 - `list`
 - `figure`
 
-są mutowalne.
+are mutable.
 
-Przez silne typowanie wymagane jest wprowadzenie możliwości konwersji typów. Będziemy to robić za pomocą operatora ```to```, przy zmianie zmiennej *variable* na typ *type*: ```*variable* to *type*```.
+Type of varaible can be converted using ```to``` keyword: ```*variable* to *type*```.
 
-Możliwe konwersje typów:
+Supported type converion:
 - ```int to double```
 - ```int to bool```
 - ```double to int```
@@ -183,85 +161,84 @@ Możliwe konwersje typów:
 - ```bool to double```
 - ```str to int```
 - ```str to double```
-- wszystkie typy mają reprezentację w postać `str`
+- every type can be converted to `str`
 
-Wprowadzimy też wygodne sprawdzanie typów zmiennych: ``` *variable* is *type*```.
+Type of variable can be checked using: ``` *variable* is *type*```.
 
-## Komentarze
+## Comments
 
-Komentarz od "#" do końca linii.
+Comments are from "#" to end of line.
 
-## Tworzenie zmiennych
+## Declaring variables
 
-Deklaracja zmiennej:
+Variable declaration:
 ```
-vv nazwa_zmiennej
+vv variable_name
 ```
-Wartości zmiennych są przechowywane przez referencje.
-Nie ma możliwości tworzenia zmiennych globalnych.
+Variables are stored using pointers.
 
-## Instrukcja warunkowa
+## Conditional statement
 
-Instrukcja warunkowa ma postać:
+Conditional statement has form:
 ```
-if (wyrażenie bool) { 
-  *kod*
-} elif (wyrażenie bool) {
-  *kod*
+if (bool expression) { 
+  *code*
+} elif (bool expression) {
+  *code*
 } else{
-  *kod*
+  *code*
 }
 ```
 
-## Pętle
-Pętla while:
+## loops
+While loop:
 ```
-while (wyrażenie bool) {
-    *kod*
+while (bool expression) {
+    *code*
 }
 ```
-Będą 2 pętle for:
+There are 2 types of for loops:
 ```
 for el in list {
-  *kod*
+  *code*
 }
 ```
-iteracja po elementach "el" listy "list".
+iterates through elements "el" of list "list".
 ```
 for i in range(s,k){
-  *kod*
+  *code*
 }
 ```
-"i" przyjmuje kolejne wartości od "s" do "k" z wyłączeniem k.
+"i" takes subsequent values of integers from "s" to "k" excluding "k".
 
 ## Funkcje
 
-Funkcje będą definiowane za pomocą:
+Function definition:
 ```
-func NazwaFunkcji(a, b, c){
-    *kod*
+func FunctioName(a, b, c){
+    *code*
 }
 ```
-Może istniejć tylko jedna funkcja o danej nazwie, a program wykonuje się od funkcji `main`.
+Function with same names are not allowed, program execution starts from `main`.
 
-Jest możliwość rekursji. Nie trzeba podawać return na końcu funkcji, wtedy automatycznie zwraca wartość `none`, tak samo jak przy napisaniu `return;`. W przypadku odwołania się do funkcji można podać mniej argumentów niż jest w deklaracje, wtedy parametry bez podanych wartości przyjmują wartości `none`.
+Functions can be recursive. If there is no return statement at the end of function, function returns `none`, `none` can also be returned using `return;`. When calling function with fewer params than in declaration, params not in function call are assigned `none` value.
 
-Istnieją wbudowane funkcje:
-- `print(variable)` - przyjmuje 1 argument dowolnego typu, wysyła na standardowe wyjście reprezentacje `variable`
+Built-in functions:
+- `print(variable)` - takes 1 pram of any type, sends to standard output string representation of `variable`
 - `printn(variable)` - print + `'\n'`
-- `input()` - przyjmuje podane przez użytkownika napisy ze standardowego wejścia, pobiera napis do najbliższego białego znaku
-- `draw(list, p1, p2)` - otwiera okienko z narysowanymi figurami geometrycznymi zawartymi w liście, ignoruje elementy listy niebędące figurami, rysowana scena jest rozpięta w prostokącie, którego przeciwległe wierzchołki to p1 i p2, p1 lew dolny róg, p2 prawy górny.
+- `input()` - takes user input from standard input, gets string to neares white sign and returns it
+- `draw(list, p1, p2)` - opens gtk window with figures in list, drawn scene is in shape of rectangle with corners p1 and p2, p1 - left bottom corner, p2 - upper right corner.
 
-## Punkty
+## Points
 
-Istnieje zmienna typu ```point```, punkt zawiera współrzędną ```x``` i ```y``` o wartościach double. Tworzymy ją tak ```(x, y)```. Do jego wartości moża się dostać za pomocą ```.x``` i ```.y```. Punkty można dodawać i odejmować.
+Variable of type ```point``` contains coordinates ```x``` and ```y``` which are of type `double`. Points are created by ```(x, y)```. Coordinate values can be accessed by ```.x``` and ```.y```. Points can be subtracted and added using `+` and `-`.
 
-## Tworzenie figur
+## Figures
 
-Typy figur są tworzone za pomocą deklaracji 
+`Figures` are declated in this way:
 ```figure <Identifier> {<point_name>:<default_point_value>, <point_name>:<default_point_value>, ..., <point_name>:<default_point_value>, color:<defalut_color_value>}```
 
-Np.
+For example:
 ```
 figure Triangle{
   a: (0.0,0.0),
@@ -270,75 +247,70 @@ figure Triangle{
   color: [255,0,0]
 }
 ```
-Deklaracje podajemy poza funkcjami, punkty mogą zawierać w sobie wyrażenia, które są ewaluowane na początku działania programu przed funkcją main.
-Tak zadeklarowaną figurę tworzymy za pomocą ```vv triangle1 = Triangle((x1,y1), (x2,y2), (x3,y3), [r,g,b])```, możemy pominąć kolor w parametrach albo wszystkie parametry ```vv triangle2 = Triangle()```, wtedy jest tworzona z domyślnymi wartościami punktów z deklaracji. Potem możemy dostawać się do punktów za pomocą nazw nadanych w deklaracji. Np. ```triangle1.a```. 
+Declarations are placed outside of function definitions, figure points can include expressions, which are evaluated at the begging of execution before main.
+Declated figure can be assigned using ```vv triangle1 = Triangle((x1,y1), (x2,y2), (x3,y3), [r,g,b])```, color can be skipped or all params can be skipped ```vv triangle2 = Triangle()```, whene params are skipped created figure params take values default values from declaration. Figure params can be accessed with `.`, for example ```triangle1.a```. 
 
-Figury będą rysowane przez tworzenie linii między kolejno zadeklarowanymi punktami, np. w przykładowym ```Triangle```, rysujemy linie a->b, b->c, c->b.
+FIgures are drawn by draing lines between vertices form declaration in order they are placed in declaration, for example in ```Triangle``` from before lines are drawn between: a->b, b->c, c->b.
 
-Dodatkowo wprowadzona jest figura ```Circle```. Nowe koło jest tworzone przez: ```Circle(<middle_point>, <radius>)``` lub ```Circle()```, które tworzy koło jednostkowe o środku w punkcie ```(0,0)```. Można też podać kolor.
+There is additional ```Circle``` built-in figure. It's created with: ```Circle(<middle_point>, <radius>)``` or ```Circle()```, which creates unit circle in ```(0,0)```. Color value can also be passed to ```Circle``` constructor.
 
-## Wartości z ustalonym typem
+## Values with fixed type
 
-Istnieje 5 rodzajów wartości, które powodują wystąpienie wyjątku przy próbie zapisu do nich innej wartości nieodpowiedniego typu.
-- punkt - przechowuje tylko wartości double
-- punkt figury - przy próbie zapisu innej wartości niż punkt mamy wyjątek
-- promień - szczególny parametr Circle(), tylko wartość double
-- kolor figury - lista 3 int od 0 do 255
-- parametr koloru figury - int od 0 do 255
+There are 5 special values, that cause runtime error when program tries to change their value to type that is forbidden.
+- point coordinates - only double
+- figure point - only point value
+- radius - only double
+- figure color - list of 3 integers from 0 dto 255
+- figure color param - integer from 0 to 255
 
-## Metody i atrybuty figur
+## Figure attributes and methods 
 
-### Współdzielone
+### Shared
 
-Metody:
-- .<nazwa_punktu_z_deklaracji> - punkt 
-- .circ() - zwraca obwód
-- .area() - zwraca pole liczone metodą trapezów, dla figur samoprzecinających się wyniki będą niepoprawne
-- .scale(double scale) - skaluje figurę w stosunku do początku układu współrzędnych o skalę scale
-- .rotate((double x1, double y1), double angle) - obraca figurę wokół początku układu współrzędnych o kąt angle podawany w radianach, ##nie zachachowuje kształtu figury
-- .transport(double x, double y) - przesuwa figurę o wektor (x, y)
-- .copy() - zwraca kopię danej figury
+Methods:
+- .circ() - returns circumference of figure
+- .area() - returns area of figure calculated using trapezoid method, for figures that are irregular and their sides have common points calculated area won't be correct
+- .scale(double scale) - scales figure `scale` times from `(0, 0)` point
+- .rotate((double x1, double y1), double angle) - rotates figure vertices around `(x1, y1)` by `angle` in radians, **doesn't keep figure shape**
+- .transport(double x, double y) - transports figure by vector `(x, y)`
+- .copy() - returns copy of figure variable
 
 Parametry:
-- color - [int r, int g, int b] kolor linii figury w RGB, domyślnie ustawiane na [0,0,0]
+- .<name_of_point_in_declaration> - vertex of figure
+- color - [int r, int g, int b] colors of lines in RGB, default to black - [0,0,0]
 
-### Charakterystyczne
+### Special
 
 - koło:
-  - .r - parametr oznaczający promień
-  - .c - parametr oznaczający środek 
+  - .r - radius of circle
+  - .c - centre of circle
 
-## Opis błędów
+## Error types
 
-### Błędy leksykalne
-Analiza leksykalna sprawdza, czy udało się poprawnie stworzyć token, w przypadku wystąpienia zbyt długiego napisu, komentarza lub liczby tworzy token z maksymalną dozwoloną liczbą analizowanych znaków, ostrzega o tworzeniu zbyt dużych liczb całkowitych lub zmiennoprzecinkowych.
+### Lexical errors
+Lexcial analysis check whether token was created correctly and in case of too long string, comment or number token is created with signs that are below size limit, if next limit is breached lexical analysis stops and error is thrown.
 
-### Błędy składniowe
+### Syntax errors
 
-Po wykryciu błędu parser rzuca wyjątek.
+Error is thrown on first detected syntactic error. 
 
-### Błędy semantyczne
+### Semantic errors
 
-Sprawdzane są ponowne deklaracje identyfikatorów, braki deklaracji identyfikatorów i ustawianie nazwy identyfikatorów na nazwy funkcji i metod wewnętrznych. Analizator semantyczny rzuca wyjątek po przeanalizowaniu całego programu i wypisaniu wykrytych błędów.
+During semantic analysis we check undeclared identifiers, duplicate identifier declarations, identifiers with names of built-in functions, calls to methods that aren't built-in. Error is thrown after whole file is analyzed.
 
-### Błędy semantyczne
+### Runtime errors
 
-Sprawdzane są ponowne deklaracje identyfikatorów, braki deklaracji identyfikatorów i ustawianie nazwy identyfikatorów na nazwy funkcji i metod wewnętrznych. Analizator semantyczny rzuca wyjątek po przeanalizowaniu całego programu i wypisaniu wykrytych błędów.
+Errors are thrown when we try to access elements out of list range, compare, add, subtract, divide, multiply forbidden values. There are also errors which are thrown when we pass too many values to fucntion, values that are not allowed in built-in function or when we try to change value in points or figures to different type. 
 
-### Błędy wykryte podczas wykonania
+### Intepreter errors
 
-Błędy wykonania są zgłaszane, jeśli się odwołamy do nieistniejących elementów listy, porównamy, dodamy lub pomnożymy nieprawidłowe wartości. Pojawiają się też jeśli przypiszemy wartości niedozwolone odpowiednim zmiennym oraz w przypadku, gdy użyjemy nieodpowiednich argumentów we wbudowanych metodach i funkcjach. 
+If there is expression value missing in place where it is expected to exist, interpreter error is thrown. Interpreter error is a signal of errors in language implmentation.
 
+## Operators
 
-### Błędy interpretera
+Higher number means higher priority.
 
-W przypadku braku wartości wyrażenia pomimo oczekiwania jej przez interpreter, jest sygnalizowany błąd interpretera, oznacza on bład w implementacji.
-
-## Operatory
-
-Im większa liczba, tym wyższy priorytet.
-
-|Operator|Priorytet|
+|Operators|Priority|
 |---|---|
 |  &#124;  &#124;  | 1  |
 | &&  |  2  |
@@ -352,7 +324,7 @@ Im większa liczba, tym wyższy priorytet.
 | [ ]  |  10 |
 | ( )  |  11 |
 
-## Gramatyka
+## Syntax EBNF
 ```   
 - Program                            :== {FuncDeclaration | FigureDeclaration};
 - FuncDeclaration                    :== "func ", identifier, "(", decl_argument_list, ")", CodeBlock;          
@@ -432,19 +404,27 @@ Im większa liczba, tym wyższy priorytet.
 - digit                              :==  digit_without_zero | "0";
 - digit_without_zero                 :== [1-9]
 ```           
-## Testowanie
+## Tests
 
-Biblioteka użyta do testowania to w googletest. 
+Tests are made using googletest library.
 
-Testy jednostkowe zostały zaimplementowane w dużym stopniu dla analizatora leksykalnego w `Tests/lexer_tests.cpp`. Sprawdzane są wartości tokenów, ich pozycje i komunikaty o błędach.
+Unit tests for Lexical analyzer are almost finished. They're placed in `Tests/lexer_tests.cpp`. Lexer test check values of tokens, positions and errors.
 
-W przypadku analizatora składniowego zaimplementowane są odpowiednie funkcje do porównywania drzew rozbioru składniowego i jest zrobiony przykładowy test w `Tests/parser_tests.cpp`.
+In case of parser comparison of ASTs is implemented and there is an exapmle test in `Tests/parser_tests.cpp`.
 
-W przypadku analizatora semantycznego testy były przeprowadzane przez analizę komunikatów o błedach w pliku `Tests/semantic_hell.trisqr`.
+Semantic analyzer is tested by reading errors in standard output which are generated when trying to run code in file `Tests/semantic_hell.trisqr`.
 
-Istnieje możliwość tworzenia testów akceptacyjnych dla interpretera, w `interpreter_tests.cpp` jest jeden przykładowy test sprawdzający kolejność i wczesne akceptowanie wyniku podczas ewaluacji wyrażeń logicznych. Wykonuje on program, którego kod źródłowy jest w `Tests/parser_condition_tests.cpp`, testowane jest, czy program przekazuje na standadowe wyjście napisy PASS oddzielone nowymi linijkami.
+There is an exapmle acceptance test for interpreter in `interpreter_tests.cpp`. It check whether conditional expressions are evaluated in correct order and whether evaluation is stopped when result is known. It executes program in `Tests/parser_condition_tests.cpp`, which prints out `PASS` for each test.
 
-## Znane błędy implementacji
+## Known implementation errors
 
-- w przypadku wystąpienia nierozpoznanego zanku, parser wykrywa koniec funkcji i kończy analize ogłaszając błąd składniowy
-- w przypadku tworzenia figury i natychmiastowego jej skalowania figura z przypisaną wartością `vv a = Trianlge().scale(2.0)` pojawia się błąd złego dostępu do wariantu, wartości przechowywane w punktach są niezaincjalizowane
+- In case of unknown sign in text file parser finishes analysis on it 
+- In case when we call figure construtor and try to use scale on it at the same time `vv a = Trianlge().scale(2.0)` there is a bad variant access error values in points of figure are uninitialized
+- When having duplicate function or figure decalrations there is semantic message but program just ignores on of declarations
+
+## TODO
+
+- make AST nodes params private and implement getters
+- implment more tests
+- change way of passing and storing values
+- implement operation visitors for 2 interpreter_value 
